@@ -1,0 +1,35 @@
+/* 
+ * THEME – màu sắc, font chữ, bo góc dùng chung toàn ứng dụng.
+ * Muốn đổi giao diện (màu thương hiệu, font, chế độ tối) → sửa file này trước.
+ *   --teal   : màu chính (nút bấm, thanh tiến độ)
+ *   --ink    : màu chữ;  --paper : màu nền trang;  --surface : màu nền thẻ/bảng
+ *   --side   : màu thanh menu bên trái
+ *   --font   : font chữ (đổi cả dòng <link> Google Fonts trong index.html nếu đổi font)
+  */
+:root{
+  --ink:#15253B; --ink-2:#44546A; --ink-3:#7A8699;
+  --paper:#F2F4F1; --surface:#FFFFFF; --line:#DDE2DC; --line-2:#ECEFEA;
+  --side:#15253B; --side-ink:#C9D3DF; --side-active:#FFFFFF;
+  --teal:#0E7C7B; --teal-soft:#D5ECEA; --indigo:#4B5BA6; --ochre:#B7791F; --grey:#8A94A3;
+  --ok:#2F8F5B; --ok-soft:#DCEFE3; --warn:#C9860A; --warn-soft:#FBEFD2; --bad:#C0392B; --bad-soft:#F8DEDA;
+  --focus:#0E7C7B;
+  --font:"Be Vietnam Pro", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ink:#E6EBF1; --ink-2:#B3BDC9; --ink-3:#8793A2;
+    --paper:#10171F; --surface:#18212C; --line:#2A3542; --line-2:#212B37;
+    --side:#0B1118; --side-ink:#9AA8B8;
+    --teal:#35B3AE; --teal-soft:#16393A; --indigo:#8C9BE0; --ochre:#E0A94A; --grey:#8E99A8;
+    --ok:#55C08A; --ok-soft:#173526; --warn:#E6AA3A; --warn-soft:#3A2E14; --bad:#EE6A5B; --bad-soft:#3E1D1A;
+  }
+}
+:root[data-theme="dark"]{
+  --ink:#E6EBF1; --ink-2:#B3BDC9; --ink-3:#8793A2;
+  --paper:#10171F; --surface:#18212C; --line:#2A3542; --line-2:#212B37;
+  --side:#0B1118; --side-ink:#9AA8B8;
+  --teal:#35B3AE; --teal-soft:#16393A; --indigo:#8C9BE0; --ochre:#E0A94A; --grey:#8E99A8;
+  --ok:#55C08A; --ok-soft:#173526; --warn:#E6AA3A; --warn-soft:#3A2E14; --bad:#EE6A5B; --bad-soft:#3E1D1A;
+}

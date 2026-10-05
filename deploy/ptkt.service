@@ -1,0 +1,23 @@
+[Unit]
+Description=Phong Ky thuat - Quan tri cong viec va nguon luc
+After=network.target mariadb.service
+Wants=mariadb.service
+
+[Service]
+Type=simple
+User=ptkt
+Group=ptkt
+WorkingDirectory=/opt/ptkt
+EnvironmentFile=/opt/ptkt/.env
+ExecStart=/usr/bin/node /opt/ptkt/server.js
+Restart=always
+RestartSec=3
+# Bảo mật
+NoNewPrivileges=true
+ProtectSystem=full
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/var/lib/ptkt
+
+[Install]
+WantedBy=multi-user.target

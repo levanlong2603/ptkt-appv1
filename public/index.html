@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>NGSI · Phòng Kỹ thuật – Quản trị công việc và nguồn lực</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect width=%2232%22 height=%2232%22 rx=%227%22 fill=%22%230B2A5B%22/%3E%3Cpath d=%22M8 22l5-6 4 4 7-9%22 stroke=%22%2335B3AE%22 stroke-width=%223%22 fill=%22none%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22/%3E%3C/svg%3E">
+<link rel="stylesheet" href="css/theme.css">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/dashboard.css">
+<!-- CSS của module mở rộng đặt ở đây -->
+
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <div class="brand"><b>Phòng Kỹ thuật</b><span>Theo dõi công việc &amp; nguồn lực</span></div>
+    <nav class="nav" id="nav" aria-label="Điều hướng"></nav>
+    <div class="side-foot">
+      <label for="meSel">Tôi là</label>
+      <select id="meSel" aria-label="Tôi là"></select>
+      <div class="conn"><i class="dot" id="connDot"></i><span id="connTxt">Đang kết nối…</span></div>
+      <div class="userbox" id="userBox" hidden></div>
+    </div>
+  </aside>
+  <main id="main"><div class="page"><div class="empty"><b>Đang tải dữ liệu…</b></div></div></main>
+</div>
+<div id="layer"></div>
+<script src="js/core/utils.js"></script>
+<script src="js/core/constants.js"></script>
+<script src="js/core/state.js"></script>
+<script src="js/core/model.js"></script>
+<script src="js/core/data.js"></script>
+<script src="js/core/export.js"></script>
+<script src="js/core/ui.js"></script>
+<script src="js/views/exec-dashboard.js"></script>
+<script src="js/views/project-overview.js"></script>
+<script src="js/views/weekly-load.js"></script>
+<script src="js/views/weekly-input.js"></script>
+<script src="js/views/plan.js"></script>
+<script src="js/views/settings.js"></script>
+<script src="js/views/help.js"></script>
+<script src="js/core/server.js"></script>
+<script src="js/core/events.js"></script>
+<!-- ===== MODULE MỞ RỘNG: thêm <script src="js/modules/ten-module.js"></script> ngay dưới dòng này ===== -->
+
+<!-- ===== luôn để main.js cuối cùng ===== -->
+<script src="js/main.js"></script>
+</body>
+</html>

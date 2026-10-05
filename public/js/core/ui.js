@@ -1,0 +1,111 @@
+"use strict";
+/* Khung giao diện: menu, vẽ màn hình, thành phần dùng chung, form trượt (drawer) */
+/* ================= shell ================= */
+function renderNav(){
+  document.getElementById("nav").innerHTML = VIEWS.map(v => v.sep ? '<div class="sep"></div>' :
+    `<button data-view="${v.id}" ${S.view===v.id?'aria-current="page"':''} title="${esc(v.label)}">${ICONS[v.icon]}<span>${esc(v.label)}</span></button>`).join("");
+  const ub = document.getElementById("userBox");
+  if(S.user){ ub.hidden = false; ub.innerHTML = `<b>${esc(S.user.display_name)}</b><span>${S.user.role==="admin"?"Trưởng phòng":"Nhân viên"}</span><div class="acts"><button data-uact="pw">Đổi mật khẩu</button><button data-uact="out">Đăng xuất</button></div>`; }
+  const sel = document.getElementById("meSel");
+  sel.disabled = !!(S.user && S.user.role!=="admin");
+  const names = S.staff.map(s=>s.name);
+  sel.innerHTML = '<option value="">— chọn tên —</option>' + names.map(n=>`<option ${n===S.me?"selected":""}>${esc(n)}</option>`).join("");
+}
+document.getElementById("nav").addEventListener("click", e => { const b=e.target.closest("button[data-view]"); if(!b) return; S.view=b.dataset.view; store("view",S.view); render(); document.getElementById("main").scrollTop=0; });
+document.getElementById("meSel").addEventListener("change", e => { S.me=e.target.value; store("me",S.me); render(); });
+
+function render(){
+  M = derive();
+  renderNav();
+  const main = document.getElementById("main");
+  let html = "";
+  const banner = S.conn==="off" ? `<div class="banner">Không kết nối được máy chủ. Kiểm tra mạng hoặc báo quản trị hệ thống.</div>` : "";
+  if((S.conn==="on"||S.conn==="local") && !S.loaded) html = `<div class="empty"><b>Đang tải dữ liệu…</b></div>`;
+  else html = (VIEW_RENDER[S.view] || VIEW_RENDER.dash || (() => ""))();
+  main.innerHTML = `<div class="page">${banner}${html}</div>`;
+}
+
+
+/* ================= shared pieces ================= */
+function strip(p){
+  if(!p._phases.length) return '<span class="muted small">–</span>';
+  return `<div class="strip" role="img" aria-label="Tiến độ theo giai đoạn">` + p._phases.map(ph => {
+    const v = ph.v; const cls = v==null ? "none" : v>=1 ? "full" : v>0 ? "part" : "";
+    const tip = `${ph.code}. ${ph.name}: ${v==null?"không có đầu việc":pct(v)+" hoàn thành"}`;
+    return `<div class="seg ${cls}" title="${esc(tip)}"><i style="height:${v==null?0:Math.round(v*100)}%"></i><b>${esc(ph.code)}</b></div>`;
+  }).join("") + `</div>`;
+}
+function stPill(st){
+  const c = {"Hoàn thành":"ok","Đang làm":"info","Đang vướng":"bad","Tạm dừng":"mute","Hủy":"mute","Chưa bắt đầu":"mute"}[st]||"mute";
+  return `<span class="pill ${c}">${esc(st||"–")}</span>`;
+}
+function warnPills(ws){ return ws.map(w=>`<span class="pill ${w[0]}">${esc(w[1])}</span>`).join(" "); }
+function weekNav(){
+  const w=S.week, isNow = w===mondayOf(todayISO());
+  return `<div class="toolbar"><div class="weeknav">
+    <button class="btn ghost icon" data-act="wk" data-d="-7" aria-label="Tuần trước">‹</button>
+    <div class="lbl">Tuần ${isoWeek(w)}<small>${dm(w)} – ${dmy(addDays(w,6))}</small></div>
+    <button class="btn ghost icon" data-act="wk" data-d="7" aria-label="Tuần sau">›</button></div>
+    ${isNow?"":'<button class="btn" data-act="wk" data-d="0">Tuần này</button>'}</div>`;
+}
+function typeDot(t){ return `<span class="tdot" style="background:${TYPE_COLOR[t]||"var(--grey)"}"></span>`; }
+
+
+
+/* ================= form drawer ================= */
+function openForm(cfg){
+  const layer = document.getElementById("layer");
+  const vals = {...cfg.values};
+  const prevFocus = document.activeElement;
+  const optsOverride = {};
+  const fieldHTML = f => {
+    if(f.heading) return `<h3 style="margin:22px 0 12px; padding-top:14px; border-top:1px solid var(--line)">${esc(f.heading)}</h3>`;
+    const id = "f_"+f.key, v = vals[f.key];
+    const hint = typeof f.hint==="function" ? f.hint(v, vals) : (f.hint||"");
+    let ctl = "";
+    if(f.type==="text"||f.type==="number"||f.type==="password") ctl = `<input class="inp" id="${id}" type="${f.type==="number"?"number":f.type==="password"?"password":"text"}" ${f.type==="password"?'autocomplete="new-password"':""} value="${esc(v??"")}" ${f.required?"required":""}>`;
+    else if(f.type==="date") ctl = `<input class="inp" id="${id}" type="date" value="${esc(v||"")}">`;
+    else if(f.type==="textarea") ctl = `<textarea class="inp" id="${id}">${esc(v||"")}</textarea>`;
+    else if(f.type==="check") ctl = `<label style="display:flex;gap:8px;align-items:center;font-weight:500;color:var(--ink)"><input type="checkbox" id="${id}" ${v?"checked":""}> ${esc(f.label)}</label>`;
+    else if(f.type==="select"){ const opts = optsOverride[f.key] || f.options; ctl = `<select class="inp" id="${id}">${opts.some(o=>o[0]===""||o[0]==null)?"":'<option value="">— chọn —</option>'}${opts.map(o=>`<option value="${esc(o[0]??"")}" ${String(o[0]??"")===String(v??"")?"selected":""}>${esc(o[1])}</option>`).join("")}</select>`; }
+    else if(f.type==="seg") ctl = `<div class="seg-in" role="group" aria-label="${esc(f.label)}">${f.options.map(o=>`<button type="button" data-k="${f.key}" data-v="${esc(JSON.stringify(o[0]))}" aria-pressed="${JSON.stringify(o[0]??null)===JSON.stringify(v??null)}" ${f.disabled?"disabled":""}>${esc(o[1])}</button>`).join("")}</div>`;
+    return `<div class="field" ${f.half?'data-half="1"':""} data-field="${f.key}">${f.type==="check"?"":`<label for="${id}">${esc(f.label)}${f.required?' <span style="color:var(--bad)">*</span>':""}</label>`}${ctl}${hint!==""?`<div class="hint" data-hint="${f.key}">${esc(hint)}</div>`:`<div class="hint" data-hint="${f.key}"></div>`}</div>`;
+  };
+  const body = () => {
+    let out = cfg.info || ""; let buf = [];
+    const flush = () => { if(buf.length){ out += buf.length===2 ? `<div class="row2">${buf.join("")}</div>` : buf.join(""); buf=[]; } };
+    for(const f of cfg.fields){ const h = fieldHTML(f); if(f.half){ buf.push(h); if(buf.length===2) flush(); } else { flush(); out += h; } }
+    flush(); return out;
+  };
+  layer.innerHTML = `<div class="scrim" data-close></div><div class="drawer" role="dialog" aria-modal="true" aria-labelledby="dlgT">
+    <div class="drawer-h"><div><h2 id="dlgT">${esc(cfg.title)}</h2>${cfg.subtitle?`<div class="small muted" style="margin-top:3px">${esc(cfg.subtitle)}</div>`:""}</div><button class="btn ghost icon" data-close aria-label="Đóng">✕</button></div>
+    <div class="drawer-b" id="dlgB">${body()}</div>
+    <div class="drawer-f"><div>${cfg.onDelete?'<button class="btn danger" data-del>Xoá</button>':""}</div><div class="toolbar"><button class="btn" data-close>${cfg.readOnly?"Đóng":"Huỷ"}</button>${cfg.readOnly?"":`<button class="btn primary" data-save>${esc(cfg.saveLabel||"Lưu")}</button>`}</div></div></div>`;
+  const dlg = layer.querySelector(".drawer");
+  const api = { setOptions(key, opts){ optsOverride[key]=opts; vals[key]=""; const f = cfg.fields.find(x=>x.key===key); const wrap = dlg.querySelector(`[data-field="${key}"]`); if(f && wrap){ const tmp=document.createElement("div"); tmp.innerHTML=fieldHTML(f); wrap.replaceWith(tmp.firstElementChild); } } };
+  const readInputs = () => { for(const f of cfg.fields){ if(!f.key) continue; const el = dlg.querySelector("#f_"+f.key); if(!el) continue; if(f.type==="check") vals[f.key]=el.checked; else if(f.type==="number") vals[f.key]=el.value===""?null:+el.value; else if(f.type!=="seg") vals[f.key]=el.value||(f.type==="date"?null:""); } };
+  const close = () => { layer.innerHTML=""; document.removeEventListener("keydown", onKey); if(prevFocus && prevFocus.focus) prevFocus.focus(); };
+  const onKey = e => { if(e.key==="Escape") close(); };
+  document.addEventListener("keydown", onKey);
+  dlg.addEventListener("click", async e => {
+    const sb = e.target.closest(".seg-in button");
+    if(sb){ const k=sb.dataset.k; const v=JSON.parse(sb.dataset.v); vals[k]=v; sb.parentElement.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed", b===sb)); const f=cfg.fields.find(x=>x.key===k); const hn=dlg.querySelector(`[data-hint="${k}"]`); if(f && hn && typeof f.hint==="function") hn.textContent=f.hint(v, vals); return; }
+    if(e.target.closest("[data-save]")){
+      readInputs();
+      for(const f of cfg.fields){ if(f.required && (vals[f.key]==null || vals[f.key]==="")){ toast("Còn thiếu: "+f.label); return; } }
+      const btn = e.target.closest("[data-save]"); btn.disabled=true;
+      try{ await cfg.onSave(vals); close(); }catch(err){ btn.disabled=false; if(err && err.message) toast(err.message); }
+      return;
+    }
+    if(e.target.closest("[data-del]")){ try{ const r = await cfg.onDelete(); if(r!==false) close(); }catch(err){} return; }
+  });
+  dlg.addEventListener("change", e => {
+    const el = e.target; if(!el.id || !el.id.startsWith("f_")) return;
+    const key = el.id.slice(2); const f = cfg.fields.find(x=>x.key===key); readInputs();
+    if(f && f.onChange) f.onChange(vals[key], api);
+    const hn = dlg.querySelector(`[data-hint="${key}"]`); if(f && hn && typeof f.hint==="function") hn.textContent=f.hint(vals[key], vals);
+    cfg.fields.forEach(g=>{ if(typeof g.hint==="function"){ const h2=dlg.querySelector(`[data-hint="${g.key}"]`); if(h2) h2.textContent=g.hint(vals[g.key], vals); } });
+  });
+  layer.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click", close));
+  setTimeout(()=>{ const first = dlg.querySelector("input,select,textarea,.seg-in button"); (first||dlg.querySelector("[data-close]")).focus(); }, 30);
+}

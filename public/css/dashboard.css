@@ -1,0 +1,73 @@
+/* DASHBOARD – riêng cho màn hình Dashboard (tiền tố .ex-*) */
+/* ================= executive dashboard ================= */
+.ex{--ex-navy:#0B2A5B; --ex-blue:#2F6FED; --ex-red:#E5484D; --ex-orange:#F59E0B; --ex-yellow:#EAB308; --ex-green:#22A06B; --ex-grey:#94A3B8; --ex-purple:#7C3AED; --ex-pink:#EC4899;}
+.ex-top{background:linear-gradient(100deg,#0B2A5B 0%,#12408A 100%); color:#fff; border-radius:14px; padding:16px 22px; display:flex; align-items:center; gap:22px; flex-wrap:wrap; margin-bottom:14px}
+.ex-logo{font-size:34px; font-weight:800; letter-spacing:.02em; line-height:1; padding-right:22px; border-right:1px solid rgba(255,255,255,.25)}
+.ex-title b{display:block; font-size:21px; font-weight:700; letter-spacing:.01em}
+.ex-title span{font-size:13.5px; opacity:.85}
+.ex-ctl{margin-left:auto; display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+.ex-wk{display:flex; align-items:center; gap:4px; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.2); border-radius:9px; padding:3px}
+.ex-wk button{all:unset; cursor:pointer; padding:5px 9px; border-radius:6px; color:#fff}
+.ex-wk button:hover{background:rgba(255,255,255,.12)}
+.ex-wk .lb{min-width:170px; text-align:center; font-weight:600; font-size:13.5px}
+.ex-seg{display:flex; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.2); border-radius:9px; padding:3px}
+.ex-seg button{all:unset; cursor:pointer; padding:5px 16px; border-radius:6px; font-size:13.5px; color:#fff}
+.ex-seg button[aria-pressed="true"]{background:#fff; color:#0B2A5B; font-weight:600}
+.ex-top button:focus-visible{outline:2px solid #fff}
+.ex-kpis{display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:12px; margin-bottom:12px}
+.ex-card{background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:14px 16px; min-width:0}
+.ex-card h4{margin:0 0 10px; font-size:13.5px; font-weight:700}
+.ex-k{display:flex; gap:12px; align-items:center}
+.ex-ico{width:46px; height:46px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex:none}
+.ex-ico svg{width:24px; height:24px}
+.ex-big{font-size:26px; font-weight:800; line-height:1.05; letter-spacing:-.02em}
+.ex-unit{font-size:13px; color:var(--ink-2)}
+.ex-list{list-style:none; margin:0; padding:0; font-size:12.5px}
+.ex-list li{display:flex; align-items:center; gap:6px; margin:2px 0; white-space:nowrap}
+.ex-list i{width:9px; height:9px; border-radius:50%; flex:none}
+.ex-delta{font-size:14px; font-weight:700; margin-top:4px}
+.ex-row{display:grid; gap:12px; margin-bottom:12px}
+.ex-r2{grid-template-columns:minmax(0,1fr) minmax(0,1.75fr)}
+.ex-r3{grid-template-columns:1.1fr 1fr 1fr 1.25fr}
+.ex-r4{grid-template-columns:1.25fr 1fr 1.1fr}
+.ex-h{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; flex-wrap:wrap}
+.ex-h h3{font-size:14px; font-weight:800; letter-spacing:.01em; margin:0}
+.ex-h .lnk{all:unset; cursor:pointer; color:var(--ex-blue); font-size:12.5px; font-weight:600}
+.ex-t{width:100%; border-collapse:collapse; font-size:12.5px}
+.ex-t th{font-size:11.5px; color:var(--ink-2); font-weight:700; background:color-mix(in srgb,var(--ex-blue) 7%,var(--surface)); padding:7px 8px; border-bottom:1px solid var(--line); position:static; white-space:normal; line-height:1.25}
+.ex-t td{padding:6px 8px; border-bottom:1px solid var(--line-2); vertical-align:middle; white-space:nowrap}
+.ex-t td.w{white-space:normal; min-width:150px}
+.ex-t td.w2{white-space:normal; min-width:84px}
+.ex-t td.c,.ex-t th.c{text-align:center}
+.ex-scroll{max-height:372px; overflow:auto}
+.ex-ubar{display:flex; align-items:center; gap:8px}
+.ex-ubar .t{flex:1; height:12px; background:var(--line-2); border-radius:3px; overflow:hidden; min-width:60px}
+.ex-ubar .t i{display:block; height:100%; border-radius:3px}
+.ex-ubar b{width:44px; text-align:right; font-size:12.5px}
+.ex-tag{display:inline-block; padding:2px 8px; border-radius:5px; font-size:11.5px; font-weight:700; white-space:nowrap}
+.tg-red{background:#FDE2E2; color:#C62828} .tg-org{background:#FFEDD5; color:#C2410C} .tg-yel{background:#FEF3C7; color:#A16207}
+.tg-grn{background:#DCFCE7; color:#15803D} .tg-blu{background:#DBEAFE; color:#1D4ED8} .tg-gry{background:#E5E7EB; color:#4B5563}
+.tg-p1{background:#FDE2E2; color:#C62828} .tg-p2{background:#FEF3C7; color:#A16207} .tg-p3{background:#DCFCE7; color:#15803D} .tg-p4{background:#DBEAFE; color:#1D4ED8}
+.ex-chips{display:flex; gap:5px}
+.ex-chips button{border:1px solid var(--line); background:var(--surface); border-radius:6px; padding:3px 11px; font-size:12px; font-weight:600; cursor:pointer}
+.ex-chips button[aria-pressed="true"]{background:#0B2A5B; color:#fff; border-color:#0B2A5B}
+.ex-hb{display:grid; grid-template-columns:minmax(80px,.9fr) 1.3fr 74px; gap:8px; align-items:center; font-size:12.5px; margin:5px 0}
+.ex-hb .t{height:12px; background:var(--line-2); border-radius:3px; overflow:hidden}
+.ex-hb .t i{display:block; height:100%; border-radius:3px}
+.ex-hb span:first-child{overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.ex-donut{display:flex; align-items:center; gap:16px; flex-wrap:wrap}
+.ex-donut svg{flex:none}
+.ex-act{border:1px solid color-mix(in srgb,var(--ex-red) 35%,transparent); background:color-mix(in srgb,var(--ex-red) 5%,var(--surface))}
+.ex-act h3{color:var(--ex-red)}
+.ex-ai{display:flex; justify-content:space-between; align-items:center; gap:10px; padding:7px 0; border-bottom:1px solid var(--line-2); font-size:12.5px}
+.ex-ai:last-child{border-bottom:0}
+.ex-ai button{all:unset; cursor:pointer; flex:none; font-size:11.5px; font-weight:600; color:#1D4ED8; background:#DBEAFE; border:1px solid #BFDBFE; padding:3px 9px; border-radius:6px}
+.ex-ai button:focus-visible{outline:2px solid var(--ex-blue)}
+.ex-legend{font-size:11.5px; color:var(--ink-3); margin-top:6px}
+.ex-empty{color:var(--ink-3); font-size:12.5px; padding:12px 0}
+body.present .side{display:none}
+body.present .app{grid-template-columns:minmax(0,1fr)}
+body.present .page{max-width:none; padding:14px 18px}
+@media (max-width:1280px){ .ex-kpis{grid-template-columns:repeat(3,minmax(0,1fr))} .ex-r3{grid-template-columns:1fr 1fr} .ex-r4{grid-template-columns:1fr 1fr} }
+@media (max-width:980px){ .ex-r2{grid-template-columns:minmax(0,1fr)} }
+@media (max-width:640px){ .ex-kpis,.ex-r3,.ex-r4{grid-template-columns:minmax(0,1fr)} .ex-logo{border:0; padding:0} .ex-ctl{margin-left:0} }

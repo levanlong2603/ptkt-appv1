@@ -1,0 +1,6726 @@
+{
+ "weeks/2026-09-28__duong-thi-kieu-trang": {
+  "week": "2026-09-28",
+  "person": "Dương Thị Kiều Trang",
+  "entries": [
+   {
+    "id": "e1",
+    "projectId": "p-thau-15-2026-dom-vtg-ipcore-lot2",
+    "taskId": "t001",
+    "work": "",
+    "qm": null,
+    "pt": null,
+    "status": "",
+    "ms": null,
+    "nn": "",
+    "note": ""
+   },
+   {
+    "id": "e2",
+    "projectId": "p-thau-15-2026-dom-vtg-ipcore-lot2",
+    "taskId": "t003",
+    "work": "",
+    "qm": null,
+    "pt": null,
+    "status": "",
+    "ms": null,
+    "nn": "",
+    "note": ""
+   }
+  ]
+ },
+ "projects/p-nokia-dc-09": {
+  "id": "p-nokia-dc-09",
+  "name": "Nokia - DC 09",
+  "type": "Triển khai",
+  "owner": "Lê Minh Thắng",
+  "se": "Đinh Công Dũng",
+  "milestones": "- Kí HĐ: 10/5\n- Giao hàng: 10/6\n- ATP: 01/07-31/10\n- TAM: 10/11\n- TAC: 23/02/2027",
+  "situation": "Mô hình test với các test case\n-> checklist đáp ứng mô hình trên -> test case + kịch bản test \n\nCuối tuần này hàng về HLA\n\nChiều nay họp với Nokia/Viettel chốt lại các bài test ATP, interopt\n\nDự kiến đầu tuần sau lên HLC setup\nVướng: - check thời gian hàng hóa về tới tổng trạm\n- LLD đang soạn các phần về routing giữa các vrf\n- Note các bài test ATP không test được",
+  "order": 0,
+  "tasks": [
+   {
+    "id": "t001",
+    "dv": "01. Ký HĐ – Check HĐ đầu ra",
+    "detail": "Phụ lục 1: Phần DMHH; Phụ lục 2: Yêu cầu kỹ thuật; Các Phụ lục khác (Nếu có)",
+    "owner": "Lê Minh Thắng",
+    "collab": "Đinh Công Dũng",
+    "deadline": null,
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "Đạt",
+     "cl": 1,
+     "tc": 4,
+     "nx": "abcd"
+    }
+   },
+   {
+    "id": "t002",
+    "dv": "01. Ký HĐ – Check HĐ đầu vào",
+    "detail": "Phụ lục 1: Phần DMHH; Các Phụ lục khác (Nếu có)",
+    "owner": "Lê Minh Thắng",
+    "collab": "Đinh Công Dũng",
+    "deadline": null,
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t003",
+    "dv": "02. Kickoff – Book lịch với KH",
+    "detail": "PM thực hiện",
+    "owner": "Lê Minh Thắng",
+    "collab": "Đinh Công Dũng",
+    "deadline": "2026-03-05",
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t004",
+    "dv": "02. Kickoff – Thành phần tham dự các bên",
+    "detail": "PM thực hiện",
+    "owner": "Lê Minh Thắng",
+    "collab": "Đinh Công Dũng",
+    "deadline": "2026-03-05",
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t005",
+    "dv": "02. Kickoff – Chuẩn bị slide Kickoff",
+    "detail": "TM và PM chuẩn bị Silde theo scope dự án (có thể trao đổi trước với KH về nội dung)",
+    "owner": "Lê Minh Thắng",
+    "collab": "Đinh Công Dũng",
+    "deadline": "2026-03-05",
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t006",
+    "dv": "02. Kickoff – Kickoff",
+    "detail": "TM và PM phối hợp thực hiện",
+    "owner": "Lê Minh Thắng",
+    "collab": "Đinh Công Dũng",
+    "deadline": "2026-03-05",
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t007",
+    "dv": "03. LAB – Xây dựng lab",
+    "detail": "Tạo Container Lab; Tạo Topologies với SR-Linux; Tích hợp contenerlab với Visual code; Dựng DC theo mô hình Nokia; Dựng Nokia EDA; Tích hợp DC với EDA",
+    "owner": "Lê Minh Thắng",
+    "collab": "Đinh Công Dũng",
+    "deadline": null,
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "- Đã dựng được EDA trên Vmware -Chưa tích hợp được với các thành phần farbic | Hướng xử lý: - Request  với support Nokia",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t008",
+    "dv": "03. LAB – Thử nghiệm yêu cầu HST trên lab",
+    "detail": "Cấu hình mẫu",
+    "owner": "Lê Minh Thắng",
+    "collab": "Đinh Công Dũng",
+    "deadline": null,
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t009",
+    "dv": "04. Khảo sát – Chuẩn bị khảo sát",
+    "detail": "Chuẩn bị tài liệu khảo sát",
+    "owner": "Lê Minh Thắng",
+    "collab": "Đinh Công Dũng",
+    "deadline": "2026-03-12",
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "Đã có nội dung cần khảo sát ban đầu",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t010",
+    "dv": "04. Khảo sát – Thực hiện khảo sát",
+    "detail": "Trao đổi với khách hàng về địa điểm khảo sát; Các thành phần tích hợp; Hình thức khảo sảt",
+    "owner": "Lê Minh Thắng",
+    "collab": "Đinh Công Dũng",
+    "deadline": "2026-03-12",
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "- Đã có quy hoạch mới tại HLA cho cả 2 pod | Đã khảo sát hiện trạng, mô hình dự kiến",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t011",
+    "dv": "04. Khảo sát – Kết quả khảo sát",
+    "detail": "Hoàn thiện nội dung khảo sát; Gửi KH chốt",
+    "owner": "Lê Minh Thắng",
+    "collab": "Đinh Công Dũng",
+    "deadline": "2026-03-12",
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t012",
+    "dv": "05. Thiết kế – HLD",
+    "detail": "Dựa trên tài liệu khảo sát; Tổng quan về giải pháp cung cấp trong dự án; Mô hình, luồng dịch vụ tổng quan",
+    "owner": "Lê Minh Thắng",
+    "collab": "Đinh Công Dũng",
+    "deadline": "2026-06-28",
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "Đã gửi cho Nokia process, dự kiến tuần sau - Viettel đã gửi lại quy hoạch thiết kế theo chuẩn mới - Phía Nokia Đang nhờ Viettel check lại chuẩn L3 sysmetric theo chuẩn của cisco hoặc arista để đưa ra thiết kế phù hợp",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t013",
+    "dv": "05. Thiết kế – LLD",
+    "detail": "Dựa trên HLD; Chi tiết về giải pháp cung cấp trong dự án; Mô hình chi tiết; Luồng dịch vụ; Các nội dung khác",
+    "owner": "Lê Minh Thắng",
+    "collab": "Đinh Công Dũng",
+    "deadline": "2026-06-28",
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t014",
+    "dv": "05. Thiết kế – Duyệt thiết kế",
+    "detail": "Trao đổi với KH để chốt tài liệu thiết kế; Luồng ký duyệt tài liệu bên KH",
+    "owner": "Lê Minh Thắng",
+    "collab": "Đinh Công Dũng",
+    "deadline": "2026-06-28",
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t015",
+    "dv": "06. Giao hàng & lắp đặt – Bàn giao hàng hóa",
+    "detail": "Nắm rõ các danh mục trong BBBG; Kiểm tra hàng hóa trước khi giao; Thực hiện giao hàng tại địa điểm bàn giao của KH",
+    "owner": "Lê Minh Thắng",
+    "collab": "Đinh Công Dũng",
+    "deadline": "2026-04-06",
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t016",
+    "dv": "06. Giao hàng & lắp đặt – Lắp đặt, on nguồn",
+    "detail": "Chuẩn bị dụng cụ lắp đặt; Huy động nhân sự; Thực hiện lắp đặt",
+    "owner": "Lê Minh Thắng",
+    "collab": "Đinh Công Dũng",
+    "deadline": "2026-05-19",
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Đang làm",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "Đang trong quá trình lấy S/N để thực hiện on nguồn",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t017",
+    "dv": "07. Cấu hình & tích hợp – Chuẩn bị tài liệu cấu hình",
+    "detail": "Chuẩn bị checklist cấu hình; Chuẩn bị lệnh cấu hình",
+    "owner": "Lê Minh Thắng",
+    "collab": "Đinh Công Dũng",
+    "deadline": "2026-06-06",
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Đang làm",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t018",
+    "dv": "07. Cấu hình & tích hợp – Tích hợp hệ thống / mạng lưới",
+    "detail": "Chuẩn bị checklist cấu hình bàn giao ATTT theo thông tin khảo sát; Trao đổi phương án tích hợp",
+    "owner": "Lê Minh Thắng",
+    "collab": "Đinh Công Dũng",
+    "deadline": "2026-06-06",
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Chưa bắt đầu",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t019",
+    "dv": "08. Nghiệm thu & đào tạo – Test nghiệm thu (ATP)",
+    "detail": "Xây dựng kịch bản test ATP; Trao đổi với KH về các bài test; Thực hiện test ATP, lưu log trong quá trình test; Hoàn thành tài liệu test ATP và gửi KH",
+    "owner": "Trần Quốc Tân",
+    "collab": "Đinh Công Dũng",
+    "deadline": "2026-10-20",
+    "qm": 5,
+    "pt": 5,
+    "pr": "P1",
+    "init": {
+     "status": "Đang vướng",
+     "ms": 3,
+     "nn": "Hãng"
+    },
+    "note": "Lùi hạn ATP về 20/10. Đến 29/09: ATP 295/306 bài, Service 24/34 bài; EDA xong. Vướng: (1) yêu cầu 900 VRF/node leaf – Nokia không đáp ứng; (2) interop Cisco x Nokia (route type 1 EAD-EVI); (3) VTNET chưa đủ thiết bị Arista để test interop. | Hướng xử lý: (1),(2) Nokia đã gửi R&D kiểm tra; (3) mail VTNET xác nhận ảnh hưởng tiến độ.",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t020",
+    "dv": "08. Nghiệm thu & đào tạo – Đào tạo",
+    "detail": "Book lịch đào tạo với KH, hãng (nếu hãng đào tạo); Chuẩn bị tài liệu đào tạo; Setup địa điểm, và thực hiện đào tạo",
+    "owner": "Trần Quốc Tân",
+    "collab": "Đinh Công Dũng",
+    "deadline": "2026-06-23",
+    "qm": 5,
+    "pt": 5,
+    "pr": "P2",
+    "init": {
+     "status": "Chưa bắt đầu",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t021",
+    "dv": "09. Đổ tải – Chuẩn bị đổ tải",
+    "detail": "Trao đổi với KH để lên phương án đổ tải; Thực hiện MOP, check-list",
+    "owner": "Trần Quốc Tân",
+    "collab": "Đinh Công Dũng",
+    "deadline": "2026-09-26",
+    "qm": 5,
+    "pt": 5,
+    "pr": "P2",
+    "init": {
+     "status": "Chưa bắt đầu",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t022",
+    "dv": "09. Đổ tải – Thực hiện đổ tải & nghiệm thu",
+    "detail": "Thực hiện theo phương án đã chuẩn bị; Theo dõi hệ thống sau đổ tải; Ký nghiệm thu đổ tải",
+    "owner": "Trần Quốc Tân",
+    "collab": "Đinh Công Dũng",
+    "deadline": "2026-09-26",
+    "qm": 5,
+    "pt": 5,
+    "pr": "P2",
+    "init": {
+     "status": "Chưa bắt đầu",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   }
+  ]
+ },
+ "projects/p-nokia-one-cgnat": {
+  "id": "p-nokia-one-cgnat",
+  "name": "Nokia One CGNAT",
+  "type": "Triển khai",
+  "owner": "Đào Mạnh Hưng",
+  "se": "",
+  "milestones": "",
+  "situation": "",
+  "order": 14,
+  "tasks": [
+   {
+    "id": "t001",
+    "dv": "01. Ký HĐ – Check HĐ đầu ra",
+    "detail": "Phụ lục 1: Phần DMHH; Phụ lục 2: Yêu cầu kỹ thuật; Các Phụ lục khác (Nếu có)",
+    "owner": "Đào Mạnh Hưng",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 2,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t002",
+    "dv": "01. Ký HĐ – Check HĐ đầu vào",
+    "detail": "Phụ lục 1: Phần DMHH; Các Phụ lục khác (Nếu có)",
+    "owner": "Đào Mạnh Hưng",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 2,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t003",
+    "dv": "02. Kickoff – Book lịch với KH",
+    "detail": "PM thực hiện",
+    "owner": "Đào Mạnh Hưng",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t004",
+    "dv": "02. Kickoff – Thành phần tham dự các bên",
+    "detail": "PM thực hiện",
+    "owner": "Đào Mạnh Hưng",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t005",
+    "dv": "02. Kickoff – Chuẩn bị slide Kickoff",
+    "detail": "TM và PM chuẩn bị Silde theo scope dự án (có thể trao đổi trước với KH về nội dung)",
+    "owner": "Đào Mạnh Hưng",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 2,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t006",
+    "dv": "02. Kickoff – Kickoff",
+    "detail": "TM và PM phối hợp thực hiện",
+    "owner": "Đào Mạnh Hưng",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 2,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t007",
+    "dv": "03. LAB – Xây dựng lab",
+    "detail": "",
+    "owner": "Đào Mạnh Hưng",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 3,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t008",
+    "dv": "03. LAB – Thử nghiệm yêu cầu HST trên lab",
+    "detail": "",
+    "owner": "Đào Mạnh Hưng",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 4,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t009",
+    "dv": "04. Khảo sát – Chuẩn bị khảo sát",
+    "detail": "Chuẩn bị tài liệu khảo sát",
+    "owner": "Đào Mạnh Hưng",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 2,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t010",
+    "dv": "04. Khảo sát – Thực hiện khảo sát",
+    "detail": "Trao đổi với khách hàng về địa điểm khảo sát; Các thành phần tích hợp; Hình thức khảo sảt",
+    "owner": "Đào Mạnh Hưng",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 3,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t011",
+    "dv": "04. Khảo sát – Kết quả khảo sát",
+    "detail": "Hoàn thiện nội dung khảo sát; Gửi KH chốt",
+    "owner": "Đào Mạnh Hưng",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 3,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t012",
+    "dv": "05. Thiết kế – HLD",
+    "detail": "Dựa trên tài liệu khảo sát; Tổng quan về giải pháp cung cấp trong dự án; Mô hình, luồng dịch vụ tổng quan",
+    "owner": "Đào Mạnh Hưng",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 4,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t013",
+    "dv": "05. Thiết kế – LLD",
+    "detail": "Dựa trên HLD; Chi tiết về giải pháp cung cấp trong dự án; Mô hình chi tiết; Luồng dịch vụ; Các nội dung khác",
+    "owner": "Đào Mạnh Hưng",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 4,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t014",
+    "dv": "05. Thiết kế – Duyệt thiết kế",
+    "detail": "Trao đổi với KH để chốt tài liệu thiết kế; Luồng ký duyệt tài liệu bên KH",
+    "owner": "Đào Mạnh Hưng",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 3,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t015",
+    "dv": "06. Giao hàng & lắp đặt – Bàn giao hàng hóa",
+    "detail": "Nắm rõ các danh mục trong BBBG; Kiểm tra hàng hóa trước khi giao; Thực hiện giao hàng tại địa điểm bàn giao của KH",
+    "owner": "Đào Mạnh Hưng",
+    "collab": "",
+    "deadline": "2026-01-09",
+    "qm": 5,
+    "pt": 2,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t016",
+    "dv": "06. Giao hàng & lắp đặt – Lắp đặt, on nguồn",
+    "detail": "Chuẩn bị dụng cụ lắp đặt; Huy động nhân sự; Thực hiện lắp đặt",
+    "owner": "Đào Mạnh Hưng",
+    "collab": "",
+    "deadline": "2026-01-09",
+    "qm": 5,
+    "pt": 2,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t017",
+    "dv": "07. Cấu hình & tích hợp – Chuẩn bị tài liệu cấu hình",
+    "detail": "Chuẩn bị checklist cấu hình; Chuẩn bị lệnh cấu hình",
+    "owner": "Đào Mạnh Hưng",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 3,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t018",
+    "dv": "07. Cấu hình & tích hợp – Cấu hình, cài đặt",
+    "detail": "Cấu hình thực tế trên các thiết bị đã lắp đặt",
+    "owner": "Đào Mạnh Hưng",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 4,
+    "pr": "P2",
+    "init": {
+     "status": "Đang làm",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t019",
+    "dv": "07. Cấu hình & tích hợp – Tích hợp hệ thống / mạng lưới",
+    "detail": "Chuẩn bị checklist cấu hình bàn giao ATTT theo thông tin khảo sát; Trao đổi phương án tích hợp",
+    "owner": "Đào Mạnh Hưng",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 4,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t020",
+    "dv": "08. Nghiệm thu & đào tạo – Test nghiệm thu (ATP)",
+    "detail": "Xây dựng kịch bản test ATP; Trao đổi với KH về các bài test; Thực hiện test ATP, lưu log trong quá trình test; Hoàn thành tài liệu test ATP và gửi KH",
+    "owner": "Đào Mạnh Hưng",
+    "collab": "",
+    "deadline": "2026-01-23",
+    "qm": 5,
+    "pt": 4,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t021",
+    "dv": "08. Nghiệm thu & đào tạo – Đào tạo",
+    "detail": "Book lịch đào tạo với KH, hãng (nếu hãng đào tạo); Chuẩn bị tài liệu đào tạo; Setup địa điểm, và thực hiện đào tạo",
+    "owner": "Đào Mạnh Hưng",
+    "collab": "",
+    "deadline": "2026-03-31",
+    "qm": 5,
+    "pt": 3,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t022",
+    "dv": "09. Đổ tải – Chuẩn bị đổ tải",
+    "detail": "Trao đổi với KH để lên phương án đổ tải; Test HA trước khi đổ tải; Thực hiện MOP, check-list",
+    "owner": "Đào Mạnh Hưng",
+    "collab": "",
+    "deadline": "2026-05-21",
+    "qm": 5,
+    "pt": 4,
+    "pr": "P2",
+    "init": {
+     "status": "Đang vướng",
+     "ms": 3,
+     "nn": "Hãng"
+    },
+    "note": "- Đang tối ưu các tham số theo yêu cầu của VT để thực hiện đổ tải - Linecard của 1 node CGNAT HKH không up - ESA 1 của node CGNAT HLA 2 bị hỏng | - Đã gửi MOP test cho anh Thanhht9 | Hướng xử lý: - Đã đưa ra bộ tham số test, sẽ theo dõi sau khi đổ tải và tối ưu tham số - Bảo hành với Nokia - PM đang thực hiện thủ tục bảo hành - Đã mở ticket, cần thu thập 1 số log",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t023",
+    "dv": "09. Đổ tải – Thực hiện đổ tải & nghiệm thu",
+    "detail": "Thực hiện theo phương án đã chuẩn bị; Theo dõi hệ thống sau đổ tải; Ký nghiệm thu đổ tải",
+    "owner": "Đào Mạnh Hưng",
+    "collab": "",
+    "deadline": "2026-05-21",
+    "qm": 5,
+    "pt": 5,
+    "pr": "P2",
+    "init": {
+     "status": "Chưa bắt đầu",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   }
+  ]
+ },
+ "projects/p-viec-chung-cua-phong": {
+  "id": "p-viec-chung-cua-phong",
+  "name": "Việc chung của phòng",
+  "type": "Nội bộ",
+  "owner": "",
+  "se": "",
+  "milestones": "",
+  "situation": "Việc ngoài dự án: hỗ trợ, việc phát sinh, đào tạo nội bộ… (dùng để nhập tải theo tuần)",
+  "order": 15,
+  "tasks": [
+   {
+    "id": "t001",
+    "dv": "N1. Nội bộ – Hỗ trợ kỹ thuật / việc phát sinh",
+    "detail": "",
+    "owner": "",
+    "collab": "",
+    "deadline": null,
+    "qm": null,
+    "pt": null,
+    "pr": "",
+    "init": {
+     "status": "",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t002",
+    "dv": "N1. Nội bộ – Đào tạo nội bộ / tự học",
+    "detail": "",
+    "owner": "",
+    "collab": "",
+    "deadline": null,
+    "qm": null,
+    "pt": null,
+    "pr": "",
+    "init": {
+     "status": "",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t003",
+    "dv": "N1. Nội bộ – Việc khác (ghi rõ nội dung)",
+    "detail": "",
+    "owner": "",
+    "collab": "",
+    "deadline": null,
+    "qm": null,
+    "pt": null,
+    "pr": "",
+    "init": {
+     "status": "",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   }
+  ]
+ },
+ "weeks/2026-09-28__pham-hong-lam": {
+  "week": "2026-09-28",
+  "person": "Phạm Hồng Lâm",
+  "entries": [
+   {
+    "id": "e1",
+    "projectId": "p-ddos-19",
+    "taskId": "t007",
+    "work": "",
+    "qm": null,
+    "pt": null,
+    "status": "",
+    "ms": null,
+    "nn": "",
+    "note": ""
+   },
+   {
+    "id": "e2",
+    "projectId": "p-ddos-19",
+    "taskId": "t008",
+    "work": "",
+    "qm": null,
+    "pt": null,
+    "status": "",
+    "ms": null,
+    "nn": "",
+    "note": ""
+   },
+   {
+    "id": "e3",
+    "projectId": "p-ddos-19",
+    "taskId": "t009",
+    "work": "",
+    "qm": null,
+    "pt": null,
+    "status": "",
+    "ms": null,
+    "nn": "",
+    "note": ""
+   },
+   {
+    "id": "e4",
+    "projectId": "p-ddos-19",
+    "taskId": "t010",
+    "work": "",
+    "qm": null,
+    "pt": null,
+    "status": "",
+    "ms": null,
+    "nn": "",
+    "note": ""
+   },
+   {
+    "id": "e5",
+    "projectId": "p-ddos-19",
+    "taskId": "t011",
+    "work": "",
+    "qm": null,
+    "pt": null,
+    "status": "",
+    "ms": null,
+    "nn": "",
+    "note": ""
+   },
+   {
+    "id": "e6",
+    "projectId": "p-ddos-19",
+    "taskId": "t012",
+    "work": "",
+    "qm": null,
+    "pt": null,
+    "status": "",
+    "ms": null,
+    "nn": "",
+    "note": ""
+   },
+   {
+    "id": "e7",
+    "projectId": "p-ddos-19",
+    "taskId": "t013",
+    "work": "",
+    "qm": null,
+    "pt": null,
+    "status": "",
+    "ms": null,
+    "nn": "",
+    "note": ""
+   },
+   {
+    "id": "e8",
+    "projectId": "p-ddos-19",
+    "taskId": "t014",
+    "work": "",
+    "qm": null,
+    "pt": null,
+    "status": "",
+    "ms": null,
+    "nn": "",
+    "note": ""
+   },
+   {
+    "id": "e9",
+    "projectId": "p-do-quet-mbf",
+    "taskId": "t020",
+    "work": "",
+    "qm": null,
+    "pt": null,
+    "status": "",
+    "ms": null,
+    "nn": "",
+    "note": ""
+   },
+   {
+    "id": "e10",
+    "projectId": "p-do-quet-mbf",
+    "taskId": "t021",
+    "work": "",
+    "qm": null,
+    "pt": null,
+    "status": "",
+    "ms": null,
+    "nn": "",
+    "note": ""
+   }
+  ]
+ },
+ "projects/p-nokia-dc-14": {
+  "id": "p-nokia-dc-14",
+  "name": "Nokia - DC 14",
+  "type": "Triển khai",
+  "owner": "Trần Quốc Tân",
+  "se": "Đinh Công Dũng",
+  "milestones": "- Kí HĐ: 07/04\n- Giao hàng: 30/06\n- LLD: 25/09\n- KCS: 09/07\n- Lắp đặt, cấu hình, tích hợp: 12/09\n- BB lắp đặt: 14/09\n- Test ATP: 04/10\n- TAM: 14/10\n- Đổ tải: 14/10 (bắt đầu)\n- TAT: 12/1/2027\n- TAC: 27/1/2027",
+  "situation": "tương tự 09 (trừ phần thiết kế)\n\n- Giao hàng đợt 1 (03/07) thiếu 12 module, chiều nay (06/07) giao nốt 12 module và KCS đợt 1\n- Dự kíến giao hàng chuyến 2 14/08 và chuyến 3 21/09",
+  "order": 3,
+  "tasks": [
+   {
+    "id": "t001",
+    "dv": "01. Ký HĐ – Check HĐ đầu ra",
+    "detail": "Phụ lục 1: Phần DMHH; Phụ lục 2: Yêu cầu kỹ thuật; Các Phụ lục khác (Nếu có)",
+    "owner": "Trần Quốc Tân",
+    "collab": "Lê Văn Long",
+    "deadline": null,
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t002",
+    "dv": "01. Ký HĐ – Check HĐ đầu vào",
+    "detail": "Phụ lục 1: Phần DMHH; Các Phụ lục khác (Nếu có)",
+    "owner": "Trần Quốc Tân",
+    "collab": "Lê Văn Long",
+    "deadline": null,
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t003",
+    "dv": "02. Kickoff – Book lịch với KH",
+    "detail": "N/A",
+    "owner": "Trần Quốc Tân",
+    "collab": "Lê Văn Long",
+    "deadline": null,
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t004",
+    "dv": "02. Kickoff – Thành phần tham dự các bên",
+    "detail": "N/A",
+    "owner": "Trần Quốc Tân",
+    "collab": "Lê Văn Long",
+    "deadline": null,
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t005",
+    "dv": "02. Kickoff – Chuẩn bị slide Kickoff",
+    "detail": "N/A",
+    "owner": "Trần Quốc Tân",
+    "collab": "Lê Văn Long",
+    "deadline": null,
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t006",
+    "dv": "02. Kickoff – Kickoff",
+    "detail": "N/A",
+    "owner": "Trần Quốc Tân",
+    "collab": "Lê Văn Long",
+    "deadline": null,
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t007",
+    "dv": "03. LAB – Xây dựng lab",
+    "detail": "Tạo Container Lab; Tạo Topologies với SR-Linux; Tích hợp contenerlab với Visual code; Dựng DC theo mô hình Nokia; Dựng Nokia EDA; Tích hợp DC với EDA",
+    "owner": "Trần Quốc Tân",
+    "collab": "Lê Văn Long",
+    "deadline": null,
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Đang làm",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t008",
+    "dv": "03. LAB – Thử nghiệm yêu cầu HST trên lab",
+    "detail": "Cấu hình mẫu",
+    "owner": "Trần Quốc Tân",
+    "collab": "Lê Văn Long",
+    "deadline": null,
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Đang làm",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t009",
+    "dv": "04. Khảo sát – Chuẩn bị khảo sát",
+    "detail": "Chuẩn bị tài liệu khảo sát",
+    "owner": "Trần Quốc Tân",
+    "collab": "Lê Văn Long",
+    "deadline": "2026-05-18",
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Đang làm",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "Đã có nội dung cần khảo sát ban đầu",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t010",
+    "dv": "04. Khảo sát – Thực hiện khảo sát",
+    "detail": "Trao đổi với khách hàng về địa điểm khảo sát; Các thành phần tích hợp; Hình thức khảo sảt",
+    "owner": "Trần Quốc Tân",
+    "collab": "Lê Văn Long",
+    "deadline": "2026-05-18",
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Chưa bắt đầu",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t011",
+    "dv": "04. Khảo sát – Kết quả khảo sát",
+    "detail": "Hoàn thiện nội dung khảo sát; Gửi KH chốt",
+    "owner": "Trần Quốc Tân",
+    "collab": "Lê Văn Long",
+    "deadline": "2026-05-18",
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Chưa bắt đầu",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t012",
+    "dv": "05. Thiết kế – HLD",
+    "detail": "Dựa trên tài liệu khảo sát; Tổng quan về giải pháp cung cấp trong dự án; Mô hình, luồng dịch vụ tổng quan",
+    "owner": "Trần Quốc Tân",
+    "collab": "Lê Văn Long",
+    "deadline": "2026-09-27",
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Chưa bắt đầu",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t013",
+    "dv": "05. Thiết kế – LLD",
+    "detail": "Dựa trên HLD; Chi tiết về giải pháp cung cấp trong dự án; Mô hình chi tiết; Luồng dịch vụ; Các nội dung khác",
+    "owner": "Trần Quốc Tân",
+    "collab": "Lê Văn Long",
+    "deadline": "2026-09-25",
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Chưa bắt đầu",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t014",
+    "dv": "05. Thiết kế – Duyệt thiết kế",
+    "detail": "Trao đổi với KH để chốt tài liệu thiết kế; Luồng ký duyệt tài liệu bên KH",
+    "owner": "Trần Quốc Tân",
+    "collab": "Lê Văn Long",
+    "deadline": "2026-09-27",
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Chưa bắt đầu",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t015",
+    "dv": "06. Giao hàng & lắp đặt – Bàn giao hàng hóa",
+    "detail": "Nắm rõ các danh mục trong BBBG; Kiểm tra hàng hóa trước khi giao; Thực hiện giao hàng tại địa điểm bàn giao của KH",
+    "owner": "Trần Quốc Tân",
+    "collab": "Lê Văn Long",
+    "deadline": null,
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Chưa bắt đầu",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t016",
+    "dv": "06. Giao hàng & lắp đặt – Lắp đặt, on nguồn",
+    "detail": "Chuẩn bị dụng cụ lắp đặt; Huy động nhân sự; Thực hiện lắp đặt",
+    "owner": "Trần Quốc Tân",
+    "collab": "Lê Văn Long",
+    "deadline": null,
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Chưa bắt đầu",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t017",
+    "dv": "07. Cấu hình & tích hợp – Chuẩn bị tài liệu cấu hình",
+    "detail": "Chuẩn bị checklist cấu hình; Chuẩn bị lệnh cấu hình",
+    "owner": "Trần Quốc Tân",
+    "collab": "Lê Văn Long",
+    "deadline": null,
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Chưa bắt đầu",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t018",
+    "dv": "07. Cấu hình & tích hợp – Tích hợp hệ thống / mạng lưới",
+    "detail": "Chuẩn bị checklist cấu hình bàn giao ATTT theo thông tin khảo sát; Trao đổi phương án tích hợp",
+    "owner": "Trần Quốc Tân",
+    "collab": "Lê Văn Long",
+    "deadline": null,
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Chưa bắt đầu",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t019",
+    "dv": "08. Nghiệm thu & đào tạo – Test nghiệm thu (ATP)",
+    "detail": "Xây dựng kịch bản test ATP; Trao đổi với KH về các bài test; Thực hiện test ATP, lưu log trong quá trình test; Hoàn thành tài liệu test ATP và gửi KH",
+    "owner": "Trần Quốc Tân",
+    "collab": "Lê Văn Long",
+    "deadline": null,
+    "qm": 5,
+    "pt": 2,
+    "pr": "P2",
+    "init": {
+     "status": "Chưa bắt đầu",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t020",
+    "dv": "08. Nghiệm thu & đào tạo – Đào tạo",
+    "detail": "Book lịch đào tạo với KH, hãng (nếu hãng đào tạo); Chuẩn bị tài liệu đào tạo; Setup địa điểm, và thực hiện đào tạo",
+    "owner": "Trần Quốc Tân",
+    "collab": "Lê Văn Long",
+    "deadline": null,
+    "qm": 5,
+    "pt": 2,
+    "pr": "P2",
+    "init": {
+     "status": "Chưa bắt đầu",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t021",
+    "dv": "09. Đổ tải – Chuẩn bị đổ tải",
+    "detail": "Trao đổi với KH để lên phương án đổ tải; Thực hiện MOP, check-list",
+    "owner": "Trần Quốc Tân",
+    "collab": "Lê Văn Long",
+    "deadline": null,
+    "qm": 5,
+    "pt": 2,
+    "pr": "P2",
+    "init": {
+     "status": "Chưa bắt đầu",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t022",
+    "dv": "09. Đổ tải – Thực hiện đổ tải & nghiệm thu",
+    "detail": "Thực hiện theo phương án đã chuẩn bị; Theo dõi hệ thống sau đổ tải; Ký nghiệm thu đổ tải",
+    "owner": "Trần Quốc Tân",
+    "collab": "Lê Văn Long",
+    "deadline": null,
+    "qm": 5,
+    "pt": 2,
+    "pr": "P2",
+    "init": {
+     "status": "Chưa bắt đầu",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   }
+  ]
+ },
+ "projects/p-poc-spectrum-scale-bidv": {
+  "id": "p-poc-spectrum-scale-bidv",
+  "name": "PoC Spectrum scale Bidv",
+  "type": "Tư vấn",
+  "owner": "Dương Thị Kiều Trang",
+  "se": "",
+  "milestones": "",
+  "situation": "Đang chuẩn bị",
+  "order": 13,
+  "tasks": [
+   {
+    "id": "t001",
+    "dv": "V3. PoC / Demo – Thực hiện PoC / Demo",
+    "detail": "Poc cho Bidv",
+    "owner": "Dương Thị Kiều Trang",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": null,
+    "pr": "P2",
+    "init": {
+     "status": "Chưa bắt đầu",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   }
+  ]
+ },
+ "weeks/2026-09-28__nguyen-ba-phuc": {
+  "week": "2026-09-28",
+  "person": "Nguyễn Bá Phúc",
+  "entries": [
+   {
+    "id": "e1",
+    "projectId": "p-dlp-18",
+    "taskId": "t016",
+    "work": "",
+    "qm": null,
+    "pt": null,
+    "status": "",
+    "ms": null,
+    "nn": "",
+    "note": ""
+   }
+  ]
+ },
+ "projects/p-thau-15-2026-dom-vtg-ipcore-lot2": {
+  "id": "p-thau-15-2026-dom-vtg-ipcore-lot2",
+  "name": "Thầu 15/2026/DOM/VTG-IPCORE Lot2",
+  "type": "Thầu",
+  "owner": "Dương Thị Kiều Trang",
+  "se": "",
+  "milestones": "",
+  "situation": "Đang chuẩn bị các tài liệu kỹ thuật",
+  "order": 12,
+  "tasks": [
+   {
+    "id": "t001",
+    "dv": "T3. Hồ sơ kỹ thuật – Lập TBDU (bảng đáp ứng kỹ thuật)",
+    "detail": "TBDU",
+    "owner": "Dương Thị Kiều Trang",
+    "collab": "Trần Quốc Tân",
+    "deadline": null,
+    "qm": 5,
+    "pt": null,
+    "pr": "P2",
+    "init": {
+     "status": "Đang làm",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t002",
+    "dv": "T3. Hồ sơ kỹ thuật – Lập DMHH (danh mục hàng hóa)",
+    "detail": "DMHH",
+    "owner": "Dương Thị Kiều Trang",
+    "collab": "Trần Quốc Tân",
+    "deadline": null,
+    "qm": 5,
+    "pt": null,
+    "pr": "P2",
+    "init": {
+     "status": "Tạm dừng",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t003",
+    "dv": "T3. Hồ sơ kỹ thuật – Xin thư hỗ trợ kỹ thuật / MAF của hãng",
+    "detail": "Thư hỗ trợ kỹ thuật",
+    "owner": "Dương Thị Kiều Trang",
+    "collab": "Trần Quốc Tân",
+    "deadline": null,
+    "qm": 5,
+    "pt": null,
+    "pr": "P2",
+    "init": {
+     "status": "Đang làm",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t004",
+    "dv": "T3. Hồ sơ kỹ thuật – Tài liệu kỹ thuật (TSD, datasheet, catalogue)",
+    "detail": "TSD",
+    "owner": "Trần Quốc Tân",
+    "collab": "Dương Thị Kiều Trang",
+    "deadline": null,
+    "qm": 5,
+    "pt": null,
+    "pr": "P2",
+    "init": {
+     "status": "Tạm dừng",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   }
+  ]
+ },
+ "projects/p-nokia-19-2026-mtd-linecard-pe": {
+  "id": "p-nokia-19-2026-mtd-linecard-pe",
+  "name": "Nokia - 19_2026_MTD (Linecard PE)",
+  "type": "Triển khai",
+  "owner": "Đào Mạnh Hưng",
+  "se": "",
+  "milestones": "",
+  "situation": "Chờ thương thảo, ký HĐ",
+  "order": 10,
+  "tasks": [
+   {
+    "id": "t001",
+    "dv": "01. Ký HĐ – Check HĐ đầu ra",
+    "detail": "Phụ lục 1: Phần DMHH; Phụ lục 2: Yêu cầu kỹ thuật; Các Phụ lục khác (Nếu có)",
+    "owner": "Đào Mạnh Hưng",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 2,
+    "pr": "P2",
+    "init": {
+     "status": "Đang làm",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "Chờ thương thảo, ký HĐ",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t002",
+    "dv": "01. Ký HĐ – Check HĐ đầu vào",
+    "detail": "Phụ lục 1: Phần DMHH; Các Phụ lục khác (Nếu có)",
+    "owner": "Đào Mạnh Hưng",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 2,
+    "pr": "P2",
+    "init": {
+     "status": "Đang làm",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "Chờ thương thảo, ký HĐ",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t003",
+    "dv": "02. Kickoff – Book lịch với KH",
+    "detail": "PM thực hiện",
+    "owner": "Đào Mạnh Hưng",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Chưa bắt đầu",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t004",
+    "dv": "02. Kickoff – Thành phần tham dự các bên",
+    "detail": "PM thực hiện",
+    "owner": "Đào Mạnh Hưng",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Chưa bắt đầu",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t005",
+    "dv": "02. Kickoff – Chuẩn bị slide Kickoff",
+    "detail": "TM và PM chuẩn bị Silde theo scope dự án (có thể trao đổi trước với KH về nội dung)",
+    "owner": "Đào Mạnh Hưng",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 2,
+    "pr": "P2",
+    "init": {
+     "status": "Chưa bắt đầu",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t006",
+    "dv": "02. Kickoff – Kickoff",
+    "detail": "TM và PM phối hợp thực hiện",
+    "owner": "Đào Mạnh Hưng",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 2,
+    "pr": "P2",
+    "init": {
+     "status": "Chưa bắt đầu",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t007",
+    "dv": "03. LAB – Xây dựng lab",
+    "detail": "",
+    "owner": "Đào Mạnh Hưng",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 3,
+    "pr": "P2",
+    "init": {
+     "status": "Chưa bắt đầu",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t008",
+    "dv": "03. LAB – Thử nghiệm yêu cầu HST trên lab",
+    "detail": "",
+    "owner": "Đào Mạnh Hưng",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 4,
+    "pr": "P2",
+    "init": {
+     "status": "Chưa bắt đầu",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t009",
+    "dv": "04. Khảo sát – Chuẩn bị khảo sát",
+    "detail": "Chuẩn bị tài liệu khảo sát",
+    "owner": "Đào Mạnh Hưng",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 2,
+    "pr": "P2",
+    "init": {
+     "status": "Chưa bắt đầu",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t010",
+    "dv": "04. Khảo sát – Thực hiện khảo sát",
+    "detail": "Trao đổi với khách hàng về địa điểm khảo sát; Các thành phần tích hợp; Hình thức khảo sảt",
+    "owner": "Đào Mạnh Hưng",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 3,
+    "pr": "P2",
+    "init": {
+     "status": "Chưa bắt đầu",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t011",
+    "dv": "04. Khảo sát – Kết quả khảo sát",
+    "detail": "Hoàn thiện nội dung khảo sát; Gửi KH chốt",
+    "owner": "Đào Mạnh Hưng",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 3,
+    "pr": "P2",
+    "init": {
+     "status": "Chưa bắt đầu",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t012",
+    "dv": "05. Thiết kế – HLD",
+    "detail": "Dựa trên tài liệu khảo sát; Tổng quan về giải pháp cung cấp trong dự án; Mô hình, luồng dịch vụ tổng quan",
+    "owner": "Đào Mạnh Hưng",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 4,
+    "pr": "P2",
+    "init": {
+     "status": "Chưa bắt đầu",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t013",
+    "dv": "05. Thiết kế – LLD",
+    "detail": "Dựa trên HLD; Chi tiết về giải pháp cung cấp trong dự án; Mô hình chi tiết; Luồng dịch vụ; Các nội dung khác",
+    "owner": "Đào Mạnh Hưng",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 4,
+    "pr": "P2",
+    "init": {
+     "status": "Chưa bắt đầu",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t014",
+    "dv": "05. Thiết kế – Duyệt thiết kế",
+    "detail": "Trao đổi với KH để chốt tài liệu thiết kế; Luồng ký duyệt tài liệu bên KH",
+    "owner": "Đào Mạnh Hưng",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 3,
+    "pr": "P2",
+    "init": {
+     "status": "Chưa bắt đầu",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t015",
+    "dv": "06. Giao hàng & lắp đặt – Bàn giao hàng hóa",
+    "detail": "Nắm rõ các danh mục trong BBBG; Kiểm tra hàng hóa trước khi giao; Thực hiện giao hàng tại địa điểm bàn giao của KH",
+    "owner": "Đào Mạnh Hưng",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 2,
+    "pr": "P2",
+    "init": {
+     "status": "Chưa bắt đầu",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t016",
+    "dv": "06. Giao hàng & lắp đặt – Lắp đặt, on nguồn",
+    "detail": "Chuẩn bị dụng cụ lắp đặt; Huy động nhân sự; Thực hiện lắp đặt",
+    "owner": "Đào Mạnh Hưng",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 2,
+    "pr": "P2",
+    "init": {
+     "status": "Chưa bắt đầu",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t017",
+    "dv": "07. Cấu hình & tích hợp – Chuẩn bị tài liệu cấu hình",
+    "detail": "Chuẩn bị checklist cấu hình; Chuẩn bị lệnh cấu hình",
+    "owner": "Đào Mạnh Hưng",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 3,
+    "pr": "P2",
+    "init": {
+     "status": "Chưa bắt đầu",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t018",
+    "dv": "07. Cấu hình & tích hợp – Tích hợp hệ thống / mạng lưới",
+    "detail": "Chuẩn bị checklist cấu hình bàn giao ATTT theo thông tin khảo sát; Trao đổi phương án tích hợp",
+    "owner": "Đào Mạnh Hưng",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 4,
+    "pr": "P2",
+    "init": {
+     "status": "Chưa bắt đầu",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t019",
+    "dv": "08. Nghiệm thu & đào tạo – Test nghiệm thu (ATP)",
+    "detail": "Xây dựng kịch bản test ATP; Trao đổi với KH về các bài test; Thực hiện test ATP, lưu log trong quá trình test; Hoàn thành tài liệu test ATP và gửi KH",
+    "owner": "Đào Mạnh Hưng",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 4,
+    "pr": "P2",
+    "init": {
+     "status": "Chưa bắt đầu",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t020",
+    "dv": "08. Nghiệm thu & đào tạo – Đào tạo",
+    "detail": "Book lịch đào tạo với KH, hãng (nếu hãng đào tạo); Chuẩn bị tài liệu đào tạo; Setup địa điểm, và thực hiện đào tạo",
+    "owner": "Đào Mạnh Hưng",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 3,
+    "pr": "P2",
+    "init": {
+     "status": "Chưa bắt đầu",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t021",
+    "dv": "09. Đổ tải – Chuẩn bị đổ tải",
+    "detail": "Trao đổi với KH để lên phương án đổ tải; Thực hiện MOP, check-list",
+    "owner": "Đào Mạnh Hưng",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 4,
+    "pr": "P2",
+    "init": {
+     "status": "Chưa bắt đầu",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t022",
+    "dv": "09. Đổ tải – Thực hiện đổ tải & nghiệm thu",
+    "detail": "Thực hiện theo phương án đã chuẩn bị; Theo dõi hệ thống sau đổ tải; Ký nghiệm thu đổ tải",
+    "owner": "Đào Mạnh Hưng",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 5,
+    "pr": "P2",
+    "init": {
+     "status": "Chưa bắt đầu",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   }
+  ]
+ },
+ "projects/p-dlp-18": {
+  "id": "p-dlp-18",
+  "name": "DLP 18",
+  "type": "Triển khai",
+  "owner": "Nguyễn Bá Phúc",
+  "se": "Lê Văn Long",
+  "milestones": "- Kí HĐ: 13/06/2026\n- HLD/LLD: Trước TAM\n- Giao hàng: 15/07/2026\n- Kiểm tra bàn giao: 23/07/2026\n- KCS: 23/07/2026\n- Bàn giao thiết bị, mặt bằng: 31/07/2026\n- Lắp đặt, cấu hình, tích hợp: 14/09/2026\n- BB lắp đặt: 24/09/2026\n- Test ATP: 14/10/2026\n- Đào tạo: Trước TAM\n- TAM: 19/10/2026\n- Đổ tải: 22/01/2027\n- TAT: 01/02/2027\n- TAC: 16/02/2027\n- Bảo hành: 15/04/2030",
+  "situation": "",
+  "order": 7,
+  "tasks": [
+   {
+    "id": "t001",
+    "dv": "01. Ký HĐ – Check HĐ đầu ra",
+    "detail": "Phụ lục 1: Phần DMHH; Phụ lục 2: Yêu cầu kỹ thuật; Các Phụ lục khác (Nếu có)",
+    "owner": "Nguyễn Bá Phúc",
+    "collab": "Lê Văn Long",
+    "deadline": "2026-06-13",
+    "qm": 5,
+    "pt": 2,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t002",
+    "dv": "01. Ký HĐ – Check HĐ đầu vào",
+    "detail": "Phụ lục 1: Phần DMHH; Các Phụ lục khác (Nếu có)",
+    "owner": "Nguyễn Bá Phúc",
+    "collab": "Lê Văn Long",
+    "deadline": "2026-06-13",
+    "qm": 5,
+    "pt": 2,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t003",
+    "dv": "02. Kickoff – Book lịch với KH",
+    "detail": "PM thực hiện",
+    "owner": "Nguyễn Bá Phúc",
+    "collab": "Lê Văn Long",
+    "deadline": "2026-06-24",
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t004",
+    "dv": "02. Kickoff – Thành phần tham dự các bên",
+    "detail": "PM thực hiện",
+    "owner": "Nguyễn Bá Phúc",
+    "collab": "Lê Văn Long",
+    "deadline": "2026-06-24",
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t005",
+    "dv": "02. Kickoff – Chuẩn bị slide Kickoff",
+    "detail": "TM và PM chuẩn bị Silde theo scope dự án (có thể trao đổi trước với KH về nội dung)",
+    "owner": "Nguyễn Bá Phúc",
+    "collab": "Lê Văn Long",
+    "deadline": "2026-06-24",
+    "qm": 5,
+    "pt": 2,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t006",
+    "dv": "02. Kickoff – Kickoff",
+    "detail": "TM và PM phối hợp thực hiện",
+    "owner": "Nguyễn Bá Phúc",
+    "collab": "Lê Văn Long",
+    "deadline": "2026-06-24",
+    "qm": 5,
+    "pt": 2,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t007",
+    "dv": "03. LAB – Xây dựng lab",
+    "detail": "",
+    "owner": "Nguyễn Bá Phúc",
+    "collab": "Lê Văn Long",
+    "deadline": null,
+    "qm": 5,
+    "pt": 3,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t008",
+    "dv": "03. LAB – Thử nghiệm yêu cầu HST trên lab",
+    "detail": "",
+    "owner": "Nguyễn Bá Phúc",
+    "collab": "Lê Văn Long",
+    "deadline": null,
+    "qm": 5,
+    "pt": 4,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t009",
+    "dv": "04. Khảo sát – Chuẩn bị khảo sát",
+    "detail": "Chuẩn bị tài liệu khảo sát",
+    "owner": "Nguyễn Bá Phúc",
+    "collab": "Lê Văn Long",
+    "deadline": "2026-07-22",
+    "qm": 5,
+    "pt": 2,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t010",
+    "dv": "04. Khảo sát – Thực hiện khảo sát",
+    "detail": "Trao đổi với khách hàng về địa điểm khảo sát; Các thành phần tích hợp; Hình thức khảo sảt",
+    "owner": "Nguyễn Bá Phúc",
+    "collab": "Lê Văn Long",
+    "deadline": "2026-07-22",
+    "qm": 5,
+    "pt": 3,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t011",
+    "dv": "04. Khảo sát – Kết quả khảo sát",
+    "detail": "Hoàn thiện nội dung khảo sát; Gửi KH chốt; Chi tiết về giải pháp cung cấp trong dự án; Mô hình chi tiết; Luồng dịch vụ; Các nội dung khác",
+    "owner": "Nguyễn Bá Phúc",
+    "collab": "Lê Văn Long",
+    "deadline": "2026-07-22",
+    "qm": 5,
+    "pt": 3,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t012",
+    "dv": "05. Thiết kế – Duyệt thiết kế",
+    "detail": "Trao đổi với KH để chốt tài liệu thiết kế; Luồng ký duyệt tài liệu bên KH",
+    "owner": "Nguyễn Bá Phúc",
+    "collab": "Lê Văn Long",
+    "deadline": "2026-07-22",
+    "qm": 5,
+    "pt": 3,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t013",
+    "dv": "06. Giao hàng & lắp đặt – Bàn giao hàng hóa",
+    "detail": "Nắm rõ các danh mục trong BBBG; Kiểm tra hàng hóa trước khi giao; Thực hiện giao hàng tại địa điểm bàn giao của KH",
+    "owner": "Nguyễn Bá Phúc",
+    "collab": "Lê Văn Long",
+    "deadline": null,
+    "qm": 5,
+    "pt": 2,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t014",
+    "dv": "07. Cấu hình & tích hợp – Chuẩn bị tài liệu cấu hình",
+    "detail": "Chuẩn bị checklist cấu hình; Chuẩn bị lệnh cấu hình",
+    "owner": "Nguyễn Bá Phúc",
+    "collab": "Lê Văn Long",
+    "deadline": "2026-09-22",
+    "qm": 5,
+    "pt": 3,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t015",
+    "dv": "07. Cấu hình & tích hợp – Tích hợp hệ thống / mạng lưới",
+    "detail": "Chuẩn bị checklist cấu hình bàn giao ATTT theo thông tin khảo sát; Trao đổi phương án tích hợp",
+    "owner": "Nguyễn Bá Phúc",
+    "collab": "Lê Văn Long",
+    "deadline": "2026-09-22",
+    "qm": 5,
+    "pt": 4,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t016",
+    "dv": "08. Nghiệm thu & đào tạo – Test nghiệm thu (ATP)",
+    "detail": "Xây dựng kịch bản test ATP; Trao đổi với KH về các bài test; Thực hiện test ATP, lưu log trong quá trình test; Hoàn thành tài liệu test ATP và gửi KH",
+    "owner": "Nguyễn Bá Phúc",
+    "collab": "Lê Văn Long",
+    "deadline": "2026-10-14",
+    "qm": 5,
+    "pt": 4,
+    "pr": "P2",
+    "init": {
+     "status": "Đang làm",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t017",
+    "dv": "08. Nghiệm thu & đào tạo – Đào tạo",
+    "detail": "Book lịch đào tạo với KH, hãng (nếu hãng đào tạo); Chuẩn bị tài liệu đào tạo; Setup địa điểm, và thực hiện đào tạo",
+    "owner": "Nguyễn Bá Phúc",
+    "collab": "Lê Văn Long",
+    "deadline": "2026-10-14",
+    "qm": 5,
+    "pt": 3,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t018",
+    "dv": "09. Đổ tải – Chuẩn bị đổ tải",
+    "detail": "Trao đổi với KH để lên phương án đổ tải; Thực hiện MOP, check-list",
+    "owner": "Nguyễn Bá Phúc",
+    "collab": "Lê Văn Long",
+    "deadline": "2027-01-22",
+    "qm": 5,
+    "pt": 4,
+    "pr": "P2",
+    "init": {
+     "status": "Chưa bắt đầu",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t019",
+    "dv": "09. Đổ tải – Thực hiện đổ tải & nghiệm thu",
+    "detail": "Thực hiện theo phương án đã chuẩn bị; Theo dõi hệ thống sau đổ tải; Ký nghiệm thu đổ tải",
+    "owner": "Nguyễn Bá Phúc",
+    "collab": "Lê Văn Long",
+    "deadline": "2027-01-22",
+    "qm": 5,
+    "pt": 5,
+    "pr": "P2",
+    "init": {
+     "status": "Chưa bắt đầu",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   }
+  ]
+ },
+ "projects/p-nokia-cgnat-mobile-50": {
+  "id": "p-nokia-cgnat-mobile-50",
+  "name": "Nokia - CGNAT Mobile 50",
+  "type": "Triển khai",
+  "owner": "Đào Mạnh Hưng",
+  "se": "",
+  "milestones": "- Kí HĐ: 9/4\n- HLD/LLD: Thầu quy định hoàn thành ít nhất 7 ngày trước giao hàng lô cuối, HĐ không quy định, target xong trước mốc start lắp đặt\n- Giao hàng: 18/7\n- KCS: 4/8\n- Lắp đặt, cấu hình, tích hợp: 3/10\n- BB lắp đặt: 5/10\n- Test ATP: 4/12\n- TAM: 14/12\n- Đổ tải: 12/2/2027\n- TAT: 22/2/2027\n- TAC: 9/3/2027\n- Bảo hành: 8/3/2029",
+  "situation": "1. LLD:\n- 28/8 đã gửi Viettel LLD update: Sửa các hình vẽ, giữ nguyên thiết kế OSPFv3 IPv6 Stateful FW, báo Viettel quy hoạch IP, VRF phần NAT Logging => Viettel confirm OK, có thể ký BBBG LLD\n- Chờ Viettel quy hoạch chi tiết đấu nối, IP, VRF, ... để ký kế hoạch triển khai\n\n\n2. ATP:\n- Đã gửi 13 bài test cần hỗ trợ + topo dự kiến cho Nokia verify => Dự kiến đầu tháng 10 Nokia gửi kịch bản chi tiết các bài này\n- Đã fill xong nội dung 132 bài test (có thể tham khảo kết quả)\n\n3. Vị trí lắp đặt:\n- HLC 7T không đảm bảo cơ điện, anh Quân P. ML linh hoạt cho mình triển khai sau\n- HKH đã có vị trí, đủ ổ C19 cho chassis 7750\n- HHT N6 đã có vị trí, thiếu 6/12 ổ C19 cho chassis 7750 => Viettel cấp bổ sung PDU C19 lắp ngang rack để đảm bảo\n\n4. Giao hàng:\n- Dự kiến 15/10 mới giao được\nVướng: - Chậm hàng => Các mốc sau giao hàng bị lùi theo tương ứng",
+  "order": 4,
+  "tasks": [
+   {
+    "id": "t001",
+    "dv": "01. Ký HĐ – Check HĐ đầu ra",
+    "detail": "Phụ lục 1: Phần DMHH; Phụ lục 2: Yêu cầu kỹ thuật; Các Phụ lục khác (Nếu có)",
+    "owner": "Đào Mạnh Hưng",
+    "collab": "",
+    "deadline": "2026-04-09",
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t002",
+    "dv": "01. Ký HĐ – Check HĐ đầu vào",
+    "detail": "Phụ lục 1: Phần DMHH; Các Phụ lục khác (Nếu có)",
+    "owner": "Đào Mạnh Hưng",
+    "collab": "",
+    "deadline": "2026-04-09",
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t003",
+    "dv": "02. Kickoff – Book lịch với KH",
+    "detail": "PM thực hiện",
+    "owner": "Đào Mạnh Hưng",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t004",
+    "dv": "02. Kickoff – Thành phần tham dự các bên",
+    "detail": "PM thực hiện",
+    "owner": "Đào Mạnh Hưng",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t005",
+    "dv": "02. Kickoff – Chuẩn bị slide Kickoff",
+    "detail": "TM và PM chuẩn bị Silde theo scope dự án (có thể trao đổi trước với KH về nội dung)",
+    "owner": "Đào Mạnh Hưng",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 2,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t006",
+    "dv": "02. Kickoff – Kickoff",
+    "detail": "TM và PM phối hợp thực hiện",
+    "owner": "Đào Mạnh Hưng",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t007",
+    "dv": "03. LAB – Xây dựng lab",
+    "detail": "N/A",
+    "owner": "Đào Mạnh Hưng",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Tạm dừng",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "Tạm thời chưa cần lab gì",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t008",
+    "dv": "03. LAB – Thử nghiệm yêu cầu HST trên lab",
+    "detail": "N/A",
+    "owner": "Đào Mạnh Hưng",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Tạm dừng",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "Tạm thời chưa cần lab gì",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t009",
+    "dv": "04. Khảo sát – Chuẩn bị khảo sát",
+    "detail": "Chuẩn bị tài liệu khảo sát",
+    "owner": "Đào Mạnh Hưng",
+    "collab": "",
+    "deadline": "2026-07-03",
+    "qm": 5,
+    "pt": 2,
+    "pr": "P2",
+    "init": {
+     "status": "Đang làm",
+     "ms": 2,
+     "nn": "Khách hàng"
+    },
+    "note": "- HKH, HHT đã có vị trí\n- HLC chưa ready cơ điện nên Viettel linh hoạt nghiệm thu theo HKH, HHT và HLC sẽ triển khai sau\n- Phần khảo sát lắp đặt, on nguồn thiết bị trên lab VHT T19 HLC để test ATP => Do hàng chưa về, nếu khảo sát sớm quá thì bên lab VHT không đảm bảo được cho mình, sợ dự án khác cũng cần ưu tiên lắp đặt, on nguồn, dùng máy đo => Viettel báo sẽ khảo sát trước khi hàng về khoảng 2 tuần (đầu tháng 10) | Hướng xử lý: Chờ đầu tháng 10 khảo sát lab T19 HLC để test ATP",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t010",
+    "dv": "04. Khảo sát – Thực hiện khảo sát",
+    "detail": "Trao đổi với khách hàng về địa điểm khảo sát; Các thành phần tích hợp; Hình thức khảo sảt",
+    "owner": "Đào Mạnh Hưng",
+    "collab": "",
+    "deadline": "2026-07-03",
+    "qm": 5,
+    "pt": 2,
+    "pr": "P2",
+    "init": {
+     "status": "Đang làm",
+     "ms": 2,
+     "nn": "Khách hàng"
+    },
+    "note": "- HKH, HHT đã có vị trí\n- HLC chưa ready cơ điện nên Viettel linh hoạt nghiệm thu theo HKH, HHT và HLC sẽ triển khai sau\n- Phần khảo sát lắp đặt, on nguồn thiết bị trên lab VHT T19 HLC để test ATP => Do hàng chưa về, nếu khảo sát sớm quá thì bên lab VHT không đảm bảo được cho mình, sợ dự án khác cũng cần ưu tiên lắp đặt, on nguồn, dùng máy đo => Viettel báo sẽ khảo sát trước khi hàng về khoảng 2 tuần (đầu tháng 10) | Hướng xử lý: Chờ đầu tháng 10 khảo sát lab T19 HLC để test ATP",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t011",
+    "dv": "04. Khảo sát – Kết quả khảo sát",
+    "detail": "Hoàn thiện nội dung khảo sát; Gửi KH chốt",
+    "owner": "Đào Mạnh Hưng",
+    "collab": "",
+    "deadline": "2026-07-03",
+    "qm": 5,
+    "pt": 2,
+    "pr": "P2",
+    "init": {
+     "status": "Đang làm",
+     "ms": 2,
+     "nn": "Khách hàng"
+    },
+    "note": "- HKH, HHT đã có vị trí\n- HLC chưa ready cơ điện nên Viettel linh hoạt nghiệm thu theo HKH, HHT và HLC sẽ triển khai sau\n- Phần khảo sát lắp đặt, on nguồn thiết bị trên lab VHT T19 HLC để test ATP => Do hàng chưa về, nếu khảo sát sớm quá thì bên lab VHT không đảm bảo được cho mình, sợ dự án khác cũng cần ưu tiên lắp đặt, on nguồn, dùng máy đo => Viettel báo sẽ khảo sát trước khi hàng về khoảng 2 tuần (đầu tháng 10) | Hướng xử lý: Chờ đầu tháng 10 khảo sát lab T19 HLC để test ATP",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t012",
+    "dv": "05. Thiết kế – HLD",
+    "detail": "Dựa trên tài liệu khảo sát; Tổng quan về giải pháp cung cấp trong dự án; Mô hình, luồng dịch vụ tổng quan",
+    "owner": "Đào Mạnh Hưng",
+    "collab": "",
+    "deadline": "2026-07-11",
+    "qm": 5,
+    "pt": 4,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t013",
+    "dv": "05. Thiết kế – LLD",
+    "detail": "Dựa trên HLD; Chi tiết về giải pháp cung cấp trong dự án; Mô hình chi tiết; Luồng dịch vụ; Các nội dung khác",
+    "owner": "Đào Mạnh Hưng",
+    "collab": "",
+    "deadline": "2026-07-11",
+    "qm": 5,
+    "pt": 4,
+    "pr": "P2",
+    "init": {
+     "status": "Đang làm",
+     "ms": 2,
+     "nn": "Khách hàng"
+    },
+    "note": "1. Kế hoạch triển khai:\n- Đã gửi Viettel khung LLD update (28/8) => Viettel đã confirm OK => Có thể ký BBBG LLD\n- Chờ Viettel quy hoạch các phụ lục đấu nối, IP, VRF, ...\n=> Done 2 mục trên có thể trình ký kế hoạch triển khai\n2. HSTK LLD final: Hoàn tất mục 1 thì mục này coi như xong nếu Viettel không y/c gì thêm | Hướng xử lý: Push anh Việtnq34 quy hoạch",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t014",
+    "dv": "05. Thiết kế – Duyệt thiết kế",
+    "detail": "Trao đổi với KH để chốt tài liệu thiết kế; Luồng ký duyệt tài liệu bên KH",
+    "owner": "Đào Mạnh Hưng",
+    "collab": "",
+    "deadline": "2026-07-11",
+    "qm": 5,
+    "pt": 3,
+    "pr": "P2",
+    "init": {
+     "status": "Đang làm",
+     "ms": 2,
+     "nn": "Khách hàng"
+    },
+    "note": "1. Kế hoạch triển khai:\n- Đã gửi Viettel khung LLD update (28/8) => Viettel đã confirm OK => Có thể ký BBBG LLD\n- Chờ Viettel quy hoạch các phụ lục đấu nối, IP, VRF, ...\n=> Done 2 mục trên có thể trình ký kế hoạch triển khai\n2. HSTK LLD final: Hoàn tất mục 1 thì mục này coi như xong nếu Viettel không y/c gì thêm | Hướng xử lý: Push anh Việtnq34 quy hoạch",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t015",
+    "dv": "06. Giao hàng & lắp đặt – Bàn giao hàng hóa",
+    "detail": "Nắm rõ các danh mục trong BBBG; Kiểm tra hàng hóa trước khi giao; Thực hiện giao hàng tại địa điểm bàn giao của KH",
+    "owner": "Đào Mạnh Hưng",
+    "collab": "",
+    "deadline": "2026-07-18",
+    "qm": 5,
+    "pt": 2,
+    "pr": "P2",
+    "init": {
+     "status": "Chưa bắt đầu",
+     "ms": 4,
+     "nn": "Hàng hóa / thiết bị"
+    },
+    "note": "Chậm hàng, dự kiến 16/10 mới giao được => các mốc sau giao hàng lùi tương ứng. | Hướng xử lý: Push hãng đẩy nhanh tiến độ hàng",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t016",
+    "dv": "06. Giao hàng & lắp đặt – Lắp đặt, on nguồn",
+    "detail": "Chuẩn bị dụng cụ lắp đặt; Huy động nhân sự; Thực hiện lắp đặt",
+    "owner": "Đào Mạnh Hưng",
+    "collab": "",
+    "deadline": "2026-08-11",
+    "qm": 5,
+    "pt": 2,
+    "pr": "P2",
+    "init": {
+     "status": "Chưa bắt đầu",
+     "ms": 2,
+     "nn": "Khách hàng"
+    },
+    "note": "HLC 7T chưa đảm bảo cơ điện (được triển khai sau); HKH đủ ổ C19; HHT N6 thiếu 6/12 ổ C19. | Hướng xử lý: Viettel cấp bổ sung PDU C19 lắp ngang rack",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t017",
+    "dv": "07. Cấu hình & tích hợp – Chuẩn bị tài liệu cấu hình",
+    "detail": "Chuẩn bị checklist cấu hình; Chuẩn bị lệnh cấu hình",
+    "owner": "Đào Mạnh Hưng",
+    "collab": "",
+    "deadline": "2026-10-05",
+    "qm": 5,
+    "pt": 3,
+    "pr": "P2",
+    "init": {
+     "status": "Chưa bắt đầu",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t018",
+    "dv": "07. Cấu hình & tích hợp – Tích hợp hệ thống / mạng lưới",
+    "detail": "Chuẩn bị checklist cấu hình bàn giao ATTT theo thông tin khảo sát; Trao đổi phương án tích hợp",
+    "owner": "Đào Mạnh Hưng",
+    "collab": "",
+    "deadline": "2026-10-05",
+    "qm": 5,
+    "pt": 4,
+    "pr": "P2",
+    "init": {
+     "status": "Chưa bắt đầu",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t019",
+    "dv": "08. Nghiệm thu & đào tạo – Test nghiệm thu (ATP)",
+    "detail": "Xây dựng kịch bản test ATP; Trao đổi với KH về các bài test; Thực hiện test ATP, lưu log trong quá trình test; Hoàn thành tài liệu test ATP và gửi KH",
+    "owner": "Đào Mạnh Hưng",
+    "collab": "",
+    "deadline": "2026-12-04",
+    "qm": 5,
+    "pt": 4,
+    "pr": "P2",
+    "init": {
+     "status": "Chưa bắt đầu",
+     "ms": 1,
+     "nn": "Hãng"
+    },
+    "note": "- Đã fill xong 132/145 bài có thể tham chiếu kết quả từ dự án đã triển khai vào file word ATP, trong đó có một số bài khác model thiết bị sẽ update kết quả thực tế sau\n- 13/145 bài còn lại dự kiến test trên phòng lab VHT tầng 19 HLC nếu đủ điều kiện test => Nếu không đủ điều kiện thì sẽ trao đổi Viettel phương án tiếp sau. Hiện đã gửi 13 bài test này + topo cho Nokia verify, dự kiến đầu T10 Nokia gửi kịch bản | Hướng xử lý: Chờ hãng gửi lại kịch bản test chi tiết",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t020",
+    "dv": "08. Nghiệm thu & đào tạo – Đào tạo",
+    "detail": "Book lịch đào tạo với KH, hãng (nếu hãng đào tạo); Chuẩn bị tài liệu đào tạo; Setup địa điểm, và thực hiện đào tạo",
+    "owner": "Đào Mạnh Hưng",
+    "collab": "",
+    "deadline": "2026-12-04",
+    "qm": 5,
+    "pt": 3,
+    "pr": "P2",
+    "init": {
+     "status": "Hủy",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "HĐ không có đào tạo với Viettel Chỉ đào tạo on job giữa Nokia và NGSI",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t021",
+    "dv": "09. Đổ tải – Chuẩn bị đổ tải",
+    "detail": "Trao đổi với KH để lên phương án đổ tải; Thực hiện MOP, check-list",
+    "owner": "Đào Mạnh Hưng",
+    "collab": "",
+    "deadline": "2027-02-12",
+    "qm": 5,
+    "pt": 4,
+    "pr": "P2",
+    "init": {
+     "status": "Chưa bắt đầu",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t022",
+    "dv": "09. Đổ tải – Thực hiện đổ tải & nghiệm thu",
+    "detail": "Thực hiện theo phương án đã chuẩn bị; Theo dõi hệ thống sau đổ tải; Ký nghiệm thu đổ tải",
+    "owner": "Đào Mạnh Hưng",
+    "collab": "",
+    "deadline": "2027-02-12",
+    "qm": 5,
+    "pt": 5,
+    "pr": "P2",
+    "init": {
+     "status": "Chưa bắt đầu",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   }
+  ]
+ },
+ "projects/p-lb-08": {
+  "id": "p-lb-08",
+  "name": "LB 08",
+  "type": "Triển khai",
+  "owner": "Nguyễn Bá Phúc",
+  "se": "Lê Văn Long",
+  "milestones": "- Kí HĐ: 07/03/2026\n- HLD/LLD: Trước TAM\n- Giao hàng: 15/05/2026\n- Kiểm tra bàn giao: 30/05/2026\n- KCS: 15/05/2026\n- Bàn giao thiết bị, mặt bằng: 04/06/2026\n- Lắp đặt, cấu hình, tích hợp: 26/07/2026\n- BB lắp đặt: 27/07/2026\n- Test ATP: 17/08/2026\n- Đào tạo: Trước TAM\n- TAM: 22/08/2026\n- Đổ tải: 20/11/2026\n- TAT: 30/11/2026\n- TAC: 15/12/2026\n- Bảo hành: 14/12/2029",
+  "situation": "",
+  "order": 6,
+  "tasks": [
+   {
+    "id": "t001",
+    "dv": "01. Ký HĐ – Check HĐ đầu ra",
+    "detail": "Phụ lục 1: Phần DMHH; Phụ lục 2: Yêu cầu kỹ thuật; Các Phụ lục khác (Nếu có)",
+    "owner": "Nguyễn Bá Phúc",
+    "collab": "Lê Văn Long",
+    "deadline": "2026-03-07",
+    "qm": 5,
+    "pt": 2,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t002",
+    "dv": "01. Ký HĐ – Check HĐ đầu vào",
+    "detail": "Phụ lục 1: Phần DMHH; Các Phụ lục khác (Nếu có)",
+    "owner": "Nguyễn Bá Phúc",
+    "collab": "Lê Văn Long",
+    "deadline": "2026-03-07",
+    "qm": 5,
+    "pt": 2,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t003",
+    "dv": "02. Kickoff – Book lịch với KH",
+    "detail": "PM thực hiện",
+    "owner": "Nguyễn Bá Phúc",
+    "collab": "Lê Văn Long",
+    "deadline": "2026-03-15",
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t004",
+    "dv": "02. Kickoff – Thành phần tham dự các bên",
+    "detail": "PM thực hiện",
+    "owner": "Nguyễn Bá Phúc",
+    "collab": "Lê Văn Long",
+    "deadline": "2026-03-15",
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t005",
+    "dv": "02. Kickoff – Chuẩn bị slide Kickoff",
+    "detail": "TM và PM chuẩn bị Silde theo scope dự án (có thể trao đổi trước với KH về nội dung)",
+    "owner": "Nguyễn Bá Phúc",
+    "collab": "Lê Văn Long",
+    "deadline": "2026-03-15",
+    "qm": 5,
+    "pt": 2,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t006",
+    "dv": "02. Kickoff – Kickoff",
+    "detail": "TM và PM phối hợp thực hiện",
+    "owner": "Nguyễn Bá Phúc",
+    "collab": "Lê Văn Long",
+    "deadline": "2026-03-16",
+    "qm": 5,
+    "pt": 2,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t007",
+    "dv": "03. LAB – Xây dựng lab",
+    "detail": "NA",
+    "owner": "Nguyễn Bá Phúc",
+    "collab": "Lê Văn Long",
+    "deadline": null,
+    "qm": 5,
+    "pt": 3,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t008",
+    "dv": "03. LAB – Thử nghiệm yêu cầu HST trên lab",
+    "detail": "NA",
+    "owner": "Nguyễn Bá Phúc",
+    "collab": "Lê Văn Long",
+    "deadline": null,
+    "qm": 5,
+    "pt": 4,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t009",
+    "dv": "04. Khảo sát – Chuẩn bị khảo sát",
+    "detail": "Chuẩn bị tài liệu khảo sát",
+    "owner": "Nguyễn Bá Phúc",
+    "collab": "Lê Văn Long",
+    "deadline": "2026-05-28",
+    "qm": 5,
+    "pt": 2,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t010",
+    "dv": "04. Khảo sát – Thực hiện khảo sát",
+    "detail": "Trao đổi với khách hàng về địa điểm khảo sát; Các thành phần tích hợp; Hình thức khảo sảt",
+    "owner": "Nguyễn Bá Phúc",
+    "collab": "Lê Văn Long",
+    "deadline": "2026-05-28",
+    "qm": 5,
+    "pt": 3,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t011",
+    "dv": "04. Khảo sát – Kết quả khảo sát",
+    "detail": "Hoàn thiện nội dung khảo sát; Gửi KH chốt",
+    "owner": "Nguyễn Bá Phúc",
+    "collab": "Lê Văn Long",
+    "deadline": "2026-05-28",
+    "qm": 5,
+    "pt": 3,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t012",
+    "dv": "05. Thiết kế – LLD",
+    "detail": "Chi tiết về giải pháp cung cấp trong dự án; Mô hình chi tiết; Mô hình hoạt động; Yêu cầu thông tin IP mới; Luồng dịch vụ; Các nội dung khác",
+    "owner": "Nguyễn Bá Phúc",
+    "collab": "Lê Văn Long",
+    "deadline": "2026-05-28",
+    "qm": 5,
+    "pt": 4,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t013",
+    "dv": "05. Thiết kế – Duyệt thiết kế",
+    "detail": "Trao đổi với KH để chốt tài liệu thiết kế; Luồng ký duyệt tài liệu bên KH",
+    "owner": "Nguyễn Bá Phúc",
+    "collab": "Lê Văn Long",
+    "deadline": "2026-05-28",
+    "qm": 5,
+    "pt": 3,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t014",
+    "dv": "06. Giao hàng & lắp đặt – Bàn giao hàng hóa",
+    "detail": "Nắm rõ các danh mục trong BBBG; Kiểm tra hàng hóa trước khi giao; Thực hiện giao hàng tại địa điểm bàn giao của KH",
+    "owner": "Nguyễn Bá Phúc",
+    "collab": "Lê Văn Long",
+    "deadline": "2026-05-12",
+    "qm": 5,
+    "pt": 2,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t015",
+    "dv": "06. Giao hàng & lắp đặt – Lắp đặt, on nguồn",
+    "detail": "Chuẩn bị dụng cụ lắp đặt; Huy động nhân sự; Thực hiện lắp đặt",
+    "owner": "Nguyễn Bá Phúc",
+    "collab": "Lê Văn Long",
+    "deadline": "2026-06-17",
+    "qm": 5,
+    "pt": 2,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "Chưa thực hiện on nguồn do chờ SW thuộc gói DC 09",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t016",
+    "dv": "07. Cấu hình & tích hợp – Chuẩn bị tài liệu cấu hình",
+    "detail": "Chuẩn bị checklist cấu hình; Chuẩn bị lệnh cấu hình; Khai báo IP: - IP quản trị mgmt - IP interface VLAN - IP VIP - IP HA - IP VRRP floating, VCS floating - IP server Loadbalancing; Cấu hình tính năng: - SSL offload -…",
+    "owner": "Nguyễn Bá Phúc",
+    "collab": "Lê Văn Long",
+    "deadline": "2026-07-27",
+    "qm": 5,
+    "pt": 3,
+    "pr": "P2",
+    "init": {
+     "status": "Tạm dừng",
+     "ms": 4,
+     "nn": "Hàng hóa / thiết bị"
+    },
+    "note": "Chưa thực hiện on nguồn do chờ SW thuộc gói DC 09 | Hướng xử lý: Theo dõi tiến độ thiết bị SW thuộc gói DC 09",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t017",
+    "dv": "07. Cấu hình & tích hợp – Tích hợp hệ thống / mạng lưới",
+    "detail": "Chuẩn bị checklist cấu hình bàn giao ATTT theo thông tin khảo sát; Trao đổi phương án tích hợp; Cấu hình tích hợp: - Khai báo NTP server - Tích hợp Radius/TACACS+, SNMP - Tích hợp Syslog",
+    "owner": "Nguyễn Bá Phúc",
+    "collab": "Lê Văn Long",
+    "deadline": "2026-07-27",
+    "qm": 5,
+    "pt": 4,
+    "pr": "P2",
+    "init": {
+     "status": "Chưa bắt đầu",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t018",
+    "dv": "08. Nghiệm thu & đào tạo – Test nghiệm thu (ATP)",
+    "detail": "Xây dựng kịch bản test ATP; Trao đổi với KH về các bài test; Thực hiện test ATP, lưu log trong quá trình test; Hoàn thành tài liệu test ATP và gửi KH",
+    "owner": "Nguyễn Bá Phúc",
+    "collab": "Lê Văn Long",
+    "deadline": "2026-08-17",
+    "qm": 5,
+    "pt": 4,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t019",
+    "dv": "08. Nghiệm thu & đào tạo – Đào tạo",
+    "detail": "Book lịch đào tạo với KH; Chuẩn bị tài liệu đào tạo; Setup địa điểm, và thực hiện đào tạo",
+    "owner": "Nguyễn Bá Phúc",
+    "collab": "Lê Văn Long",
+    "deadline": "2026-08-17",
+    "qm": 5,
+    "pt": 3,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t020",
+    "dv": "09. Đổ tải – Chuẩn bị đổ tải",
+    "detail": "Trao đổi với KH để lên phương án đổ tải; Thực hiện MOP, check-list",
+    "owner": "Nguyễn Bá Phúc",
+    "collab": "Lê Văn Long",
+    "deadline": "2026-11-25",
+    "qm": 5,
+    "pt": 4,
+    "pr": "P2",
+    "init": {
+     "status": "Chưa bắt đầu",
+     "ms": 4,
+     "nn": "Hàng hóa / thiết bị"
+    },
+    "note": "Chưa thực hiện đổ tải do chờ thiết bị SW của DC 09 | Hướng xử lý: Theo dõi tiến độ thiết bị SW thuộc gói DC 09",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t021",
+    "dv": "09. Đổ tải – Thực hiện đổ tải & nghiệm thu",
+    "detail": "Thực hiện theo phương án đã chuẩn bị; Theo dõi hệ thống sau đổ tải; Ký nghiệm thu đổ tải",
+    "owner": "Nguyễn Bá Phúc",
+    "collab": "Lê Văn Long",
+    "deadline": "2026-11-25",
+    "qm": 5,
+    "pt": 5,
+    "pr": "P2",
+    "init": {
+     "status": "Chưa bắt đầu",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   }
+  ]
+ },
+ "config/staff": {
+  "list": [
+   {
+    "name": "Lê Minh Thắng",
+    "hours": 40,
+    "pct": 0.2,
+    "factor": 1
+   },
+   {
+    "name": "Trần Quốc Tân",
+    "hours": 40,
+    "pct": 0.2,
+    "factor": 1
+   },
+   {
+    "name": "Đào Mạnh Hưng",
+    "hours": 40,
+    "pct": 0.2,
+    "factor": 1
+   },
+   {
+    "name": "Phạm Hồng Lâm",
+    "hours": 40,
+    "pct": 0.2,
+    "factor": 1
+   },
+   {
+    "name": "Nguyễn Bá Phúc",
+    "hours": 40,
+    "pct": 0.2,
+    "factor": 1
+   },
+   {
+    "name": "Dương Thị Kiều Trang",
+    "hours": 40,
+    "pct": 0.2,
+    "factor": 1
+   },
+   {
+    "name": "Lê Văn Long",
+    "hours": 40,
+    "pct": 0.2,
+    "factor": 0.8
+   },
+   {
+    "name": "Đinh Công Dũng",
+    "hours": 40,
+    "pct": 0.2,
+    "factor": 0.8
+   }
+  ]
+ },
+ "weeks/2026-09-28__tran-quoc-tan": {
+  "week": "2026-09-28",
+  "person": "Trần Quốc Tân",
+  "entries": [
+   {
+    "id": "e1",
+    "projectId": "p-nokia-dc-09",
+    "taskId": "t019",
+    "work": "",
+    "qm": null,
+    "pt": null,
+    "status": "",
+    "ms": null,
+    "nn": "",
+    "note": ""
+   },
+   {
+    "id": "e2",
+    "projectId": "p-nokia-dc-14",
+    "taskId": "t007",
+    "work": "",
+    "qm": null,
+    "pt": null,
+    "status": "",
+    "ms": null,
+    "nn": "",
+    "note": ""
+   },
+   {
+    "id": "e3",
+    "projectId": "p-nokia-dc-14",
+    "taskId": "t008",
+    "work": "",
+    "qm": null,
+    "pt": null,
+    "status": "",
+    "ms": null,
+    "nn": "",
+    "note": ""
+   },
+   {
+    "id": "e4",
+    "projectId": "p-nokia-dc-14",
+    "taskId": "t009",
+    "work": "",
+    "qm": null,
+    "pt": null,
+    "status": "",
+    "ms": null,
+    "nn": "",
+    "note": ""
+   }
+  ]
+ },
+ "projects/p-nokia-10": {
+  "id": "p-nokia-10",
+  "name": "Nokia 10",
+  "type": "Triển khai",
+  "owner": "Lê Minh Thắng",
+  "se": "",
+  "milestones": "Hàng đã lắp đặt lên PE\nATP: 18/06",
+  "situation": "Xong phần kĩ thuật.\nPM tiếp tục xử lý",
+  "order": 1,
+  "tasks": [
+   {
+    "id": "t001",
+    "dv": "01. Ký HĐ – Check HĐ đầu ra",
+    "detail": "Phụ lục 1: Phần DMHH; Phụ lục 2: Yêu cầu kỹ thuật; Các Phụ lục khác (Nếu có)",
+    "owner": "Lê Minh Thắng",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t002",
+    "dv": "01. Ký HĐ – Check HĐ đầu vào",
+    "detail": "Phụ lục 1: Phần DMHH; Các Phụ lục khác (Nếu có)",
+    "owner": "Lê Minh Thắng",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t003",
+    "dv": "02. Kickoff – Book lịch với KH",
+    "detail": "N/A",
+    "owner": "Lê Minh Thắng",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t004",
+    "dv": "02. Kickoff – Thành phần tham dự các bên",
+    "detail": "N/A",
+    "owner": "Lê Minh Thắng",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t005",
+    "dv": "02. Kickoff – Chuẩn bị slide Kickoff",
+    "detail": "N/A",
+    "owner": "Lê Minh Thắng",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t006",
+    "dv": "02. Kickoff – Kickoff",
+    "detail": "N/A",
+    "owner": "Lê Minh Thắng",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t007",
+    "dv": "03. LAB – Xây dựng lab",
+    "detail": "N/A",
+    "owner": "Lê Minh Thắng",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t008",
+    "dv": "03. LAB – Thử nghiệm yêu cầu HST trên lab",
+    "detail": "N/A",
+    "owner": "Lê Minh Thắng",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t009",
+    "dv": "04. Khảo sát – Chuẩn bị khảo sát",
+    "detail": "N/A",
+    "owner": "Lê Minh Thắng",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t010",
+    "dv": "04. Khảo sát – Thực hiện khảo sát",
+    "detail": "N/A",
+    "owner": "Lê Minh Thắng",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t011",
+    "dv": "04. Khảo sát – Kết quả khảo sát",
+    "detail": "N/A",
+    "owner": "Lê Minh Thắng",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t012",
+    "dv": "05. Thiết kế – HLD",
+    "detail": "N/A",
+    "owner": "Lê Minh Thắng",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t013",
+    "dv": "05. Thiết kế – LLD",
+    "detail": "N/A",
+    "owner": "Lê Minh Thắng",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t014",
+    "dv": "05. Thiết kế – Duyệt thiết kế",
+    "detail": "N/A",
+    "owner": "Lê Minh Thắng",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t015",
+    "dv": "06. Giao hàng & lắp đặt – Bàn giao hàng hóa",
+    "detail": "Nắm rõ các danh mục trong BBBG; Kiểm tra hàng hóa trước khi giao; Thực hiện giao hàng tại địa điểm bàn giao của KH",
+    "owner": "Lê Minh Thắng",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t016",
+    "dv": "06. Giao hàng & lắp đặt – Lắp đặt, on nguồn",
+    "detail": "N/A",
+    "owner": "Lê Minh Thắng",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t017",
+    "dv": "07. Cấu hình & tích hợp – Chuẩn bị tài liệu cấu hình",
+    "detail": "Chuẩn bị checklist cấu hình; Chuẩn bị lệnh cấu hình",
+    "owner": "Lê Minh Thắng",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t018",
+    "dv": "07. Cấu hình & tích hợp – Tích hợp hệ thống / mạng lưới",
+    "detail": "N/A",
+    "owner": "Lê Minh Thắng",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t019",
+    "dv": "08. Nghiệm thu & đào tạo – Test nghiệm thu (ATP)",
+    "detail": "Hoàn thành tài liệu test ATP và gửi KH",
+    "owner": "Lê Minh Thắng",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t020",
+    "dv": "08. Nghiệm thu & đào tạo – Đào tạo",
+    "detail": "Book lịch đào tạo với KH, hãng (nếu hãng đào tạo); Chuẩn bị tài liệu đào tạo; Setup địa điểm, và thực hiện đào tạo",
+    "owner": "Lê Minh Thắng",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t021",
+    "dv": "09. Đổ tải – Chuẩn bị đổ tải",
+    "detail": "Trao đổi với KH để lên phương án đổ tải; Thực hiện MOP, check-list",
+    "owner": "Lê Minh Thắng",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t022",
+    "dv": "09. Đổ tải – Thực hiện đổ tải & nghiệm thu",
+    "detail": "Thực hiện theo phương án đã chuẩn bị; Theo dõi hệ thống sau đổ tải; Ký nghiệm thu đổ tải",
+    "owner": "Lê Minh Thắng",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   }
+  ]
+ },
+ "projects/p-do-quet-mbf": {
+  "id": "p-do-quet-mbf",
+  "name": "Dò quét MBF",
+  "type": "Triển khai",
+  "owner": "Phạm Hồng Lâm",
+  "se": "",
+  "milestones": "- Giao hàng: \nFortify: 22/04\nRapid7: 30/04\n- PAC: 06/09\n- FAC: 03/11",
+  "situation": "Đang phối hợp cùng Nam MBF hoàn thiện các tài liệu VHKT và HDSD",
+  "order": 8,
+  "tasks": [
+   {
+    "id": "t001",
+    "dv": "01. Ký HĐ – Check HĐ đầu ra",
+    "detail": "Phụ lục 1: Phần DMHH; Phụ lục 2: Yêu cầu kỹ thuật; Các Phụ lục khác (Nếu có)",
+    "owner": "Phạm Hồng Lâm",
+    "collab": "",
+    "deadline": "2026-03-10",
+    "qm": 5,
+    "pt": 2,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t002",
+    "dv": "01. Ký HĐ – Check HĐ đầu vào",
+    "detail": "Phụ lục 1: Phần DMHH; Các Phụ lục khác (Nếu có)",
+    "owner": "Phạm Hồng Lâm",
+    "collab": "",
+    "deadline": "2026-03-10",
+    "qm": 5,
+    "pt": 2,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t003",
+    "dv": "02. Kickoff – Book lịch với KH",
+    "detail": "PM thực hiện",
+    "owner": "Phạm Hồng Lâm",
+    "collab": "",
+    "deadline": "2026-03-18",
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t004",
+    "dv": "02. Kickoff – Thành phần tham dự các bên",
+    "detail": "PM thực hiện",
+    "owner": "Phạm Hồng Lâm",
+    "collab": "",
+    "deadline": "2026-03-18",
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t005",
+    "dv": "02. Kickoff – Chuẩn bị slide Kickoff",
+    "detail": "TM và PM chuẩn bị Silde theo scope dự án (có thể trao đổi trước với KH về nội dung)",
+    "owner": "Phạm Hồng Lâm",
+    "collab": "",
+    "deadline": "2026-03-18",
+    "qm": 5,
+    "pt": 2,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t006",
+    "dv": "02. Kickoff – Kickoff",
+    "detail": "TM và PM phối hợp thực hiện",
+    "owner": "Phạm Hồng Lâm",
+    "collab": "",
+    "deadline": "2026-03-18",
+    "qm": 5,
+    "pt": 2,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t007",
+    "dv": "03. LAB – Xây dựng lab",
+    "detail": "",
+    "owner": "Phạm Hồng Lâm",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 3,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t008",
+    "dv": "03. LAB – Thử nghiệm yêu cầu HST trên lab",
+    "detail": "",
+    "owner": "Phạm Hồng Lâm",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 4,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t009",
+    "dv": "04. Khảo sát – Chuẩn bị khảo sát",
+    "detail": "Chuẩn bị tài liệu khảo sát",
+    "owner": "Phạm Hồng Lâm",
+    "collab": "",
+    "deadline": "2026-04-09",
+    "qm": 5,
+    "pt": 2,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t010",
+    "dv": "04. Khảo sát – Thực hiện khảo sát",
+    "detail": "Trao đổi với khách hàng về địa điểm khảo sát; Các thành phần tích hợp; Hình thức khảo sảt",
+    "owner": "Phạm Hồng Lâm",
+    "collab": "",
+    "deadline": "2026-04-09",
+    "qm": 5,
+    "pt": 3,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t011",
+    "dv": "04. Khảo sát – Kết quả khảo sát",
+    "detail": "Hoàn thiện nội dung khảo sát; Gửi KH chốt",
+    "owner": "Phạm Hồng Lâm",
+    "collab": "",
+    "deadline": "2026-04-09",
+    "qm": 5,
+    "pt": 3,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t012",
+    "dv": "05. Thiết kế – LLD",
+    "detail": "Dựa trên tài liệu khảo sát; Tổng quan về giải pháp cung cấp trong dự án; Mô hình, luồng dịch vụ tổng quan; Mô hình chi tiết; Luồng dịch vụ chi tiết; Các nội dung khác",
+    "owner": "Phạm Hồng Lâm",
+    "collab": "",
+    "deadline": "2026-06-28",
+    "qm": 5,
+    "pt": 4,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t013",
+    "dv": "05. Thiết kế – Duyệt thiết kế",
+    "detail": "Trao đổi với KH để chốt tài liệu thiết kế; Luồng ký duyệt tài liệu bên KH",
+    "owner": "Phạm Hồng Lâm",
+    "collab": "",
+    "deadline": "2026-06-28",
+    "qm": 5,
+    "pt": 3,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t014",
+    "dv": "06. Giao hàng & lắp đặt – Bàn giao hàng hóa",
+    "detail": "Kiểm tra hàng hóa trước khi giao; Thực hiện giao hàng",
+    "owner": "Phạm Hồng Lâm",
+    "collab": "",
+    "deadline": "2026-05-26",
+    "qm": 5,
+    "pt": 2,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t015",
+    "dv": "07. Cấu hình & tích hợp – Chuẩn bị tài liệu cấu hình",
+    "detail": "Chuẩn bị checklist cài đặt",
+    "owner": "Phạm Hồng Lâm",
+    "collab": "",
+    "deadline": "2026-08-30",
+    "qm": 5,
+    "pt": 3,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t016",
+    "dv": "07. Cấu hình & tích hợp – Cấu hình, cài đặt",
+    "detail": "Cài đặt các thành phần: - Dò quét code: Database, SSC, SAST central, DAST central, Lim server, SAST sensor, DAST sensor. - Vulscan: Console managerment, scan engine, Asistant",
+    "owner": "Phạm Hồng Lâm",
+    "collab": "",
+    "deadline": "2026-06-28",
+    "qm": 5,
+    "pt": 4,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t017",
+    "dv": "07. Cấu hình & tích hợp – Tích hợp hệ thống / mạng lưới",
+    "detail": "Chuẩn bị checklist cấu hình; Trao đổi phương án tích hợp",
+    "owner": "Phạm Hồng Lâm",
+    "collab": "",
+    "deadline": "2026-08-30",
+    "qm": 5,
+    "pt": 4,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t018",
+    "dv": "08. Nghiệm thu & đào tạo – Test nghiệm thu (ATP)",
+    "detail": "Xây dựng kịch bản test ATP; Trao đổi với KH về các bài test; Thực hiện test ATP; Hoàn thành tài liệu test ATP và gửi KH",
+    "owner": "Phạm Hồng Lâm",
+    "collab": "",
+    "deadline": "2026-08-30",
+    "qm": 5,
+    "pt": 4,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": 0,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t019",
+    "dv": "08. Nghiệm thu & đào tạo – Đào tạo",
+    "detail": "Book lịch đào tạo với KH, hãng (nếu hãng đào tạo); Chuẩn bị tài liệu đào tạo; Setup địa điểm, và thực hiện đào tạo",
+    "owner": "Phạm Hồng Lâm",
+    "collab": "",
+    "deadline": "2026-05-15",
+    "qm": 5,
+    "pt": 3,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t020",
+    "dv": "09. Đổ tải – Chuẩn bị đổ tải",
+    "detail": "Trao đổi với KH để lên phương án đổ tải",
+    "owner": "Phạm Hồng Lâm",
+    "collab": "",
+    "deadline": "2026-09-13",
+    "qm": 5,
+    "pt": 4,
+    "pr": "P2",
+    "init": {
+     "status": "Đang làm",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t021",
+    "dv": "09. Đổ tải – Thực hiện đổ tải & nghiệm thu",
+    "detail": "Thực hiện theo phương án đã chuẩn bị; Theo dõi hệ thống sau đổ tải; Ký nghiệm thu đổ tải",
+    "owner": "Phạm Hồng Lâm",
+    "collab": "",
+    "deadline": "2026-09-13",
+    "qm": 5,
+    "pt": 5,
+    "pr": "P2",
+    "init": {
+     "status": "Đang làm",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   }
+  ]
+ },
+ "projects/p-ddos-19": {
+  "id": "p-ddos-19",
+  "name": "DDoS 19",
+  "type": "Triển khai",
+  "owner": "Phạm Hồng Lâm",
+  "se": "Đào Mạnh Hưng",
+  "milestones": "- Kí HĐ: 7/7\n- HLD/LLD: DL trước TAM, target trước bàn giao thiết bị, mặt bằng\n- Giao hàng: 5/9\n- Kiểm tra bàn giao: 7/9\n- KCS: 12/9\n- Bàn giao thiết bị, mặt bằng: 20/9\n- Lắp đặt, cấu hình, tích hợp: 9/11\n- BB lắp đặt: 11/11\n- Test ATP: 1/12\n- Đào tạo: Trước TAM\n- TAM: 11/12\n- Đổ tải: 11/3/2027\n- TAT: 21/3/2027\n- TAC: 31/3/2027\n- Bảo hành: 30/3/2030",
+  "situation": "1. Khảo sát:\n- Thànhpd19 đã gửi mô hình hiện trạng, đấu nối vật lý HLC, đang check lại HKH và báo sau\n- Thànhpd19 báo có thể đấu Inline luồng 10G giữa PE và BGW => Cần Thành check lại\n- Thànhpd19 đang xin quy hoạch Rack, U, IP quản trị cho AED, AEM\n\n2. Thiết kế LLD:\n- Đã gửi lại LLD cho Thànhpd19\n- Đã gửi Viettel tài liệu tổng thể giải pháp chống DDoS của Arbor để họ chốt nội bộ trước khi chốt vị trí đặt AED\n\n3. Cấp VM AEM:\n- Namvd10 đã gửi yêu cầu cấp phát VM (1 ổ OS 1TB, 1 ổ data 60GB) => Bị từ chối do chưa ký LLD, chưa xin quy hoạch IP\n\n4. ATP:\n- 13/7 NTS đã gửi comment các bài test là test được hay không, chưa có thông tin các bước làm, những phần cần chuẩn bị, nhân sự thực hiện\n- 14/7 NTS đã gửi bộ cài ảo hóa, guide\n- 16/7 đã dựng xong 1 vAED, 1 vAEM trên lab công ty => Cần xin license vAED để lab\n\n5. Đào tạo: NTS chuẩn bị tài liệu đào tạo, tài liệu hướng dẫn\nVướng: - Chậm hàng do liên quan đến quy định pháp luật của nhà nước, vướng giấy phép nhập khẩu => các đầu việc phía sau bị lùi theo\nĐề xuất: - Trao đổi với NTS kịch bản test ATP\n\n- Push Thànhpd19 khảo sát\n\n- Push Thànhpd19 lịch họp chốt mô hình triển khai",
+  "order": 5,
+  "tasks": [
+   {
+    "id": "t001",
+    "dv": "01. Ký HĐ – Check HĐ đầu ra",
+    "detail": "Phụ lục 1: Phần DMHH; Phụ lục 2: Yêu cầu kỹ thuật; Các Phụ lục khác (Nếu có)",
+    "owner": "Phạm Hồng Lâm",
+    "collab": "Đào Mạnh Hưng",
+    "deadline": "2026-07-07",
+    "qm": 5,
+    "pt": 2,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t002",
+    "dv": "01. Ký HĐ – Check HĐ đầu vào",
+    "detail": "Phụ lục 1: Phần DMHH; Các Phụ lục khác (Nếu có)",
+    "owner": "Phạm Hồng Lâm",
+    "collab": "Đào Mạnh Hưng",
+    "deadline": "2026-07-07",
+    "qm": 5,
+    "pt": 2,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t003",
+    "dv": "02. Kickoff – Book lịch với KH",
+    "detail": "PM thực hiện",
+    "owner": "Phạm Hồng Lâm",
+    "collab": "Đào Mạnh Hưng",
+    "deadline": "2026-07-14",
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t004",
+    "dv": "02. Kickoff – Thành phần tham dự các bên",
+    "detail": "PM thực hiện",
+    "owner": "Phạm Hồng Lâm",
+    "collab": "Đào Mạnh Hưng",
+    "deadline": "2026-07-14",
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t005",
+    "dv": "02. Kickoff – Chuẩn bị slide Kickoff",
+    "detail": "TM và PM chuẩn bị Silde theo scope dự án (có thể trao đổi trước với KH về nội dung)",
+    "owner": "Phạm Hồng Lâm",
+    "collab": "Đào Mạnh Hưng",
+    "deadline": "2026-07-14",
+    "qm": 5,
+    "pt": 2,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t006",
+    "dv": "02. Kickoff – Kickoff",
+    "detail": "TM và PM phối hợp thực hiện",
+    "owner": "Phạm Hồng Lâm",
+    "collab": "Đào Mạnh Hưng",
+    "deadline": "2026-07-14",
+    "qm": 5,
+    "pt": 2,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t007",
+    "dv": "03. LAB – Xây dựng lab",
+    "detail": "",
+    "owner": "Phạm Hồng Lâm",
+    "collab": "Đào Mạnh Hưng",
+    "deadline": null,
+    "qm": 5,
+    "pt": 3,
+    "pr": "P2",
+    "init": {
+     "status": "Đang làm",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t008",
+    "dv": "03. LAB – Thử nghiệm yêu cầu HST trên lab",
+    "detail": "",
+    "owner": "Phạm Hồng Lâm",
+    "collab": "Đào Mạnh Hưng",
+    "deadline": null,
+    "qm": 5,
+    "pt": 4,
+    "pr": "P2",
+    "init": {
+     "status": "Đang làm",
+     "ms": 2,
+     "nn": "Hãng"
+    },
+    "note": "Đã dựng 1 vAED, 1 vAEM trên lab công ty; cần xin license vAED để lab.",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t009",
+    "dv": "04. Khảo sát – Chuẩn bị khảo sát",
+    "detail": "Chuẩn bị tài liệu khảo sát",
+    "owner": "Phạm Hồng Lâm",
+    "collab": "Đào Mạnh Hưng",
+    "deadline": "2026-09-20",
+    "qm": 5,
+    "pt": 2,
+    "pr": "P2",
+    "init": {
+     "status": "Đang làm",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t010",
+    "dv": "04. Khảo sát – Thực hiện khảo sát",
+    "detail": "Trao đổi với khách hàng về địa điểm khảo sát; Các thành phần tích hợp; Hình thức khảo sảt",
+    "owner": "Phạm Hồng Lâm",
+    "collab": "Đào Mạnh Hưng",
+    "deadline": "2026-09-20",
+    "qm": 5,
+    "pt": 3,
+    "pr": "P2",
+    "init": {
+     "status": "Đang làm",
+     "ms": 2,
+     "nn": "Khách hàng"
+    },
+    "note": "Thànhpd19 đã gửi mô hình hiện trạng, đấu nối HLC; đang check HKH; đang xin quy hoạch Rack, U, IP quản trị cho AED/AEM. | Hướng xử lý: Push Thànhpd19 khảo sát.",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t011",
+    "dv": "04. Khảo sát – Kết quả khảo sát",
+    "detail": "Hoàn thiện nội dung khảo sát; Gửi KH chốt",
+    "owner": "Phạm Hồng Lâm",
+    "collab": "Đào Mạnh Hưng",
+    "deadline": "2026-09-20",
+    "qm": 5,
+    "pt": 3,
+    "pr": "P2",
+    "init": {
+     "status": "Đang làm",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t012",
+    "dv": "05. Thiết kế – HLD",
+    "detail": "Dựa trên tài liệu khảo sát; Tổng quan về giải pháp cung cấp trong dự án; Mô hình, luồng dịch vụ tổng quan",
+    "owner": "Phạm Hồng Lâm",
+    "collab": "Đào Mạnh Hưng",
+    "deadline": "2026-12-11",
+    "qm": 5,
+    "pt": 4,
+    "pr": "P2",
+    "init": {
+     "status": "Đang làm",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t013",
+    "dv": "05. Thiết kế – LLD",
+    "detail": "Dựa trên HLD; Chi tiết về giải pháp cung cấp trong dự án; Mô hình chi tiết; Luồng dịch vụ; Các nội dung khác",
+    "owner": "Phạm Hồng Lâm",
+    "collab": "Đào Mạnh Hưng",
+    "deadline": "2026-12-11",
+    "qm": 5,
+    "pt": 4,
+    "pr": "P2",
+    "init": {
+     "status": "Đang làm",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "Đã gửi lại LLD cho Thànhpd19; đã gửi Viettel tài liệu tổng thể giải pháp Arbor để chốt vị trí AED. | Hướng xử lý: Push Thànhpd19 lịch họp chốt mô hình triển khai.",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t014",
+    "dv": "05. Thiết kế – Duyệt thiết kế",
+    "detail": "Trao đổi với KH để chốt tài liệu thiết kế; Luồng ký duyệt tài liệu bên KH",
+    "owner": "Phạm Hồng Lâm",
+    "collab": "Đào Mạnh Hưng",
+    "deadline": "2026-12-11",
+    "qm": 5,
+    "pt": 3,
+    "pr": "P2",
+    "init": {
+     "status": "Đang làm",
+     "ms": 2,
+     "nn": "Khách hàng"
+    },
+    "note": "Yêu cầu cấp VM AEM bị từ chối do chưa ký LLD, chưa xin quy hoạch IP.",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t015",
+    "dv": "06. Giao hàng & lắp đặt – Bàn giao hàng hóa",
+    "detail": "Nắm rõ các danh mục trong BBBG; Kiểm tra hàng hóa trước khi giao; Thực hiện giao hàng tại địa điểm bàn giao của KH",
+    "owner": "Phạm Hồng Lâm",
+    "collab": "Đào Mạnh Hưng",
+    "deadline": "2026-09-05",
+    "qm": 5,
+    "pt": 2,
+    "pr": "P1",
+    "init": {
+     "status": "Chưa bắt đầu",
+     "ms": 4,
+     "nn": "Hàng hóa / thiết bị"
+    },
+    "note": "Chậm hàng do vướng giấy phép nhập khẩu → các đầu việc phía sau bị lùi theo.",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t016",
+    "dv": "06. Giao hàng & lắp đặt – Lắp đặt, on nguồn",
+    "detail": "Chuẩn bị dụng cụ lắp đặt; Huy động nhân sự; Thực hiện lắp đặt",
+    "owner": "Phạm Hồng Lâm",
+    "collab": "Đào Mạnh Hưng",
+    "deadline": "2026-11-09",
+    "qm": 5,
+    "pt": 2,
+    "pr": "P2",
+    "init": {
+     "status": "Chưa bắt đầu",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t017",
+    "dv": "07. Cấu hình & tích hợp – Chuẩn bị tài liệu cấu hình",
+    "detail": "Chuẩn bị checklist cấu hình; Chuẩn bị lệnh cấu hình",
+    "owner": "Phạm Hồng Lâm",
+    "collab": "Đào Mạnh Hưng",
+    "deadline": null,
+    "qm": 5,
+    "pt": 3,
+    "pr": "P2",
+    "init": {
+     "status": "Chưa bắt đầu",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t018",
+    "dv": "07. Cấu hình & tích hợp – Tích hợp hệ thống / mạng lưới",
+    "detail": "Chuẩn bị checklist cấu hình bàn giao ATTT theo thông tin khảo sát; Trao đổi phương án tích hợp",
+    "owner": "Phạm Hồng Lâm",
+    "collab": "Đào Mạnh Hưng",
+    "deadline": null,
+    "qm": 5,
+    "pt": 4,
+    "pr": "P2",
+    "init": {
+     "status": "Chưa bắt đầu",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t019",
+    "dv": "08. Nghiệm thu & đào tạo – Test nghiệm thu (ATP)",
+    "detail": "Xây dựng kịch bản test ATP; Trao đổi với KH về các bài test; Thực hiện test ATP, lưu log trong quá trình test; Hoàn thành tài liệu test ATP và gửi KH",
+    "owner": "Phạm Hồng Lâm",
+    "collab": "Đào Mạnh Hưng",
+    "deadline": "2026-12-01",
+    "qm": 5,
+    "pt": 4,
+    "pr": "P2",
+    "init": {
+     "status": "Chưa bắt đầu",
+     "ms": 1,
+     "nn": "Hãng"
+    },
+    "note": "NTS đã comment bài test test được hay không; chưa có các bước làm, phần cần chuẩn bị, nhân sự. | Hướng xử lý: Trao đổi với NTS kịch bản test ATP.",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t020",
+    "dv": "08. Nghiệm thu & đào tạo – Đào tạo",
+    "detail": "Book lịch đào tạo với KH, hãng (nếu hãng đào tạo); Chuẩn bị tài liệu đào tạo; Setup địa điểm, và thực hiện đào tạo",
+    "owner": "Phạm Hồng Lâm",
+    "collab": "Đào Mạnh Hưng",
+    "deadline": "2026-12-04",
+    "qm": 5,
+    "pt": 3,
+    "pr": "P2",
+    "init": {
+     "status": "Chưa bắt đầu",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "NTS chuẩn bị tài liệu đào tạo, tài liệu hướng dẫn.",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t021",
+    "dv": "09. Đổ tải – Chuẩn bị đổ tải",
+    "detail": "Trao đổi với KH để lên phương án đổ tải; Thực hiện MOP, check-list",
+    "owner": "Phạm Hồng Lâm",
+    "collab": "Đào Mạnh Hưng",
+    "deadline": "2027-03-11",
+    "qm": 5,
+    "pt": 4,
+    "pr": "P2",
+    "init": {
+     "status": "Chưa bắt đầu",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t022",
+    "dv": "09. Đổ tải – Thực hiện đổ tải & nghiệm thu",
+    "detail": "Thực hiện theo phương án đã chuẩn bị; Theo dõi hệ thống sau đổ tải; Ký nghiệm thu đổ tải",
+    "owner": "Phạm Hồng Lâm",
+    "collab": "Đào Mạnh Hưng",
+    "deadline": "2027-03-11",
+    "qm": 5,
+    "pt": 5,
+    "pr": "P2",
+    "init": {
+     "status": "Chưa bắt đầu",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   }
+  ]
+ },
+ "config/catalog": {
+  "list": [
+   {
+    "type": "Triển khai",
+    "name": "01. Ký HĐ – Check HĐ đầu ra",
+    "qm": 2,
+    "pt": 2,
+    "result": "PL1 DMHH khớp chào thầu; PL2 khớp TBDU",
+    "evidence": "Email rà soát gửi PM"
+   },
+   {
+    "type": "Triển khai",
+    "name": "01. Ký HĐ – Check HĐ đầu vào",
+    "qm": 2,
+    "pt": 2,
+    "result": "PL1 DMHH khớp HĐ đầu ra",
+    "evidence": "Email rà soát gửi PM"
+   },
+   {
+    "type": "Triển khai",
+    "name": "02. Kickoff – Book lịch với KH",
+    "qm": 1,
+    "pt": 1,
+    "result": "Lịch kickoff được KH xác nhận",
+    "evidence": "Email / lịch mời"
+   },
+   {
+    "type": "Triển khai",
+    "name": "02. Kickoff – Thành phần tham dự các bên",
+    "qm": 1,
+    "pt": 1,
+    "result": "Danh sách thành phần, xác định key-maker",
+    "evidence": "Danh sách tham dự"
+   },
+   {
+    "type": "Triển khai",
+    "name": "02. Kickoff – Chuẩn bị slide Kickoff",
+    "qm": 2,
+    "pt": 2,
+    "result": "Slide trả lời 5W1H theo scope dự án",
+    "evidence": "File slide"
+   },
+   {
+    "type": "Triển khai",
+    "name": "02. Kickoff – Kickoff",
+    "qm": 1,
+    "pt": 2,
+    "result": "Họp kickoff hoàn thành",
+    "evidence": "Biên bản họp"
+   },
+   {
+    "type": "Triển khai",
+    "name": "03. LAB – Xây dựng lab",
+    "qm": 3,
+    "pt": 3,
+    "result": "Hệ thống lab sẵn sàng",
+    "evidence": "Topo / ảnh chụp lab"
+   },
+   {
+    "type": "Triển khai",
+    "name": "03. LAB – Thử nghiệm yêu cầu HST trên lab",
+    "qm": 3,
+    "pt": 4,
+    "result": "Kết quả thử nghiệm các yêu cầu HST",
+    "evidence": "Log / báo cáo thử nghiệm"
+   },
+   {
+    "type": "Triển khai",
+    "name": "04. Khảo sát – Chuẩn bị khảo sát",
+    "qm": 2,
+    "pt": 2,
+    "result": "Tài liệu khảo sát gửi KH",
+    "evidence": "Email gửi KH"
+   },
+   {
+    "type": "Triển khai",
+    "name": "04. Khảo sát – Thực hiện khảo sát",
+    "qm": 3,
+    "pt": 3,
+    "result": "Thông tin cơ điện, vị trí lắp đặt, thành phần tích hợp",
+    "evidence": "Ghi nhận / biên bản khảo sát"
+   },
+   {
+    "type": "Triển khai",
+    "name": "04. Khảo sát – Kết quả khảo sát",
+    "qm": 2,
+    "pt": 3,
+    "result": "Báo cáo khảo sát được KH chốt",
+    "evidence": "Email / BB chốt khảo sát"
+   },
+   {
+    "type": "Triển khai",
+    "name": "05. Thiết kế – HLD",
+    "qm": 3,
+    "pt": 4,
+    "result": "Tài liệu HLD: tổng quan giải pháp, mô hình, luồng dịch vụ",
+    "evidence": "File HLD"
+   },
+   {
+    "type": "Triển khai",
+    "name": "05. Thiết kế – LLD",
+    "qm": 4,
+    "pt": 4,
+    "result": "Tài liệu LLD: mô hình chi tiết, luồng dịch vụ, IP, đấu nối, ATTT",
+    "evidence": "File LLD"
+   },
+   {
+    "type": "Triển khai",
+    "name": "05. Thiết kế – Duyệt thiết kế",
+    "qm": 2,
+    "pt": 3,
+    "result": "Tài liệu thiết kế được KH ký duyệt",
+    "evidence": "BB ký duyệt thiết kế"
+   },
+   {
+    "type": "Triển khai",
+    "name": "06. Giao hàng & lắp đặt – Bàn giao hàng hóa",
+    "qm": 2,
+    "pt": 2,
+    "result": "Hàng giao đủ, đúng DMHH / BBBG",
+    "evidence": "BBBG hàng hóa"
+   },
+   {
+    "type": "Triển khai",
+    "name": "06. Giao hàng & lắp đặt – Lắp đặt, on nguồn",
+    "qm": 3,
+    "pt": 2,
+    "result": "Thiết bị lắp đặt, on nguồn theo HLD-LLD",
+    "evidence": "BB lắp đặt"
+   },
+   {
+    "type": "Triển khai",
+    "name": "07. Cấu hình & tích hợp – Chuẩn bị tài liệu cấu hình",
+    "qm": 3,
+    "pt": 3,
+    "result": "Checklist + lệnh cấu hình sẵn sàng",
+    "evidence": "File checklist / lệnh"
+   },
+   {
+    "type": "Triển khai",
+    "name": "07. Cấu hình & tích hợp – Cấu hình, cài đặt",
+    "qm": 4,
+    "pt": 4,
+    "result": "Thiết bị / hệ thống được cấu hình xong",
+    "evidence": "Checklist cấu hình đã tick"
+   },
+   {
+    "type": "Triển khai",
+    "name": "07. Cấu hình & tích hợp – Tích hợp hệ thống / mạng lưới",
+    "qm": 3,
+    "pt": 4,
+    "result": "Tích hợp NTP, AAA, Syslog, SNMP… với hệ thống KH",
+    "evidence": "Checklist tích hợp"
+   },
+   {
+    "type": "Triển khai",
+    "name": "08. Nghiệm thu & đào tạo – Test nghiệm thu (ATP)",
+    "qm": 4,
+    "pt": 4,
+    "result": "Hoàn thành bài test ATP, tài liệu ATP gửi KH",
+    "evidence": "Tài liệu / BB ATP"
+   },
+   {
+    "type": "Triển khai",
+    "name": "08. Nghiệm thu & đào tạo – Đào tạo",
+    "qm": 3,
+    "pt": 3,
+    "result": "Đào tạo xong cho KH",
+    "evidence": "Danh sách tham dự, tài liệu đào tạo"
+   },
+   {
+    "type": "Triển khai",
+    "name": "09. Đổ tải – Chuẩn bị đổ tải",
+    "qm": 2,
+    "pt": 4,
+    "result": "Phương án đổ tải + MOP được KH chốt",
+    "evidence": "File MOP / checklist"
+   },
+   {
+    "type": "Triển khai",
+    "name": "09. Đổ tải – Thực hiện đổ tải & nghiệm thu",
+    "qm": 3,
+    "pt": 5,
+    "result": "Đổ tải thành công, ký nghiệm thu đổ tải",
+    "evidence": "BB nghiệm thu đổ tải"
+   },
+   {
+    "type": "Triển khai",
+    "name": "10. Khác – Việc khác (ghi rõ nội dung)",
+    "qm": null,
+    "pt": null,
+    "result": "",
+    "evidence": ""
+   },
+   {
+    "type": "Thầu",
+    "name": "T1. Nghiên cứu HSMT – Đọc HSMT, xác định yêu cầu kỹ thuật",
+    "qm": 2,
+    "pt": 3,
+    "result": "Bảng tóm tắt yêu cầu kỹ thuật, tiêu chí đánh giá",
+    "evidence": "File tóm tắt HSMT"
+   },
+   {
+    "type": "Thầu",
+    "name": "T1. Nghiên cứu HSMT – Đánh giá khả năng đáp ứng (Go / No-go)",
+    "qm": 1,
+    "pt": 3,
+    "result": "Quyết định tham gia, điểm không đáp ứng",
+    "evidence": "Email / biên bản họp"
+   },
+   {
+    "type": "Thầu",
+    "name": "T2. Giải pháp & hãng – Làm việc với hãng / đối tác",
+    "qm": 2,
+    "pt": 3,
+    "result": "Giải pháp, cấu hình, giá được hãng xác nhận",
+    "evidence": "Email / BOM hãng gửi"
+   },
+   {
+    "type": "Thầu",
+    "name": "T2. Giải pháp & hãng – Thiết kế giải pháp, cấu hình (BOM)",
+    "qm": 3,
+    "pt": 4,
+    "result": "Giải pháp + BOM đáp ứng HSMT",
+    "evidence": "File giải pháp, BOM"
+   },
+   {
+    "type": "Thầu",
+    "name": "T3. Hồ sơ kỹ thuật – Lập DMHH (danh mục hàng hóa)",
+    "qm": 2,
+    "pt": 3,
+    "result": "DMHH khớp BOM và HSMT",
+    "evidence": "File DMHH"
+   },
+   {
+    "type": "Thầu",
+    "name": "T3. Hồ sơ kỹ thuật – Lập TBDU (bảng đáp ứng kỹ thuật)",
+    "qm": 3,
+    "pt": 4,
+    "result": "TBDU đáp ứng 100% yêu cầu, có dẫn chứng",
+    "evidence": "File TBDU"
+   },
+   {
+    "type": "Thầu",
+    "name": "T3. Hồ sơ kỹ thuật – Xin thư hỗ trợ kỹ thuật / MAF của hãng",
+    "qm": 2,
+    "pt": 2,
+    "result": "Thư hỗ trợ kỹ thuật, MAF đúng mẫu",
+    "evidence": "Thư có ký, đóng dấu"
+   },
+   {
+    "type": "Thầu",
+    "name": "T3. Hồ sơ kỹ thuật – Tài liệu kỹ thuật (TSD, datasheet, catalogue)",
+    "qm": 2,
+    "pt": 2,
+    "result": "Bộ tài liệu chứng minh đầy đủ",
+    "evidence": "Thư mục tài liệu"
+   },
+   {
+    "type": "Thầu",
+    "name": "T3. Hồ sơ kỹ thuật – Thuyết minh giải pháp, biện pháp triển khai",
+    "qm": 3,
+    "pt": 3,
+    "result": "Thuyết minh kỹ thuật, tiến độ, nhân sự",
+    "evidence": "File thuyết minh"
+   },
+   {
+    "type": "Thầu",
+    "name": "T4. Rà soát & nộp – Rà soát chéo hồ sơ kỹ thuật",
+    "qm": 2,
+    "pt": 3,
+    "result": "Hồ sơ không sai sót, khớp giữa các phần",
+    "evidence": "Checklist rà soát"
+   },
+   {
+    "type": "Thầu",
+    "name": "T4. Rà soát & nộp – Nộp thầu",
+    "qm": 1,
+    "pt": 2,
+    "result": "Hồ sơ nộp đúng hạn",
+    "evidence": "Biên nhận / xác nhận nộp"
+   },
+   {
+    "type": "Thầu",
+    "name": "T5. Sau nộp thầu – Làm rõ HSDT / thuyết trình",
+    "qm": 2,
+    "pt": 3,
+    "result": "Trả lời làm rõ đúng hạn",
+    "evidence": "Văn bản làm rõ"
+   },
+   {
+    "type": "Thầu",
+    "name": "T5. Sau nộp thầu – Thương thảo kỹ thuật, bàn giao sang triển khai",
+    "qm": 2,
+    "pt": 3,
+    "result": "Biên bản thương thảo; bàn giao hồ sơ cho nhóm triển khai",
+    "evidence": "BB thương thảo"
+   },
+   {
+    "type": "Thầu",
+    "name": "T9. Khác – Việc khác (ghi rõ nội dung)",
+    "qm": null,
+    "pt": null,
+    "result": "",
+    "evidence": ""
+   },
+   {
+    "type": "Tư vấn",
+    "name": "V1. Tiếp nhận yêu cầu – Tiếp nhận, làm rõ yêu cầu khách hàng",
+    "qm": 2,
+    "pt": 2,
+    "result": "Yêu cầu, phạm vi được KH xác nhận",
+    "evidence": "Email / biên bản làm việc"
+   },
+   {
+    "type": "Tư vấn",
+    "name": "V1. Tiếp nhận yêu cầu – Khảo sát hiện trạng",
+    "qm": 2,
+    "pt": 3,
+    "result": "Báo cáo hiện trạng",
+    "evidence": "File khảo sát"
+   },
+   {
+    "type": "Tư vấn",
+    "name": "V2. Đề xuất giải pháp – Thiết kế giải pháp sơ bộ",
+    "qm": 3,
+    "pt": 4,
+    "result": "Tài liệu giải pháp sơ bộ",
+    "evidence": "File giải pháp"
+   },
+   {
+    "type": "Tư vấn",
+    "name": "V2. Đề xuất giải pháp – Làm việc với hãng (giải pháp, giá)",
+    "qm": 2,
+    "pt": 3,
+    "result": "Giải pháp, giá tham khảo từ hãng",
+    "evidence": "Email / báo giá hãng"
+   },
+   {
+    "type": "Tư vấn",
+    "name": "V2. Đề xuất giải pháp – Dự toán / BOQ",
+    "qm": 2,
+    "pt": 3,
+    "result": "BOQ, dự toán gửi KH",
+    "evidence": "File BOQ"
+   },
+   {
+    "type": "Tư vấn",
+    "name": "V2. Đề xuất giải pháp – Thuyết trình giải pháp cho KH",
+    "qm": 2,
+    "pt": 3,
+    "result": "Buổi thuyết trình hoàn thành",
+    "evidence": "Slide, biên bản"
+   },
+   {
+    "type": "Tư vấn",
+    "name": "V3. PoC / Demo – Chuẩn bị PoC (kịch bản, môi trường, thiết bị)",
+    "qm": 3,
+    "pt": 3,
+    "result": "Kịch bản + môi trường PoC sẵn sàng",
+    "evidence": "Kịch bản PoC"
+   },
+   {
+    "type": "Tư vấn",
+    "name": "V3. PoC / Demo – Thực hiện PoC / Demo",
+    "qm": 3,
+    "pt": 4,
+    "result": "Hoàn thành các bài PoC",
+    "evidence": "Log / biên bản PoC"
+   },
+   {
+    "type": "Tư vấn",
+    "name": "V3. PoC / Demo – Báo cáo kết quả PoC",
+    "qm": 2,
+    "pt": 3,
+    "result": "Báo cáo PoC gửi KH",
+    "evidence": "File báo cáo"
+   },
+   {
+    "type": "Tư vấn",
+    "name": "V4. Hỗ trợ đầu tư – Hỗ trợ hồ sơ đầu tư (TKCS, dự toán)",
+    "qm": 3,
+    "pt": 3,
+    "result": "Hồ sơ đầu tư hoàn thiện",
+    "evidence": "File hồ sơ"
+   },
+   {
+    "type": "Tư vấn",
+    "name": "V4. Hỗ trợ đầu tư – Hỗ trợ xây dựng yêu cầu kỹ thuật cho HSMT",
+    "qm": 2,
+    "pt": 3,
+    "result": "Bộ yêu cầu kỹ thuật",
+    "evidence": "File yêu cầu kỹ thuật"
+   },
+   {
+    "type": "Tư vấn",
+    "name": "V9. Khác – Việc khác (ghi rõ nội dung)",
+    "qm": null,
+    "pt": null,
+    "result": "",
+    "evidence": ""
+   },
+   {
+    "type": "Nội bộ",
+    "name": "N1. Nội bộ – Hỗ trợ kỹ thuật / việc phát sinh",
+    "qm": null,
+    "pt": 2,
+    "result": "",
+    "evidence": ""
+   },
+   {
+    "type": "Nội bộ",
+    "name": "N1. Nội bộ – Đào tạo nội bộ / tự học",
+    "qm": null,
+    "pt": 2,
+    "result": "",
+    "evidence": ""
+   },
+   {
+    "type": "Nội bộ",
+    "name": "N1. Nội bộ – Việc khác (ghi rõ nội dung)",
+    "qm": null,
+    "pt": 2,
+    "result": "",
+    "evidence": ""
+   }
+  ]
+ },
+ "projects/p-nokia-11": {
+  "id": "p-nokia-11",
+  "name": "Nokia 11",
+  "type": "Triển khai",
+  "owner": "Trần Quốc Tân",
+  "se": "",
+  "milestones": "- Hạn test ATP 5/7\n- Đã có lệnh điều chuyển hàng hóa về tổng trạm (dự kiến sau lễ hàng sẽ về tổng trạm). Liên hệ anh \n- Chưa có kế hoạch lắp đặt",
+  "situation": "Xong phần kĩ thuật.\nPM tiếp tục xử lý",
+  "order": 2,
+  "tasks": [
+   {
+    "id": "t001",
+    "dv": "01. Ký HĐ – Check HĐ đầu ra",
+    "detail": "Phụ lục 1: Phần DMHH; Phụ lục 2: Yêu cầu kỹ thuật; Các Phụ lục khác (Nếu có)",
+    "owner": "Trần Quốc Tân",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t002",
+    "dv": "01. Ký HĐ – Check HĐ đầu vào",
+    "detail": "Phụ lục 1: Phần DMHH; Các Phụ lục khác (Nếu có)",
+    "owner": "Trần Quốc Tân",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t003",
+    "dv": "02. Kickoff – Book lịch với KH",
+    "detail": "N/A",
+    "owner": "Trần Quốc Tân",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t004",
+    "dv": "02. Kickoff – Thành phần tham dự các bên",
+    "detail": "N/A",
+    "owner": "Trần Quốc Tân",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t005",
+    "dv": "02. Kickoff – Chuẩn bị slide Kickoff",
+    "detail": "N/A",
+    "owner": "Trần Quốc Tân",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t006",
+    "dv": "02. Kickoff – Kickoff",
+    "detail": "N/A",
+    "owner": "Trần Quốc Tân",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t007",
+    "dv": "03. LAB – Xây dựng lab",
+    "detail": "N/A",
+    "owner": "Trần Quốc Tân",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t008",
+    "dv": "03. LAB – Thử nghiệm yêu cầu HST trên lab",
+    "detail": "N/A",
+    "owner": "Trần Quốc Tân",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t009",
+    "dv": "04. Khảo sát – Chuẩn bị khảo sát",
+    "detail": "N/A",
+    "owner": "Trần Quốc Tân",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t010",
+    "dv": "04. Khảo sát – Thực hiện khảo sát",
+    "detail": "N/A",
+    "owner": "Trần Quốc Tân",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t011",
+    "dv": "04. Khảo sát – Kết quả khảo sát",
+    "detail": "N/A",
+    "owner": "Trần Quốc Tân",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t012",
+    "dv": "05. Thiết kế – HLD",
+    "detail": "N/A",
+    "owner": "Trần Quốc Tân",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t013",
+    "dv": "05. Thiết kế – LLD",
+    "detail": "N/A",
+    "owner": "Trần Quốc Tân",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t014",
+    "dv": "05. Thiết kế – Duyệt thiết kế",
+    "detail": "N/A",
+    "owner": "Trần Quốc Tân",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t015",
+    "dv": "06. Giao hàng & lắp đặt – Bàn giao hàng hóa",
+    "detail": "Nắm rõ các danh mục trong BBBG; Kiểm tra hàng hóa trước khi giao; Thực hiện giao hàng tại địa điểm bàn giao của KH",
+    "owner": "Trần Quốc Tân",
+    "collab": "",
+    "deadline": "2026-04-08",
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t016",
+    "dv": "06. Giao hàng & lắp đặt – Lắp đặt, on nguồn",
+    "detail": "N/A; Huy động nhân sự; Thực hiện lắp đặt",
+    "owner": "Trần Quốc Tân",
+    "collab": "",
+    "deadline": "2026-04-08",
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t017",
+    "dv": "07. Cấu hình & tích hợp – Chuẩn bị tài liệu cấu hình",
+    "detail": "Chuẩn bị checklist cấu hình; Chuẩn bị lệnh cấu hình",
+    "owner": "Trần Quốc Tân",
+    "collab": "",
+    "deadline": "2026-06-05",
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t018",
+    "dv": "07. Cấu hình & tích hợp – Tích hợp hệ thống / mạng lưới",
+    "detail": "Chuẩn bị checklist cấu hình bàn giao ATTT theo thông tin khảo sát; Trao đổi phương án tích hợp",
+    "owner": "Trần Quốc Tân",
+    "collab": "",
+    "deadline": "2026-06-05",
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t019",
+    "dv": "08. Nghiệm thu & đào tạo – Test nghiệm thu (ATP)",
+    "detail": "Xây dựng kịch bản test ATP; Trao đổi với KH về các bài test; Thực hiện test ATP, lưu log trong quá trình test; Hoàn thành tài liệu test ATP và gửi KH",
+    "owner": "Trần Quốc Tân",
+    "collab": "",
+    "deadline": "2026-07-07",
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t020",
+    "dv": "08. Nghiệm thu & đào tạo – Đào tạo",
+    "detail": "Book lịch đào tạo với KH, hãng (nếu hãng đào tạo); Chuẩn bị tài liệu đào tạo; Setup địa điểm, và thực hiện đào tạo",
+    "owner": "Trần Quốc Tân",
+    "collab": "",
+    "deadline": "2026-07-07",
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t021",
+    "dv": "09. Đổ tải – Chuẩn bị đổ tải",
+    "detail": "Trao đổi với KH để lên phương án đổ tải; Thực hiện MOP, check-list",
+    "owner": "Trần Quốc Tân",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   },
+   {
+    "id": "t022",
+    "dv": "09. Đổ tải – Thực hiện đổ tải & nghiệm thu",
+    "detail": "Thực hiện theo phương án đã chuẩn bị; Theo dõi hệ thống sau đổ tải; Ký nghiệm thu đổ tải",
+    "owner": "Trần Quốc Tân",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": 1,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   }
+  ]
+ },
+ "projects/p-dpi": {
+  "id": "p-dpi",
+  "name": "DPI",
+  "type": "Triển khai",
+  "owner": "Lê Minh Thắng",
+  "se": "",
+  "milestones": "- Kí HĐ: 29/07\n- Giao hàng: 21/10\n- LLD: 07/03/2027\n- KCS: 31/10\n- Lắp đặt, cấu hình, tích hợp: 19/01/2027\n- BB lắp đặt: 21/01/2027\n- Test ATP: 07/03/2027\n- TAM: 17/03/2027\n- Đổ tải: 27/03/2027 (bắt đầu)\n- Bàn giao VHKT: 16/05/2027\n- TAT : 26/05/2027\n- TAC: 15/06/2027",
+  "situation": "Đang phối hợp VTN khảo sát các thành phần tích hợp, thành phần DPI cũ\nReview HLD cùng VTN",
+  "order": 9,
+  "tasks": []
+ },
+ "weeks/2026-09-28__le-minh-thang": {
+  "week": "2026-09-28",
+  "person": "Lê Minh Thắng",
+  "entries": [
+   {
+    "id": "e1",
+    "projectId": "p-nokia-dc-09",
+    "taskId": "t016",
+    "work": "",
+    "qm": null,
+    "pt": null,
+    "status": "",
+    "ms": null,
+    "nn": "",
+    "note": ""
+   },
+   {
+    "id": "e2",
+    "projectId": "p-nokia-dc-09",
+    "taskId": "t017",
+    "work": "",
+    "qm": null,
+    "pt": null,
+    "status": "",
+    "ms": null,
+    "nn": "",
+    "note": ""
+   }
+  ]
+ },
+ "weeks/2026-09-28__dao-manh-hung": {
+  "week": "2026-09-28",
+  "person": "Đào Mạnh Hưng",
+  "entries": [
+   {
+    "id": "e1",
+    "projectId": "p-nokia-19-2026-mtd-linecard-pe",
+    "taskId": "t001",
+    "work": "",
+    "qm": null,
+    "pt": null,
+    "status": "",
+    "ms": null,
+    "nn": "",
+    "note": ""
+   },
+   {
+    "id": "e2",
+    "projectId": "p-nokia-19-2026-mtd-linecard-pe",
+    "taskId": "t002",
+    "work": "",
+    "qm": null,
+    "pt": null,
+    "status": "",
+    "ms": null,
+    "nn": "",
+    "note": ""
+   },
+   {
+    "id": "e3",
+    "projectId": "p-nokia-cgnat-mobile-50",
+    "taskId": "t009",
+    "work": "",
+    "qm": null,
+    "pt": null,
+    "status": "",
+    "ms": null,
+    "nn": "",
+    "note": ""
+   },
+   {
+    "id": "e4",
+    "projectId": "p-nokia-cgnat-mobile-50",
+    "taskId": "t010",
+    "work": "",
+    "qm": null,
+    "pt": null,
+    "status": "",
+    "ms": null,
+    "nn": "",
+    "note": ""
+   },
+   {
+    "id": "e5",
+    "projectId": "p-nokia-cgnat-mobile-50",
+    "taskId": "t011",
+    "work": "",
+    "qm": null,
+    "pt": null,
+    "status": "",
+    "ms": null,
+    "nn": "",
+    "note": ""
+   },
+   {
+    "id": "e6",
+    "projectId": "p-nokia-cgnat-mobile-50",
+    "taskId": "t013",
+    "work": "",
+    "qm": null,
+    "pt": null,
+    "status": "",
+    "ms": null,
+    "nn": "",
+    "note": ""
+   },
+   {
+    "id": "e7",
+    "projectId": "p-nokia-cgnat-mobile-50",
+    "taskId": "t014",
+    "work": "",
+    "qm": null,
+    "pt": null,
+    "status": "",
+    "ms": null,
+    "nn": "",
+    "note": ""
+   },
+   {
+    "id": "e8",
+    "projectId": "p-nokia-one-cgnat",
+    "taskId": "t018",
+    "work": "",
+    "qm": null,
+    "pt": null,
+    "status": "",
+    "ms": null,
+    "nn": "",
+    "note": ""
+   },
+   {
+    "id": "e9",
+    "projectId": "p-nokia-one-cgnat",
+    "taskId": "t022",
+    "work": "",
+    "qm": null,
+    "pt": null,
+    "status": "",
+    "ms": null,
+    "nn": "",
+    "note": ""
+   }
+  ]
+ },
+ "projects/p-ttcp-cognos-ttfile": {
+  "id": "p-ttcp-cognos-ttfile",
+  "name": "TTCP: Cognos, TTFile",
+  "type": "Triển khai",
+  "owner": "Dương Thị Kiều Trang",
+  "se": "",
+  "milestones": "",
+  "situation": "Đã cài đặt xong",
+  "order": 11,
+  "tasks": [
+   {
+    "id": "t001",
+    "dv": "07. Cấu hình & tích hợp – Cấu hình, cài đặt",
+    "detail": "Cài đặt hệ thống cognos\nCài đặt hệ thống TTFile",
+    "owner": "Dương Thị Kiều Trang",
+    "collab": "",
+    "deadline": null,
+    "qm": 5,
+    "pt": null,
+    "pr": "P2",
+    "init": {
+     "status": "Hoàn thành",
+     "ms": null,
+     "nn": ""
+    },
+    "note": "",
+    "eval": {
+     "dat": "",
+     "cl": null,
+     "tc": null,
+     "nx": ""
+    }
+   }
+  ]
+ }
+}
