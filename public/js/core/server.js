@@ -48,7 +48,7 @@ async function connectServer(){
 }
 function startSession(user){
   if(S.db && S.db.close) S.db.close();
-  S.user = user; S.server = true; S.canEdit = user.role==="admin"; S.canWrite = true; S.users = null;
+  S.user = user; S.server = true; S.canEdit = user.role==="admin"; S.users = null;
   if(user.role!=="admin"){ S.me = user.staff_name || ""; } else if(!S.me && user.staff_name){ S.me = user.staff_name; }
   const db = makeServerDb(); S.db = db; S.conn = "on"; S.loaded = false; setConn();
   const onErr = () => {};

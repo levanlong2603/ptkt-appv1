@@ -25,7 +25,7 @@ function saveWeek(week, person, entries){
 
 function setConn(){
   const d=document.getElementById("connDot"), t=document.getElementById("connTxt");
-  d.className = "dot " + (S.conn==="on"||S.conn==="local"?"on":S.conn==="off"?"off":"");
-  t.textContent = S.conn==="reconnect" ? "Mất kết nối – đang thử lại…" : S.conn==="local" ? "Lưu trên máy này" : (S.conn==="on" && S.server) ? "Đã kết nối máy chủ" : S.conn==="on" ? "Dữ liệu chung đang đồng bộ" : S.conn==="off" ? "Chưa kết nối dữ liệu chung" : "Đang kết nối…";
+  d.className = "dot " + (S.conn==="on"?"on":S.conn==="off"?"off":"");
+  t.textContent = S.conn==="reconnect" ? "Mất kết nối – đang thử lại…" : (S.conn==="on" && S.server) ? "Đã kết nối máy chủ" : S.conn==="on" ? "Dữ liệu chung đang đồng bộ" : S.conn==="off" ? "Chưa kết nối dữ liệu chung" : "Đang kết nối…";
 }
 let raf=0; function schedule(){ cancelAnimationFrame(raf); raf=requestAnimationFrame(render); }

@@ -37,7 +37,6 @@ main.addEventListener("click", e => {
   else if(a==="exp-week") exportWeeks();
   else if(a==="exp-json") exportBackup();
   else if(a==="imp-json") document.getElementById("impFile").click();
-  else if(a==="reset"){ if(confirm("Xoá mọi thay đổi trên máy này và quay về dữ liệu ban đầu?")){ S.db.reset(); toast("Đã khôi phục dữ liệu ban đầu"); } }
 });
 document.addEventListener("fullscreenchange", () => { if(!document.fullscreenElement && document.body.classList.contains("present")){ document.body.classList.remove("present"); render(); } });
 document.addEventListener("keydown", e => { if(e.key==="Escape" && document.body.classList.contains("present") && !document.querySelector(".drawer")){ document.body.classList.remove("present"); render(); } });

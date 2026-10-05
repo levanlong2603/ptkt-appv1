@@ -20,7 +20,7 @@ function render(){
   const main = document.getElementById("main");
   let html = "";
   const banner = S.conn==="off" ? `<div class="banner">Không kết nối được máy chủ. Kiểm tra mạng hoặc báo quản trị hệ thống.</div>` : "";
-  if((S.conn==="on"||S.conn==="local") && !S.loaded) html = `<div class="empty"><b>Đang tải dữ liệu…</b></div>`;
+  if(S.conn==="on" && !S.loaded) html = `<div class="empty"><b>Đang tải dữ liệu…</b></div>`;
   else html = (VIEW_RENDER[S.view] || VIEW_RENDER.dash || (() => ""))();
   main.innerHTML = `<div class="page">${banner}${html}</div>`;
 }
