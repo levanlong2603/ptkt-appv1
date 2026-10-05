@@ -9,7 +9,7 @@ User=ptkt
 Group=ptkt
 WorkingDirectory=/opt/ptkt
 EnvironmentFile=/opt/ptkt/.env
-ExecStart=/usr/bin/node /opt/ptkt/server.js
+ExecStart=/usr/bin/node /opt/ptkt/server/server.js
 Restart=always
 RestartSec=3
 # Bảo mật

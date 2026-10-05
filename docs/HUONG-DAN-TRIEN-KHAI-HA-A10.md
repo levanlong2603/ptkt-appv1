@@ -47,7 +47,7 @@ Tài liệu này hướng dẫn cài ứng dụng lên **SERVER3 (192.168.20.11)
 
 ### A2. Vì sao Active/Standby chứ không chia tải 50/50
 
-Ứng dụng đẩy cập nhật tức thời cho mọi người bằng **Server-Sent Events**. Danh sách người đang mở trang nằm **trong bộ nhớ của chính tiến trình Node.js** (`server.js` – biến `clients` và hàm `broadcast()`).
+Ứng dụng đẩy cập nhật tức thời cho mọi người bằng **Server-Sent Events**. Danh sách người đang mở trang nằm **trong bộ nhớ của chính tiến trình Node.js** (`server/server.js` – biến `clients` và hàm `broadcast()`).
 
 Hậu quả nếu cho cả 2 máy cùng nhận tải:
 
@@ -57,7 +57,7 @@ Bật *persistence* (dính phiên) trên A10 **không khắc phục được**, 
 
 Vì vậy: **tại một thời điểm chỉ một máy phục vụ**. Với quy mô phòng (8–20 người) một máy thừa sức; máy thứ hai để chống hỏng máy, không để tăng hiệu năng.
 
-*(Nếu sau này thực sự cần chia tải 50/50, phải sửa `server.js` để hai tiến trình báo sự kiện cho nhau. Chưa cần ở thời điểm này.)*
+*(Nếu sau này thực sự cần chia tải 50/50, phải sửa `server/server.js` để hai tiến trình báo sự kiện cho nhau. Chưa cần ở thời điểm này.)*
 
 ### A3. Những điểm bắt buộc phải khớp giữa 2 máy
 
@@ -175,9 +175,9 @@ cd /opt/ptkt && sudo npm ci --omit=dev
 ls /opt/ptkt
 ```
 
-**Kiểm tra:** `npm ci` kết thúc bằng `added … packages`, không có `ERR!`. Thư mục `/opt/ptkt` có `server.js`, `public`, `deploy`, `scripts`, `seed`.
+**Kiểm tra:** `npm ci` kết thúc bằng `added … packages`, không có `ERR!`. Thư mục `/opt/ptkt` có `server/server.js`, `public`, `deploy`, `scripts`, `seed`.
 
-> **Chưa chạy ứng dụng ở bước này.** Phải dựng xong nhân bản CSDL trước, nếu không cả hai máy sẽ cùng nạp dữ liệu ban đầu từ `seed/seed.json` và đâm nhau.
+> **Chưa chạy ứng dụng ở bước này.** Phải dựng xong nhân bản CSDL trước, nếu không cả hai máy sẽ cùng nạp dữ liệu ban đầu từ `server/seed/seed.json` và đâm nhau.
 
 ---
 
@@ -372,7 +372,7 @@ sudo chmod 640 /opt/ptkt/.env
 ```bash
 # SERVER3
 cd /opt/ptkt
-sudo -u ptkt node --env-file=.env server.js
+sudo -u ptkt node --env-file=.env server/server.js
 ```
 Màn hình phải hiện:
 ```
@@ -395,7 +395,7 @@ Phải ra **24** (bằng đúng số ở dòng `[seed]`). Nếu ra `0` → **d�
 ```bash
 # SERVER3
 cd /opt/ptkt
-sudo -u ptkt node --env-file=.env scripts/manage-user.js create
+sudo -u ptkt node --env-file=.env server/scripts/manage-user.js create
 ```
 Trả lời: tên đăng nhập (vd `trp.kythuat`), tên hiển thị, vai trò `1` (Trưởng phòng), bỏ qua phần gắn nhân sự, mật khẩu ≥ 8 ký tự.
 
@@ -436,7 +436,7 @@ curl -s -H 'X-Forwarded-For: 10.9.9.9' http://127.0.0.1/api/health; echo
 **Kiểm tra:** `nginx -t` báo `syntax is ok` / `test is successful`, và `curl` trả về `{"ok":true,…}`.
 
 **Vì sao phải dùng `nginx-ptkt-a10.conf` chứ không phải `nginx-ptkt.conf`:**
-A10 làm NAT nguồn, nên mọi yêu cầu đến máy chủ đều mang IP của A10. Ứng dụng có cơ chế chống dò mật khẩu “**sai 10 lần / 15 phút / mỗi IP**” (`server.js`). Nếu dùng file cấu hình thường, cả phòng bị tính chung một IP: **một người gõ sai mật khẩu 10 lần là cả phòng bị khoá 15 phút.** File `nginx-ptkt-a10.conf` lấy IP thật từ header `X-Forwarded-For` do A10 chèn vào – vì vậy **bắt buộc phải bật `insert-client-ip` trên A10** ở Phần D.
+A10 làm NAT nguồn, nên mọi yêu cầu đến máy chủ đều mang IP của A10. Ứng dụng có cơ chế chống dò mật khẩu “**sai 10 lần / 15 phút / mỗi IP**” (`server/server.js`). Nếu dùng file cấu hình thường, cả phòng bị tính chung một IP: **một người gõ sai mật khẩu 10 lần là cả phòng bị khoá 15 phút.** File `nginx-ptkt-a10.conf` lấy IP thật từ header `X-Forwarded-For` do A10 chèn vào – vì vậy **bắt buộc phải bật `insert-client-ip` trên A10** ở Phần D.
 
 ---
 
@@ -480,7 +480,7 @@ slb server SERVER4 192.168.20.12
   port 80 tcp
 ```
 
-Dùng đúng đường dẫn **`/api/health`**, không dùng “TCP port 80 mở là coi như sống”. `/api/health` chạy một truy vấn thật xuống MariaDB (`server.js` – `store.ping()`): nếu CSDL hỏng, nó trả về **503** và A10 sẽ chuyển sang máy kia. Kiểm tra TCP đơn thuần sẽ không phát hiện được tình huống đó.
+Dùng đúng đường dẫn **`/api/health`**, không dùng “TCP port 80 mở là coi như sống”. `/api/health` chạy một truy vấn thật xuống MariaDB (`server/server.js` – `store.ping()`): nếu CSDL hỏng, nó trả về **503** và A10 sẽ chuyển sang máy kia. Kiểm tra TCP đơn thuần sẽ không phát hiện được tình huống đó.
 
 ### D2. Nhóm dịch vụ – ưu tiên SERVER3
 
@@ -544,7 +544,7 @@ Cổng 80 trên VIP **chỉ chuyển hướng**, không gắn `service-group`.
 
 ### D6. Kênh thời gian thực đi qua A10
 
-Ứng dụng giữ một kết nối HTTP dài tới `/api/events`. Nó tự gửi gói giữ nhịp mỗi **25 giây** (`server.js` – `setInterval(… 25000)`), nên thời gian chờ rỗi mặc định của ACOS (600 giây) là đủ, **không cần chỉnh**.
+Ứng dụng giữ một kết nối HTTP dài tới `/api/events`. Nó tự gửi gói giữ nhịp mỗi **25 giây** (`server/server.js` – `setInterval(… 25000)`), nên thời gian chờ rỗi mặc định của ACOS (600 giây) là đủ, **không cần chỉnh**.
 
 Điều cần kiểm tra là A10 **không đệm** luồng này. Nếu ở Phần E mục E4 thấy dữ liệu chỉ cập nhật sau vài chục giây (hoặc chỉ khi F5), hãy tách riêng `/api/events` bằng aFleX trỏ sang một service-group không gắn template nén/đệm.
 
@@ -580,7 +580,7 @@ Mở ứng dụng trên **hai máy trạm khác nhau**, cùng đăng nhập. Má
 
 ### E5. Nhân bản CSDL hai chiều
 ```bash
-sudo /opt/ptkt/scripts/check-ha.sh     # chạy trên CẢ HAI máy
+sudo /opt/ptkt/deploy/check-ha.sh     # chạy trên CẢ HAI máy
 ```
 Cả hai phải báo `✓` ở mọi dòng, và **số tài liệu trong bảng docs bằng nhau**.
 
@@ -601,7 +601,7 @@ Trong vòng ~15 giây (interval 5s × retry 2):
 | Trình duyệt vẫn **đăng nhập nguyên**, chỉ cần F5 là dùng tiếp | `JWT_SECRET` hai máy khác nhau → sửa `.env` SERVER4 |
 | Dữ liệu đầy đủ, đúng như trước | Nhân bản có vấn đề → Phần G |
 
-Ghi chú lại: sau khi chuyển, kết nối thời gian thực đứt và tự nối lại sau 5 giây (`retry: 5000` trong `server.js`) – trong vài giây đó thanh bên hiện “Mất kết nối – đang thử lại…”. Đây là hành vi đúng.
+Ghi chú lại: sau khi chuyển, kết nối thời gian thực đứt và tự nối lại sau 5 giây (`retry: 5000` trong `server/server.js`) – trong vài giây đó thanh bên hiện “Mất kết nối – đang thử lại…”. Đây là hành vi đúng.
 
 Khôi phục:
 ```bash
@@ -623,23 +623,23 @@ Chạy trên **cả hai máy**, lệch giờ, để có hai bản độc lập:
 
 ```bash
 # CẢ HAI MÁY
-sudo chmod +x /opt/ptkt/scripts/backup.sh /opt/ptkt/scripts/check-ha.sh
-sudo /opt/ptkt/scripts/backup.sh
+sudo chmod +x /opt/ptkt/deploy/backup.sh /opt/ptkt/deploy/check-ha.sh
+sudo /opt/ptkt/deploy/backup.sh
 ls -lh /var/backups/ptkt
 ```
 ```bash
 # SERVER3 – 1h30 đêm
-(sudo crontab -l 2>/dev/null; echo "30 1 * * * /opt/ptkt/scripts/backup.sh >> /var/log/ptkt-backup.log 2>&1") | sudo crontab -
+(sudo crontab -l 2>/dev/null; echo "30 1 * * * /opt/ptkt/deploy/backup.sh >> /var/log/ptkt-backup.log 2>&1") | sudo crontab -
 ```
 ```bash
 # SERVER4 – 2h30 đêm
-(sudo crontab -l 2>/dev/null; echo "30 2 * * * /opt/ptkt/scripts/backup.sh >> /var/log/ptkt-backup.log 2>&1") | sudo crontab -
+(sudo crontab -l 2>/dev/null; echo "30 2 * * * /opt/ptkt/deploy/backup.sh >> /var/log/ptkt-backup.log 2>&1") | sudo crontab -
 ```
 
 Thêm kiểm tra nhân bản mỗi giờ (ghi log, để dò lại khi có sự cố):
 ```bash
 # CẢ HAI MÁY
-(sudo crontab -l 2>/dev/null; echo "15 * * * * /opt/ptkt/scripts/check-ha.sh >> /var/log/ptkt-ha.log 2>&1") | sudo crontab -
+(sudo crontab -l 2>/dev/null; echo "15 * * * * /opt/ptkt/deploy/check-ha.sh >> /var/log/ptkt-ha.log 2>&1") | sudo crontab -
 sudo crontab -l
 ```
 
@@ -648,7 +648,7 @@ sudo crontab -l
 ### F2. Theo dõi hằng tuần
 
 ```bash
-sudo /opt/ptkt/scripts/check-ha.sh        # chạy trên cả hai máy, 1 lần/tuần
+sudo /opt/ptkt/deploy/check-ha.sh        # chạy trên cả hai máy, 1 lần/tuần
 ```
 Mục cần để ý nhất là dòng **nhân bản** và **số tài liệu trong bảng docs** – hai máy phải ra con số giống nhau.
 
@@ -658,7 +658,7 @@ Thứ tự: **máy dự phòng trước, máy đang chạy sau.** Giữa hai bư
 
 ```bash
 # 1. SERVER3 – sao lưu trước
-sudo /opt/ptkt/scripts/backup.sh
+sudo /opt/ptkt/deploy/backup.sh
 
 # 2. SERVER4 (đang không nhận tải) – cập nhật mã nguồn
 #    chép ptkt-app.zip mới lên /tmp của SERVER4, rồi:
@@ -686,7 +686,7 @@ cd /opt/ptkt && sudo npm ci --omit=dev
 sudo systemctl restart ptkt
 
 # 4. Kiểm tra lại cả hai
-sudo /opt/ptkt/scripts/check-ha.sh
+sudo /opt/ptkt/deploy/check-ha.sh
 ```
 
 **Lưu ý về thay đổi cấu trúc CSDL:** phiên bản mới có thêm bảng/cột thì lệnh `CREATE TABLE IF NOT EXISTS` khi khởi động sẽ được nhân bản sang máy kia. Trong lúc máy cũ chạy bản cũ còn máy mới đã tạo bảng mới, hệ thống vẫn chạy được (bản cũ không đụng tới bảng mới). Nhưng với thay đổi lớn, hãy **dừng `ptkt` trên cả hai máy, cập nhật cả hai, rồi bật lại** – chấp nhận vài phút gián đoạn để đổi lấy sự chắc chắn.

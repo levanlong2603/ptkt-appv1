@@ -28,13 +28,13 @@ Sau khi làm xong: toàn bộ dữ liệu, **tài khoản và mật khẩu giữ
 ## PHẦN A – HIỂU NHANH THAY ĐỔI
 
 ```
-TRƯỚC (1.0/1.1):  Nginx → Node.js (server.js) → file SQLite /var/lib/ptkt/ptkt.db
-SAU   (1.2)    :  Nginx → Node.js (server.js) → lib/store.js → MariaDB (127.0.0.1:3306, CSDL "ptkt")
+TRƯỚC (1.0/1.1):  Nginx → Node.js (server/server.js) → file SQLite /var/lib/ptkt/ptkt.db
+SAU   (1.2)    :  Nginx → Node.js (server/server.js) → server/lib/store.js → MariaDB (127.0.0.1:3306, CSDL "ptkt")
 ```
 
 | Hạng mục | Thay đổi |
 |---|---|
-| Mã nguồn | Thêm `lib/store.js` (lớp lưu trữ dùng chung cho MariaDB & SQLite), thư viện `mysql2`, công cụ `scripts/migrate-sqlite-to-mariadb.js`. `server.js`, `manage-user.js`, `backup.sh` đọc/ghi qua lớp này |
+| Mã nguồn | Thêm `server/lib/store.js` (lớp lưu trữ dùng chung cho MariaDB & SQLite), thư viện `mysql2`, công cụ `server/scripts/migrate-sqlite-to-mariadb.js`. `server/server.js`, `manage-user.js`, `backup.sh` đọc/ghi qua lớp này |
 | Cấu hình `.env` | Thêm `DB_CLIENT=mariadb` và các dòng `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` |
 | Sao lưu | `backup.sh` tự nhận MariaDB → tạo file `ptkt-YYYYMMDD-HHMM.sql.gz` (bằng `mariadb-dump`) |
 | Giao diện | Không đổi. Người dùng không cần làm gì |
@@ -58,7 +58,7 @@ SAU   (1.2)    :  Nginx → Node.js (server.js) → lib/store.js → MariaDB (12
 
 **1a. Bản sao lưu SQLite bằng script hiện có:**
 ```bash
-sudo /opt/ptkt/scripts/backup.sh
+sudo /opt/ptkt/deploy/backup.sh
 ls -lh /var/backups/ptkt | tail -3
 ```
 
@@ -170,7 +170,7 @@ cd /opt/ptkt && sudo npm ci --omit=dev
 **Kiểm tra:**
 ```bash
 grep '"version"' /opt/ptkt/package.json
-ls /opt/ptkt/lib /opt/ptkt/scripts
+ls /opt/ptkt/server/lib /opt/ptkt/server/scripts
 node -e "require('/opt/ptkt/node_modules/mysql2'); console.log('mysql2 OK')"
 ```
 Phải thấy `"version": "1.2.0"`, file `store.js`, `migrate-sqlite-to-mariadb.js`, và `mysql2 OK`. Cảnh báo `npm warn deprecated …` không sao (như lần trước).
@@ -209,7 +209,7 @@ sudo ls -l /opt/ptkt/.env
 
 ```bash
 cd /opt/ptkt
-sudo -u ptkt node --env-file=.env scripts/migrate-sqlite-to-mariadb.js --check
+sudo -u ptkt node --env-file=.env server/scripts/migrate-sqlite-to-mariadb.js --check
 ```
 
 **Kiểm tra** – kết quả dạng:
@@ -228,7 +228,7 @@ Nguồn  (SQLite /var/lib/ptkt/ptkt.db): 24 tài liệu, 9 tài khoản, 812 dò
 ```bash
 sudo systemctl stop ptkt
 cd /opt/ptkt
-sudo -u ptkt node --env-file=.env scripts/migrate-sqlite-to-mariadb.js
+sudo -u ptkt node --env-file=.env server/scripts/migrate-sqlite-to-mariadb.js
 ```
 
 **Kiểm tra** – dòng cuối phải là:
@@ -285,15 +285,15 @@ Báo cả phòng: **hệ thống đã hoạt động lại.**
 `backup.sh` bản mới đã được chép ở Bước 4, tự đọc `.env` để biết đang dùng MariaDB.
 
 ```bash
-sudo /opt/ptkt/scripts/backup.sh
+sudo /opt/ptkt/deploy/backup.sh
 ls -lh /var/backups/ptkt | tail -3
 sudo crontab -l
 ```
 **Kiểm tra:**
 - In ra `Đã sao lưu (mariadb): /var/backups/ptkt/ptkt-YYYYMMDD-HHMM.sql.gz (…K)`.
-- `crontab -l` vẫn còn dòng `30 1 * * * /opt/ptkt/scripts/backup.sh …` từ lần cài đặt trước (không cần sửa). Nếu chưa có:
+- `crontab -l` vẫn còn dòng `30 1 * * * /opt/ptkt/deploy/backup.sh …` từ lần cài đặt trước (không cần sửa). Nếu chưa có:
   ```bash
-  (sudo crontab -l 2>/dev/null; echo "30 1 * * * /opt/ptkt/scripts/backup.sh >> /var/log/ptkt-backup.log 2>&1") | sudo crontab -
+  (sudo crontab -l 2>/dev/null; echo "30 1 * * * /opt/ptkt/deploy/backup.sh >> /var/log/ptkt-backup.log 2>&1") | sudo crontab -
   ```
 
 **(Khuyến nghị) Thử khôi phục bản sao lưu vào CSDL tạm** – để chắc chắn file sao lưu dùng được:
@@ -336,7 +336,7 @@ Log hiện `(CSDL: SQLite – /var/lib/ptkt/ptkt.db)` → ứng dụng chạy l�
 
 Chuyển lại sang MariaDB sau khi đã sửa lỗi: làm lại Bước 6–8. Nếu MariaDB đã có dữ liệu từ lần trước, công cụ chuyển sẽ dừng để bảo vệ; muốn chép đè hoàn toàn từ SQLite thì thêm `--force`:
 ```bash
-sudo -u ptkt node --env-file=.env scripts/migrate-sqlite-to-mariadb.js --force
+sudo -u ptkt node --env-file=.env server/scripts/migrate-sqlite-to-mariadb.js --force
 ```
 
 ---
@@ -351,13 +351,13 @@ sudo -u ptkt node --env-file=.env scripts/migrate-sqlite-to-mariadb.js --force
 | Vào giao diện lệnh CSDL | `sudo mariadb ptkt` (thoát: `EXIT;`) |
 | Dung lượng CSDL | `sudo mariadb -e "SELECT table_name, ROUND((data_length+index_length)/1024,0) AS KB FROM information_schema.tables WHERE table_schema='ptkt';"` |
 | Ai sửa gì gần đây | `sudo mariadb ptkt -e "SELECT FROM_UNIXTIME(ts/1000) luc, username, action, path FROM audit ORDER BY id DESC LIMIT 30;"` |
-| Sao lưu ngay | `sudo /opt/ptkt/scripts/backup.sh` |
-| Quản lý tài khoản dòng lệnh | `cd /opt/ptkt && sudo -u ptkt node --env-file=.env scripts/manage-user.js list` (create / reset-password / disable / enable – như cũ) |
+| Sao lưu ngay | `sudo /opt/ptkt/deploy/backup.sh` |
+| Quản lý tài khoản dòng lệnh | `cd /opt/ptkt && sudo -u ptkt node --env-file=.env server/scripts/manage-user.js list` (create / reset-password / disable / enable – như cũ) |
 
 ### Khôi phục toàn bộ từ bản sao lưu MariaDB (`.sql.gz`)
 ```bash
 sudo systemctl stop ptkt
-sudo /opt/ptkt/scripts/backup.sh                         # giữ lại trạng thái hiện tại phòng khi cần
+sudo /opt/ptkt/deploy/backup.sh                         # giữ lại trạng thái hiện tại phòng khi cần
 ls -lh /var/backups/ptkt/*.sql.gz                        # chọn bản cần khôi phục
 gunzip -c /var/backups/ptkt/ptkt-20261015-0130.sql.gz | sudo mariadb ptkt
 sudo systemctl start ptkt
@@ -442,7 +442,7 @@ Chạy: `sudo mariadb --default-character-set=utf8mb4 ptkt` rồi dán câu lệ
 - [ ] Bước 1: có 3 bản sao lưu (backup.sh, `truoc-mariadb/ptkt.db`, file `.json`)
 - [ ] `mariadb --version` chạy; `ss` cho thấy `127.0.0.1:3306`
 - [ ] Đăng nhập `mariadb -u ptkt -p -h 127.0.0.1 ptkt` được, bảng mã `utf8mb4`
-- [ ] `package.json` là `1.2.0`, có `lib/store.js`
+- [ ] `package.json` là `1.2.0`, có `server/lib/store.js`
 - [ ] `.env` có đủ 6 dòng `DB_*`, quyền `640 root:ptkt`
 - [ ] Công cụ chuyển dữ liệu báo **khớp 100%**
 - [ ] Log ứng dụng ghi `CSDL: MariaDB`; `/api/health` trả `"db":"MariaDB"`

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Sao lưu cơ sở dữ liệu hằng ngày, giữ 30 ngày gần nhất.
 # Tự nhận biết MariaDB / SQLite theo DB_CLIENT trong file .env của ứng dụng.
-# Cài vào cron:  sudo crontab -e  →  30 1 * * * /opt/ptkt/scripts/backup.sh >> /var/log/ptkt-backup.log 2>&1
+# Cài vào cron:  sudo crontab -e  →  30 1 * * * /opt/ptkt/deploy/backup.sh >> /var/log/ptkt-backup.log 2>&1
 set -euo pipefail
 APP_DIR="${APP_DIR:-/opt/ptkt}"
 ENV_FILE="${ENV_FILE:-$APP_DIR/.env}"

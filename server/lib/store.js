@@ -130,7 +130,7 @@ function createMariaStore() {
  * ===================================================================== */
 function createSqliteStore(file) {
   const Database = require("better-sqlite3");
-  const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, "..", "data");
+  const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, "..", "..", "data");
   const dbFile = file || path.join(DATA_DIR, "ptkt.db");
   fs.mkdirSync(path.dirname(dbFile), { recursive: true });
   const db = new Database(dbFile);

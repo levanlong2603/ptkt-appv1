@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Kiểm tra nhanh sức khoẻ một node trong cụm 2 máy (SERVER3/SERVER4).
-# Dùng:  sudo /opt/ptkt/scripts/check-ha.sh
+# Dùng:  sudo /opt/ptkt/deploy/check-ha.sh
 # Trả về mã thoát 0 nếu mọi thứ bình thường, 1 nếu có mục ✗.
 APP_DIR="${APP_DIR:-/opt/ptkt}"
 ENV_FILE="${ENV_FILE:-$APP_DIR/.env}"
