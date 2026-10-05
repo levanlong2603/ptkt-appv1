@@ -10,15 +10,15 @@ Chạy nhanh trên máy phát triển:
 npm install
 cp .env.example .env      # sửa JWT_SECRET, đặt DB_CLIENT=sqlite và DATA_DIR=./data (không cần cài MariaDB)
 npm run user -- create    # tạo tài khoản trưởng phòng
-npm run dev               # mở http://127.0.0.1:3000 (tự khởi động lại khi sửa server/server.js)
+npm run dev               # mở http://127.0.0.1:3000 (tự khởi động lại khi sửa backend/server.js)
 ```
 
 Bố cục:
 
 ```
-server/   backend  – server.js, lib/store.js, seed/, scripts/
-client/   frontend – index.html, css/, js/{core,views,modules}  (tĩnh, không build)
-deploy/   systemd, Nginx, backup.sh, check-ha.sh
-docs/     hướng dẫn triển khai / chuyển MariaDB / phát triển
-examples/ module mẫu
+backend/    Máy chủ   – server.js, lib/store.js, seed/, scripts/
+frontend/   Giao diện – index.html, css/, js/{core,views,modules}  (tĩnh, không build)
+deploy/     systemd, Nginx, backup.sh, check-ha.sh
+docs/       Hướng dẫn triển khai / chuyển MariaDB / phát triển
+examples/   Module mẫu
 ```

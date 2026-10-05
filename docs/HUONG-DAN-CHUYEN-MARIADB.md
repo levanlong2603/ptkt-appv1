@@ -28,13 +28,13 @@ Sau khi làm xong: toàn bộ dữ liệu, **tài khoản và mật khẩu giữ
 ## PHẦN A – HIỂU NHANH THAY ĐỔI
 
 ```
-TRƯỚC (1.0/1.1):  Nginx → Node.js (server/server.js) → file SQLite /var/lib/ptkt/ptkt.db
-SAU   (1.2)    :  Nginx → Node.js (server/server.js) → server/lib/store.js → MariaDB (127.0.0.1:3306, CSDL "ptkt")
+TRƯỚC (1.0/1.1):  Nginx → Node.js (backend/server.js) → file SQLite /var/lib/ptkt/ptkt.db
+SAU   (1.2)    :  Nginx → Node.js (backend/server.js) → backend/lib/store.js → MariaDB (127.0.0.1:3306, CSDL "ptkt")
 ```
 
 | Hạng mục | Thay đổi |
 |---|---|
-| Mã nguồn | Thêm `server/lib/store.js` (lớp lưu trữ dùng chung cho MariaDB & SQLite), thư viện `mysql2`, công cụ `server/scripts/migrate-sqlite-to-mariadb.js`. `server/server.js`, `manage-user.js`, `backup.sh` đọc/ghi qua lớp này |
+| Mã nguồn | Thêm `backend/lib/store.js` (lớp lưu trữ dùng chung cho MariaDB & SQLite), thư viện `mysql2`, công cụ `backend/scripts/migrate-sqlite-to-mariadb.js`. `backend/server.js`, `manage-user.js`, `backup.sh` đọc/ghi qua lớp này |
 | Cấu hình `.env` | Thêm `DB_CLIENT=mariadb` và các dòng `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` |
 | Sao lưu | `backup.sh` tự nhận MariaDB → tạo file `ptkt-YYYYMMDD-HHMM.sql.gz` (bằng `mariadb-dump`) |
 | Giao diện | Không đổi. Người dùng không cần làm gì |
@@ -170,7 +170,7 @@ cd /opt/ptkt && sudo npm ci --omit=dev
 **Kiểm tra:**
 ```bash
 grep '"version"' /opt/ptkt/package.json
-ls /opt/ptkt/server/lib /opt/ptkt/server/scripts
+ls /opt/ptkt/backend/lib /opt/ptkt/backend/scripts
 node -e "require('/opt/ptkt/node_modules/mysql2'); console.log('mysql2 OK')"
 ```
 Phải thấy `"version": "1.2.0"`, file `store.js`, `migrate-sqlite-to-mariadb.js`, và `mysql2 OK`. Cảnh báo `npm warn deprecated …` không sao (như lần trước).
@@ -209,7 +209,7 @@ sudo ls -l /opt/ptkt/.env
 
 ```bash
 cd /opt/ptkt
-sudo -u ptkt node --env-file=.env server/scripts/migrate-sqlite-to-mariadb.js --check
+sudo -u ptkt node --env-file=.env backend/scripts/migrate-sqlite-to-mariadb.js --check
 ```
 
 **Kiểm tra** – kết quả dạng:
@@ -228,7 +228,7 @@ Nguồn  (SQLite /var/lib/ptkt/ptkt.db): 24 tài liệu, 9 tài khoản, 812 dò
 ```bash
 sudo systemctl stop ptkt
 cd /opt/ptkt
-sudo -u ptkt node --env-file=.env server/scripts/migrate-sqlite-to-mariadb.js
+sudo -u ptkt node --env-file=.env backend/scripts/migrate-sqlite-to-mariadb.js
 ```
 
 **Kiểm tra** – dòng cuối phải là:
@@ -336,7 +336,7 @@ Log hiện `(CSDL: SQLite – /var/lib/ptkt/ptkt.db)` → ứng dụng chạy l�
 
 Chuyển lại sang MariaDB sau khi đã sửa lỗi: làm lại Bước 6–8. Nếu MariaDB đã có dữ liệu từ lần trước, công cụ chuyển sẽ dừng để bảo vệ; muốn chép đè hoàn toàn từ SQLite thì thêm `--force`:
 ```bash
-sudo -u ptkt node --env-file=.env server/scripts/migrate-sqlite-to-mariadb.js --force
+sudo -u ptkt node --env-file=.env backend/scripts/migrate-sqlite-to-mariadb.js --force
 ```
 
 ---
@@ -352,7 +352,7 @@ sudo -u ptkt node --env-file=.env server/scripts/migrate-sqlite-to-mariadb.js --
 | Dung lượng CSDL | `sudo mariadb -e "SELECT table_name, ROUND((data_length+index_length)/1024,0) AS KB FROM information_schema.tables WHERE table_schema='ptkt';"` |
 | Ai sửa gì gần đây | `sudo mariadb ptkt -e "SELECT FROM_UNIXTIME(ts/1000) luc, username, action, path FROM audit ORDER BY id DESC LIMIT 30;"` |
 | Sao lưu ngay | `sudo /opt/ptkt/deploy/backup.sh` |
-| Quản lý tài khoản dòng lệnh | `cd /opt/ptkt && sudo -u ptkt node --env-file=.env server/scripts/manage-user.js list` (create / reset-password / disable / enable – như cũ) |
+| Quản lý tài khoản dòng lệnh | `cd /opt/ptkt && sudo -u ptkt node --env-file=.env backend/scripts/manage-user.js list` (create / reset-password / disable / enable – như cũ) |
 
 ### Khôi phục toàn bộ từ bản sao lưu MariaDB (`.sql.gz`)
 ```bash
@@ -442,7 +442,7 @@ Chạy: `sudo mariadb --default-character-set=utf8mb4 ptkt` rồi dán câu lệ
 - [ ] Bước 1: có 3 bản sao lưu (backup.sh, `truoc-mariadb/ptkt.db`, file `.json`)
 - [ ] `mariadb --version` chạy; `ss` cho thấy `127.0.0.1:3306`
 - [ ] Đăng nhập `mariadb -u ptkt -p -h 127.0.0.1 ptkt` được, bảng mã `utf8mb4`
-- [ ] `package.json` là `1.2.0`, có `server/lib/store.js`
+- [ ] `package.json` là `1.2.0`, có `backend/lib/store.js`
 - [ ] `.env` có đủ 6 dòng `DB_*`, quyền `640 root:ptkt`
 - [ ] Công cụ chuyển dữ liệu báo **khớp 100%**
 - [ ] Log ứng dụng ghi `CSDL: MariaDB`; `/api/health` trả `"db":"MariaDB"`

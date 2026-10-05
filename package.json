@@ -2,17 +2,17 @@
   "name": "ptkt-theo-doi-cong-viec",
   "version": "1.2.0",
   "description": "Phòng Kỹ thuật NGSI – Quản trị công việc và nguồn lực (MariaDB/SQLite)",
-  "main": "server/server.js",
+  "main": "backend/server.js",
   "private": true,
   "license": "UNLICENSED",
   "engines": {
     "node": ">=20.6"
   },
   "scripts": {
-    "start": "node --env-file=.env server/server.js",
-    "dev": "node --watch --env-file=.env server/server.js",
-    "user": "node --env-file=.env server/scripts/manage-user.js",
-    "migrate": "node --env-file=.env server/scripts/migrate-sqlite-to-mariadb.js"
+    "start": "node --env-file=.env backend/server.js",
+    "dev": "node --watch --env-file=.env backend/server.js",
+    "user": "node --env-file=.env backend/scripts/manage-user.js",
+    "migrate": "node --env-file=.env backend/scripts/migrate-sqlite-to-mariadb.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

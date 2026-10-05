@@ -26,13 +26,13 @@ Bạn không cần biết lập trình. Chỉ cần sao chép đúng từng lệ
 
 ```
  Trình duyệt của nhân viên  ──►  Nginx (cổng 80/443)  ──►  Ứng dụng Node.js (cổng 3000, nội bộ)  ──►  SQLite (/var/lib/ptkt/ptkt.db)
-                                  "người gác cổng"            "bộ não" – server/server.js                    "kho dữ liệu" – 1 file
+                                  "người gác cổng"            "bộ não" – backend/server.js                    "kho dữ liệu" – 1 file
 ```
 
 | Thành phần | Vai trò | Nằm ở đâu trên máy chủ |
 |---|---|---|
-| **Giao diện web** | Các màn hình Dashboard, Tổng quan dự án, Tải tuần, Nhập theo tuần, Kế hoạch dự án, Cài đặt | `/opt/ptkt/client/index.html` |
-| **Ứng dụng (server/server.js)** | Đăng nhập, phân quyền, đọc/ghi dữ liệu, cập nhật tức thời cho mọi người | `/opt/ptkt/server/server.js` |
+| **Giao diện web** | Các màn hình Dashboard, Tổng quan dự án, Tải tuần, Nhập theo tuần, Kế hoạch dự án, Cài đặt | `/opt/ptkt/frontend/index.html` |
+| **Ứng dụng (backend/server.js)** | Đăng nhập, phân quyền, đọc/ghi dữ liệu, cập nhật tức thời cho mọi người | `/opt/ptkt/backend/server.js` |
 | **Cơ sở dữ liệu SQLite** | Lưu toàn bộ dữ liệu: nhân sự, dự án, đầu việc, dữ liệu tuần, tài khoản | `/var/lib/ptkt/ptkt.db` |
 | **Nginx** | Nhận truy cập từ trình duyệt, chuyển vào ứng dụng; gắn HTTPS nếu có tên miền | `/etc/nginx/sites-available/ptkt` |
 | **systemd** | Tự chạy ứng dụng khi máy chủ khởi động, tự bật lại nếu ứng dụng lỗi | `/etc/systemd/system/ptkt.service` |
@@ -45,7 +45,7 @@ Bạn không cần biết lập trình. Chỉ cần sao chép đúng từng lệ
 | **Trưởng phòng (admin)** | Mọi việc: kế hoạch dự án, cài đặt, quy trình, tài khoản, sao lưu/khôi phục, nhập tuần thay người khác |
 | **Nhân viên (member)** | Xem toàn bộ báo cáo; **chỉ nhập/sửa dữ liệu “Nhập theo tuần” của chính mình** |
 
-**Dữ liệu ban đầu:** lần chạy đầu tiên, ứng dụng tự nạp toàn bộ dữ liệu hiện có (8 nhân sự, 16 dự án, 247 đầu việc, quy trình chuẩn Triển khai/Thầu/Tư vấn, các dòng tuần 28/09/2026) từ file `server/seed/seed.json`. Từ đó trở đi, dữ liệu nằm trong cơ sở dữ liệu trên máy chủ.
+**Dữ liệu ban đầu:** lần chạy đầu tiên, ứng dụng tự nạp toàn bộ dữ liệu hiện có (8 nhân sự, 16 dự án, 247 đầu việc, quy trình chuẩn Triển khai/Thầu/Tư vấn, các dòng tuần 28/09/2026) từ file `backend/seed/seed.json`. Từ đó trở đi, dữ liệu nằm trong cơ sở dữ liệu trên máy chủ.
 
 ---
 
@@ -187,7 +187,7 @@ sudo cp -r /tmp/ptkt-app/. /opt/ptkt/
 ls /opt/ptkt
 ```
 
-**Kiểm tra:** lệnh `ls` liệt kê: `deploy  HUONG-DAN-TRIEN-KHAI.md  package.json  package-lock.json  public  scripts  seed  server/server.js` (và `.env.example`, ẩn).
+**Kiểm tra:** lệnh `ls` liệt kê: `deploy  HUONG-DAN-TRIEN-KHAI.md  package.json  package-lock.json  public  scripts  seed  backend/server.js` (và `.env.example`, ẩn).
 
 ---
 
@@ -250,7 +250,7 @@ sudo chmod 640 /opt/ptkt/.env
 
 ```bash
 cd /opt/ptkt
-sudo -u ptkt node --env-file=.env server/server.js
+sudo -u ptkt node --env-file=.env backend/server.js
 ```
 
 **Kiểm tra:** màn hình hiện:
@@ -269,7 +269,7 @@ Dòng `[seed]` chỉ xuất hiện ở lần chạy đầu tiên. Nhấn **Ctrl+
 
 ```bash
 cd /opt/ptkt
-sudo -u ptkt node --env-file=.env server/scripts/manage-user.js create
+sudo -u ptkt node --env-file=.env backend/scripts/manage-user.js create
 ```
 
 Trả lời lần lượt:
@@ -284,7 +284,7 @@ Trả lời lần lượt:
 
 **Kiểm tra:**
 ```bash
-sudo -u ptkt node --env-file=.env server/scripts/manage-user.js list
+sudo -u ptkt node --env-file=.env backend/scripts/manage-user.js list
 ```
 Bảng hiện tài khoản vừa tạo với vai trò `admin`.
 
@@ -479,8 +479,8 @@ sudo systemctl start ptkt
 | Khởi động lại ứng dụng | `sudo systemctl restart ptkt` |
 | Xem nhật ký (log) trực tiếp | `sudo journalctl -u ptkt -f` (thoát: Ctrl+C) |
 | Xem 100 dòng log gần nhất | `sudo journalctl -u ptkt -n 100 --no-pager` |
-| Danh sách tài khoản | `cd /opt/ptkt && sudo -u ptkt node --env-file=.env server/scripts/manage-user.js list` |
-| Quên mật khẩu trưởng phòng | `cd /opt/ptkt && sudo -u ptkt node --env-file=.env server/scripts/manage-user.js reset-password` |
+| Danh sách tài khoản | `cd /opt/ptkt && sudo -u ptkt node --env-file=.env backend/scripts/manage-user.js list` |
+| Quên mật khẩu trưởng phòng | `cd /opt/ptkt && sudo -u ptkt node --env-file=.env backend/scripts/manage-user.js reset-password` |
 | Khoá tài khoản nghỉ việc | Cài đặt → Tài khoản → chọn người → Trạng thái **Khoá** (hoặc `… manage-user.js disable <tên>`) |
 | Xem ai sửa gì gần đây | `sudo sqlite3 /var/lib/ptkt/ptkt.db "SELECT datetime(ts/1000,'unixepoch','localtime'),username,action,path FROM audit ORDER BY id DESC LIMIT 30;"` |
 | Dung lượng dữ liệu | `du -sh /var/lib/ptkt /var/backups/ptkt` |
@@ -498,20 +498,20 @@ cd /opt/ptkt && sudo npm ci --omit=dev
 sudo systemctl restart ptkt
 sudo systemctl status ptkt --no-pager
 ```
-`.env` và dữ liệu (`/var/lib/ptkt`) **không bị đụng tới**. File `server/seed/seed.json` chỉ dùng khi cơ sở dữ liệu trống nên cập nhật không ghi đè dữ liệu đang dùng.
+`.env` và dữ liệu (`/var/lib/ptkt`) **không bị đụng tới**. File `backend/seed/seed.json` chỉ dùng khi cơ sở dữ liệu trống nên cập nhật không ghi đè dữ liệu đang dùng.
 
 *(Nếu máy chủ chưa có `rsync`: `sudo apt -y install rsync`.)*
 
 #### E5-a. Chỉ làm MỘT LẦN – khi cập nhật từ bản có cấu trúc cũ
 
-Từ bản này mã nguồn được tách thành `server/` (máy chủ) và `client/` (giao diện); tài liệu chuyển vào `docs/`; `backup.sh` và `check-ha.sh` chuyển từ `scripts/` sang `deploy/`. Vì lệnh `rsync` ở trên **không xoá** file cũ, sau khi chạy E5 trên máy chủ sẽ có cả hai bộ. Làm thêm các bước sau, theo đúng thứ tự:
+Từ bản này mã nguồn được tách thành `backend/` (máy chủ) và `frontend/` (giao diện); tài liệu chuyển vào `docs/`; `backup.sh` và `check-ha.sh` chuyển từ `scripts/` sang `deploy/`. Vì lệnh `rsync` ở trên **không xoá** file cũ, sau khi chạy E5 trên máy chủ sẽ có cả hai bộ. Làm thêm các bước sau, theo đúng thứ tự:
 
 ```bash
-# 1. Nạp lại cấu hình dịch vụ (ExecStart đã đổi sang server/server.js)
+# 1. Nạp lại cấu hình dịch vụ (ExecStart đã đổi sang backend/server.js)
 sudo cp /opt/ptkt/deploy/ptkt.service /etc/systemd/system/ptkt.service
 sudo systemctl daemon-reload
 sudo systemctl restart ptkt
-sudo systemctl status ptkt --no-pager      # phải thấy: node /opt/ptkt/server/server.js
+sudo systemctl status ptkt --no-pager      # phải thấy: node /opt/ptkt/backend/server.js
 
 # 2. Kiểm tra ứng dụng trả về trang (trước khi xoá gì cả)
 curl -sS -o /dev/null -w "%{http_code}\n" http://127.0.0.1:3000/        # mong đợi 200
@@ -555,7 +555,7 @@ Sau khi máy chủ khởi động lại (1–2 phút), ứng dụng tự chạy 
 | 9 | Nhân viên báo “Bạn không có quyền sửa phần này” | Đang nhập tuần cho người khác / sửa kế hoạch | Đúng thiết kế. Trưởng phòng nhập thay nếu cần |
 | 10 | Góc dưới hiện “Mất kết nối – đang thử lại…” | Mạng chập chờn hoặc ứng dụng đang khởi động lại | Tự kết nối lại sau vài giây; nếu kéo dài xem mục 2, 4 |
 | 11 | Số liệu không tự cập nhật giữa các máy | Nginx đang đệm kênh `/api/events` | Đảm bảo dùng đúng file `deploy/nginx-ptkt.conf` (có `proxy_buffering off`), `sudo nginx -t && sudo systemctl reload nginx` |
-| 12 | Quên mật khẩu trưởng phòng | | `cd /opt/ptkt && sudo -u ptkt node --env-file=.env server/scripts/manage-user.js reset-password` |
+| 12 | Quên mật khẩu trưởng phòng | | `cd /opt/ptkt && sudo -u ptkt node --env-file=.env backend/scripts/manage-user.js reset-password` |
 | 13 | Ổ đĩa đầy | Log/sao lưu tích tụ | `df -h`; giảm `KEEP_DAYS` trong `deploy/backup.sh`; `sudo journalctl --vacuum-time=30d` |
 
 ---
@@ -582,7 +582,7 @@ Gõ trong Claude Code (đang đứng ở thư mục `/opt/ptkt`):
   > Kiểm tra dịch vụ ptkt, nginx, tường lửa, sao lưu cron và dung lượng ổ đĩa. Báo cáo ngắn gọn những gì chưa ổn.
 
 - **Thêm tính năng:**
-  > Trong client/index.html, thêm nút xuất Dashboard ra PDF. Giữ nguyên phong cách giao diện. Sau khi sửa, khởi động lại dịch vụ ptkt và cho tôi biết cách kiểm tra.
+  > Trong frontend/index.html, thêm nút xuất Dashboard ra PDF. Giữ nguyên phong cách giao diện. Sau khi sửa, khởi động lại dịch vụ ptkt và cho tôi biết cách kiểm tra.
 
 - **Sửa lỗi:**
   > Người dùng báo lỗi: <mô tả>. Xem log `journalctl -u ptkt -n 200` và mã nguồn để tìm nguyên nhân, đề xuất cách sửa trước khi sửa.
@@ -606,8 +606,8 @@ Xem chi tiết từng file trong **`HUONG-DAN-PHAT-TRIEN.md` – mục 3 “Bả
 
 ```
 ptkt-app/
-├── server/              BACKEND: server.js (đăng nhập, RULES, API, SSE), lib/store.js, seed/, scripts/
-├── client/              FRONTEND: index.html, css/ (theme, base, dashboard), js/ (core, views, modules)
+├── backend/              BACKEND: server.js (đăng nhập, RULES, API, SSE), lib/store.js, seed/, scripts/
+├── frontend/              FRONTEND: index.html, css/ (theme, base, dashboard), js/ (core, views, modules)
 ├── deploy/              ptkt.service (systemd), nginx-ptkt.conf, backup.sh, check-ha.sh
 ├── docs/                Toàn bộ hướng dẫn (triển khai, chuyển MariaDB, phát triển)
 ├── examples/risks/      Module mẫu “Rủi ro dự án”

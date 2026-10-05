@@ -231,7 +231,7 @@ app.patch("/api/users/:id", auth, adminOnly, A(async (req, res) => {
 }));
 
 /* --- giao diện --- */
-app.use(express.static(path.join(__dirname, "..", "client"), {
+app.use(express.static(path.join(__dirname, "..", "frontend"), {
   index: "index.html",
   setHeaders: (res, file) => { if (file.endsWith(".html")) res.setHeader("Cache-Control", "no-cache"); }
 }));

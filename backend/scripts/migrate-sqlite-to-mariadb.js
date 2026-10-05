@@ -6,8 +6,8 @@
  * và chép toàn bộ: dữ liệu (docs), tài khoản (users – giữ nguyên mật khẩu), nhật ký (audit)
  * sang MariaDB theo các dòng DB_* trong file .env.
  *
- *   node --env-file=.env server/scripts/migrate-sqlite-to-mariadb.js           chạy thật
- *   node --env-file=.env server/scripts/migrate-sqlite-to-mariadb.js --check   chỉ kiểm tra, không ghi
+ *   node --env-file=.env backend/scripts/migrate-sqlite-to-mariadb.js           chạy thật
+ *   node --env-file=.env backend/scripts/migrate-sqlite-to-mariadb.js --check   chỉ kiểm tra, không ghi
  *   ... --force   ghi đè khi MariaDB đã có dữ liệu (XOÁ dữ liệu cũ trong MariaDB)
  *
  * File SQLite KHÔNG bị thay đổi.

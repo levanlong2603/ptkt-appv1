@@ -30,8 +30,8 @@ Phiên bản 1.0 (đang chạy trên máy chủ) có toàn bộ giao diện nằ
 |---|---|
 | Giao diện tách thành **3 file CSS + 17 file JS** theo chức năng | Muốn sửa màn hình nào thì mở đúng file đó |
 | Có **cơ chế đăng ký module** (`registerView`, `ACTIONS`, `ON_SESSION`) | Thêm màn hình mới **không cần sửa mã lõi** |
-| Quyền ghi dữ liệu khai báo trong bảng **`RULES`** ở `server/server.js` | Thêm loại dữ liệu mới chỉ cần 1 dòng |
-| Lệnh `npm run dev` | Sửa `server/server.js` là máy chủ tự khởi động lại |
+| Quyền ghi dữ liệu khai báo trong bảng **`RULES`** ở `backend/server.js` | Thêm loại dữ liệu mới chỉ cần 1 dòng |
+| Lệnh `npm run dev` | Sửa `backend/server.js` là máy chủ tự khởi động lại |
 | File `CLAUDE.md` | Claude Code tự đọc để hiểu dự án |
 | Module mẫu `examples/risks/` | Mẫu đầy đủ để sao chép khi viết module mới |
 
@@ -44,7 +44,7 @@ Phiên bản 1.0 (đang chạy trên máy chủ) có toàn bộ giao diện nằ
 ```
 ┌──────────────────────── TRÌNH DUYỆT ────────────────────────┐        ┌──────── MÁY CHỦ ────────┐
 │                                                              │        │                         │
-│  S (state) ──derive()──► M (model đã tính) ──► viewXxx()     │  GET   │  server/server.js              │
+│  S (state) ──derive()──► M (model đã tính) ──► viewXxx()     │  GET   │  backend/server.js              │
 │   ▲  dữ liệu thô          workload, tiến độ,     trả về HTML │◄───────│  /api/collection/:coll  │
 │   │                       cảnh báo…                 │         │        │                         │
 │   │                                             render()      │  PUT   │  RULES kiểm tra quyền   │
@@ -75,7 +75,7 @@ ptkt-app/
 ├── .env.example               Mẫu cấu hình
 ├── CLAUDE.md                  Ngữ cảnh cho Claude Code
 │
-├── server/                    ★ BACKEND
+├── backend/                   ★ MÁY CHỦ
 │   ├── server.js              ★ Đăng nhập, phân quyền (RULES), API, SSE, sao lưu
 │   ├── lib/store.js           Lớp lưu trữ: MariaDB (mysql2) hoặc SQLite – mọi câu lệnh SQL nằm ở đây
 │   ├── seed/seed.json         Dữ liệu ban đầu (chỉ nạp khi CSDL trống)
@@ -83,7 +83,7 @@ ptkt-app/
 │       ├── manage-user.js     Quản lý tài khoản bằng dòng lệnh
 │       └── migrate-sqlite-to-mariadb.js  Chuyển dữ liệu SQLite → MariaDB
 │
-├── client/                    ★ FRONTEND (phục vụ tĩnh, không build, không npm)
+├── frontend/                  ★ GIAO DIỆN (phục vụ tĩnh, không build, không npm)
 │   ├── index.html             Khung trang + danh sách file CSS/JS (thứ tự nạp quan trọng)
 │   ├── css/
 │   │   ├── theme.css          ★ Màu sắc, font, chế độ tối  ← đổi giao diện bắt đầu từ đây
@@ -131,18 +131,18 @@ ptkt-app/
 
 | Muốn… | Mở file |
 |---|---|
-| Đổi màu chủ đạo, màu nền, font | `client/css/theme.css` |
-| Đổi chữ “NGSI”, tiêu đề Dashboard | `client/js/views/exec-dashboard.js` (dòng có `ex-logo`) |
-| Đổi chữ trên màn hình đăng nhập | `client/js/core/server.js` (hàm `showLogin`) |
-| Đổi tên phòng ở thanh menu | `client/index.html` (dòng `class="brand"`) |
-| Đổi tên mục menu / thứ tự menu | `client/js/core/constants.js` (mảng `VIEWS`) |
-| Sửa bảng/biểu đồ ở Dashboard | `client/js/views/exec-dashboard.js` + `client/css/dashboard.css` |
+| Đổi màu chủ đạo, màu nền, font | `frontend/css/theme.css` |
+| Đổi chữ “NGSI”, tiêu đề Dashboard | `frontend/js/views/exec-dashboard.js` (dòng có `ex-logo`) |
+| Đổi chữ trên màn hình đăng nhập | `frontend/js/core/server.js` (hàm `showLogin`) |
+| Đổi tên phòng ở thanh menu | `frontend/index.html` (dòng `class="brand"`) |
+| Đổi tên mục menu / thứ tự menu | `frontend/js/core/constants.js` (mảng `VIEWS`) |
+| Sửa bảng/biểu đồ ở Dashboard | `frontend/js/views/exec-dashboard.js` + `frontend/css/dashboard.css` |
 | Đổi cách tính rủi ro dự án ở Dashboard | `exec-dashboard.js`, hàm `risk` trong `viewExec` |
-| Đổi cách tính cảnh báo “quá hạn / sắp đến hạn” | `client/js/core/model.js` (mảng `warns`) |
-| Thêm cột vào form nhập theo tuần | `client/js/views/weekly-input.js` (hàm `entryForm`) |
-| Đổi quyền ai được sửa gì | `server/server.js` (bảng `RULES`, hàm `canWrite`) |
-| Thêm / sửa câu truy vấn CSDL | `server/lib/store.js` (sửa cả phần MariaDB và SQLite) |
-| Thêm màn hình mới | Tạo file trong `client/js/modules/` (Bài 3) |
+| Đổi cách tính cảnh báo “quá hạn / sắp đến hạn” | `frontend/js/core/model.js` (mảng `warns`) |
+| Thêm cột vào form nhập theo tuần | `frontend/js/views/weekly-input.js` (hàm `entryForm`) |
+| Đổi quyền ai được sửa gì | `backend/server.js` (bảng `RULES`, hàm `canWrite`) |
+| Thêm / sửa câu truy vấn CSDL | `backend/lib/store.js` (sửa cả phần MariaDB và SQLite) |
+| Thêm màn hình mới | Tạo file trong `frontend/js/modules/` (Bài 3) |
 
 ---
 
@@ -185,7 +185,7 @@ DATA_DIR=./data
 ```
 (Trên máy cá nhân dùng chuỗi bất kỳ ≥ 32 ký tự; máy chủ thật vẫn dùng chuỗi ngẫu nhiên.)
 
-> **Máy cá nhân dùng `DB_CLIENT=sqlite`** – không cần cài MariaDB. Máy chủ thật dùng `DB_CLIENT=mariadb`. Mã nguồn giống hệt nhau; mọi truy cập CSDL đi qua `server/lib/store.js` nên tính năng viết ở máy bạn chạy được trên máy chủ. Nếu muốn thử với MariaDB ngay trên Windows: cài MariaDB từ https://mariadb.org/download, tạo CSDL như `HUONG-DAN-CHUYEN-MARIADB.md` Bước 3, rồi đặt `DB_CLIENT=mariadb` và các dòng `DB_*`.
+> **Máy cá nhân dùng `DB_CLIENT=sqlite`** – không cần cài MariaDB. Máy chủ thật dùng `DB_CLIENT=mariadb`. Mã nguồn giống hệt nhau; mọi truy cập CSDL đi qua `backend/lib/store.js` nên tính năng viết ở máy bạn chạy được trên máy chủ. Nếu muốn thử với MariaDB ngay trên Windows: cài MariaDB từ https://mariadb.org/download, tạo CSDL như `HUONG-DAN-CHUYEN-MARIADB.md` Bước 3, rồi đặt `DB_CLIENT=mariadb` và các dòng `DB_*`.
 
 Tạo tài khoản thử nghiệm và chạy:
 ```powershell
@@ -232,7 +232,7 @@ Mỗi lần sửa:
 ## 6. BÀI THỰC HÀNH 1 – ĐỔI GIAO DIỆN
 
 ### 6.1. Đổi màu chủ đạo
-Mở `client/css/theme.css`. Khối `:root{…}` đầu tiên là **chế độ sáng**, hai khối sau là **chế độ tối**.
+Mở `frontend/css/theme.css`. Khối `:root{…}` đầu tiên là **chế độ sáng**, hai khối sau là **chế độ tối**.
 
 Ví dụ đổi màu chính từ xanh ngọc sang xanh dương thương hiệu:
 ```css
@@ -257,26 +257,26 @@ Lưu → Ctrl+F5. Mọi nút “primary”, thanh tiến độ, ô đang chọn 
 | `--ok` `--warn` `--bad` (+ `-soft`) | Xanh / vàng / đỏ của trạng thái |
 | `--indigo`, `--ochre`, `--grey` | Màu loại Thầu, Tư vấn, Nội bộ |
 
-Màu riêng của **Dashboard** (đỏ/cam/xanh của biểu đồ, nền tiêu đề xanh đậm) nằm ở đầu `client/css/dashboard.css` (lớp `.ex` và `.ex-top`) và hằng `EXC` đầu file `exec-dashboard.js`.
+Màu riêng của **Dashboard** (đỏ/cam/xanh của biểu đồ, nền tiêu đề xanh đậm) nằm ở đầu `frontend/css/dashboard.css` (lớp `.ex` và `.ex-top`) và hằng `EXC` đầu file `exec-dashboard.js`.
 
 ### 6.2. Đổi logo chữ “NGSI” thành logo ảnh
-1. Chép file logo (vd `logo-ngsi.png`, nền trong suốt, cao ~80px) vào `client/img/`.
-2. Mở `client/js/views/exec-dashboard.js`, tìm `<div class="ex-logo">NGSI</div>` sửa thành:
+1. Chép file logo (vd `logo-ngsi.png`, nền trong suốt, cao ~80px) vào `frontend/img/`.
+2. Mở `frontend/js/views/exec-dashboard.js`, tìm `<div class="ex-logo">NGSI</div>` sửa thành:
    ```html
    <div class="ex-logo"><img src="img/logo-ngsi.png" alt="NGSI" style="height:40px;display:block"></div>
    ```
-3. Màn hình đăng nhập: mở `client/js/core/server.js`, tìm `<div class="logo">NGSI</div>` sửa tương tự (`height:44px`).
+3. Màn hình đăng nhập: mở `frontend/js/core/server.js`, tìm `<div class="logo">NGSI</div>` sửa tương tự (`height:44px`).
 
 ### 6.3. Đổi font chữ
 Ví dụ đổi sang **Inter**:
-1. `client/index.html`: thay dòng `<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro…">` bằng
+1. `frontend/index.html`: thay dòng `<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro…">` bằng
    `<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">`
-2. `client/css/theme.css`: `--font:"Inter", "Segoe UI", Roboto, Arial, sans-serif;`
+2. `frontend/css/theme.css`: `--font:"Inter", "Segoe UI", Roboto, Arial, sans-serif;`
 
 > Chọn font **có hỗ trợ tiếng Việt** (Be Vietnam Pro, Inter, Roboto, Noto Sans, Montserrat…). Nếu máy chủ không ra Internet, trình duyệt tự dùng font dự phòng.
 
 ### 6.4. Đổi tên & thứ tự menu
-`client/js/core/constants.js`, mảng `VIEWS`:
+`frontend/js/core/constants.js`, mảng `VIEWS`:
 ```js
 const VIEWS = [
   {id:"exec", label:"Dashboard", icon:"exec"},
@@ -291,7 +291,7 @@ const VIEWS = [
 
 **Yêu cầu ví dụ:** ở Dashboard, bảng “Danh sách công việc đang thực hiện” thêm cột **Phối hợp** (người phối hợp) sau cột Phụ trách.
 
-Mở `client/js/views/exec-dashboard.js`, nhấn **Ctrl+F**.
+Mở `frontend/js/views/exec-dashboard.js`, nhấn **Ctrl+F**.
 
 **Bước 1 – thêm tiêu đề cột.** Tìm: `<th>Phụ trách</th>` (trong bảng có `Công việc`, `Dự án`). Sửa thành:
 ```html
@@ -316,7 +316,7 @@ Lưu → Ctrl+F5 → Dashboard có cột mới.
 **Mục tiêu:** thêm màn hình **“Rủi ro dự án”** – ghi nhận rủi ro (dự án, mô tả, mức độ, người theo dõi, hạn xử lý, trạng thái). Mọi người đều thêm được; tất cả cùng xem. Đây là mẫu chuẩn để bạn làm bất kỳ module nào khác (nghỉ phép, đào tạo, tài sản, họp giao ban…).
 
 ### Bước 1 – Cho phép máy chủ lưu loại dữ liệu mới
-Mở `server/server.js`, tìm bảng `RULES`, thêm 1 dòng:
+Mở `backend/server.js`, tìm bảng `RULES`, thêm 1 dòng:
 ```js
 const RULES = {
   config: "admin",
@@ -332,10 +332,10 @@ const RULES = {
 Nếu đang chạy `npm run dev`, máy chủ tự khởi động lại.
 
 ### Bước 2 – Tạo file module
-Chép `examples/risks/risks.js` vào `client/js/modules/risks.js`.
+Chép `examples/risks/risks.js` vào `frontend/js/modules/risks.js`.
 
 ### Bước 3 – Khai báo file trong trang
-Mở `client/index.html`, tìm dòng `<!-- ===== MODULE MỞ RỘNG …`, thêm ngay bên dưới:
+Mở `frontend/index.html`, tìm dòng `<!-- ===== MODULE MỞ RỘNG …`, thêm ngay bên dưới:
 ```html
 <script src="js/modules/risks.js"></script>
 ```
@@ -405,7 +405,7 @@ registerView({ id: "risks", label: "Rủi ro dự án", iconSvg: '<svg …>', re
 Biểu tượng: lấy SVG nét mảnh 24×24 ở https://lucide.dev (bấm “Copy SVG”), đổi thuộc tính thành `stroke="currentColor" stroke-width="1.8"`.
 
 ### Bước 6 – Tự viết module khác: khung mẫu
-Tạo `client/js/modules/ten-module.js`:
+Tạo `frontend/js/modules/ten-module.js`:
 ```js
 "use strict";
 /* MODULE: <tên> */
@@ -424,11 +424,11 @@ function xxxForm(item) { /* openForm({...}) */ }
 ACTIONS["xxx-add"] = () => xxxForm(null);
 registerView({ id: "xxx", label: "Tên menu", iconSvg: "<svg…>", render: viewXxx });
 ```
-+ thêm `xxx: "admin"` hoặc `"member"` vào `RULES` ở `server/server.js` + khai báo `<script>` trong `index.html`.
++ thêm `xxx: "admin"` hoặc `"member"` vào `RULES` ở `backend/server.js` + khai báo `<script>` trong `index.html`.
 
 **Quy tắc đặt tên:** mọi file JS dùng chung phạm vi toàn cục, nên **đặt tiền tố riêng** cho hàm/hằng của module (`riskForm`, `RISK_LEVELS`, `leaveForm`…). Trùng tên `const` với file khác → trang trắng, Console báo `Identifier 'X' has already been declared`.
 
-**CSS riêng cho module:** tạo `client/css/ten-module.css`, khai báo trong `index.html` ở dòng `<!-- CSS của module mở rộng đặt ở đây -->`:
+**CSS riêng cho module:** tạo `frontend/css/ten-module.css`, khai báo trong `index.html` ở dòng `<!-- CSS của module mở rộng đặt ở đây -->`:
 ```html
 <link rel="stylesheet" href="css/ten-module.css">
 ```
@@ -441,7 +441,7 @@ registerView({ id: "xxx", label: "Tên menu", iconSvg: "<svg…>", render: viewX
 
 Phần lớn module chỉ cần `RULES` (Bài 3). Khi cần **tính toán / truy vấn riêng ở máy chủ**, thêm một API. Ví dụ: màn hình “Nhật ký thay đổi” cho trưởng phòng xem 200 thao tác gần nhất.
 
-**Máy chủ** – mở `server/server.js`, thêm ngay **trên** dòng `/* --- giao diện --- */`:
+**Máy chủ** – mở `backend/server.js`, thêm ngay **trên** dòng `/* --- giao diện --- */`:
 ```js
 app.get("/api/audit", auth, adminOnly, A(async (req, res) => {
   res.json(await store.listAudit(200));
@@ -449,9 +449,9 @@ app.get("/api/audit", auth, adminOnly, A(async (req, res) => {
 ```
 - `auth` – bắt buộc đăng nhập; `adminOnly` – chỉ trưởng phòng.
 - `A(async …)` – bọc route bất đồng bộ để lỗi CSDL được báo đúng cách (bắt buộc với mọi route có `await`).
-- **Không viết SQL trực tiếp trong `server/server.js`.** Cần truy vấn mới → thêm hàm vào **cả hai** phần `createMariaStore()` và `createSqliteStore()` trong `server/lib/store.js` (ví dụ có sẵn: `listAudit`), để chạy được trên máy chủ (MariaDB) lẫn máy cá nhân (SQLite).
+- **Không viết SQL trực tiếp trong `backend/server.js`.** Cần truy vấn mới → thêm hàm vào **cả hai** phần `createMariaStore()` và `createSqliteStore()` trong `backend/lib/store.js` (ví dụ có sẵn: `listAudit`), để chạy được trên máy chủ (MariaDB) lẫn máy cá nhân (SQLite).
 
-**Giao diện** – `client/js/modules/audit.js`:
+**Giao diện** – `frontend/js/modules/audit.js`:
 ```js
 "use strict";
 S.auditRows = null;
@@ -490,7 +490,7 @@ cd D:\
 Compress-Archive -Path .\ptkt-app\* -DestinationPath .\ptkt-app-new.zip -Force
 scp .\ptkt-app-new.zip ubuntusv@<IP-máy-chủ>:/tmp/
 ```
-> Trước khi nén, **xoá** thư mục `node_modules`, `data` và file `.env` của máy bạn khỏi bản nén (hoặc nén chọn lọc: `public`, `server/server.js`, `package.json`, `package-lock.json`, `scripts`, `deploy`, `seed`, `examples`, các file `.md`).
+> Trước khi nén, **xoá** thư mục `node_modules`, `data` và file `.env` của máy bạn khỏi bản nén (hoặc nén chọn lọc: `public`, `backend/server.js`, `package.json`, `package-lock.json`, `scripts`, `deploy`, `seed`, `examples`, các file `.md`).
 
 **Trên máy chủ** (SSH):
 ```bash
@@ -506,10 +506,10 @@ Báo mọi người tải lại trang (Ctrl+F5).
 
 | Đã sửa | Có cần `restart`? |
 |---|---|
-| Chỉ file trong `client/` (giao diện) | Không bắt buộc – người dùng Ctrl+F5 là thấy |
-| `server/server.js`, `RULES`, API | **Có** |
+| Chỉ file trong `frontend/` (giao diện) | Không bắt buộc – người dùng Ctrl+F5 là thấy |
+| `backend/server.js`, `RULES`, API | **Có** |
 | `package.json` (thêm thư viện) | **Có**, và chạy `npm ci --omit=dev` trước |
-| `server/lib/store.js` (truy vấn CSDL) | **Có**. Nếu thêm bảng/cột mới: viết `CREATE TABLE IF NOT EXISTS` / `ALTER TABLE` trong `init()` của cả hai phần, và sao lưu trước khi cập nhật |
+| `backend/lib/store.js` (truy vấn CSDL) | **Có**. Nếu thêm bảng/cột mới: viết `CREATE TABLE IF NOT EXISTS` / `ALTER TABLE` trong `init()` của cả hai phần, và sao lưu trước khi cập nhật |
 
 ### Cách B – Dùng Git (khi đã có kho GitHub/GitLab riêng tư)
 Máy bạn: `git push`. Máy chủ (lần đầu): nhờ IT cấp khoá truy cập kho, rồi:
@@ -555,16 +555,16 @@ Claude Code **tự đọc file `CLAUDE.md`** ở thư mục dự án, nên đã 
 > Tạo module “Nghỉ phép” theo khuôn mẫu của examples/risks: nhân viên đăng ký nghỉ (từ ngày, đến ngày, lý do), trưởng phòng duyệt/từ chối. Nhân viên chỉ sửa đơn của mình, trưởng phòng sửa tất cả – thêm quy tắc phù hợp vào RULES và canWrite. Ở màn hình Tải tuần, capacity của người nghỉ giảm theo số ngày nghỉ trong tuần. Trình bày kế hoạch trước khi viết code.
 
 **Đổi giao diện:**
-> Đổi màu chủ đạo sang xanh dương #1F5EFF cho cả chế độ sáng và tối, thay chữ NGSI ở Dashboard và màn hình đăng nhập bằng file client/img/logo.png. Chạy npm run dev và kiểm tra không có lỗi Console.
+> Đổi màu chủ đạo sang xanh dương #1F5EFF cho cả chế độ sáng và tối, thay chữ NGSI ở Dashboard và màn hình đăng nhập bằng file frontend/img/logo.png. Chạy npm run dev và kiểm tra không có lỗi Console.
 
 **Thêm biểu đồ:**
 > Ở Dashboard thêm thẻ “Xu hướng mức sử dụng 8 tuần” dạng biểu đồ đường SVG (không dùng thư viện ngoài), đặt ở hàng thứ 3, dùng dữ liệu M.entries và capacity M.staff.
 
 **Sửa lỗi:**
-> Nhân viên báo khi chép việc từ tuần trước thì quy mô bị mất. Tìm nguyên nhân trong client/js/views/weekly-input.js, giải thích rồi sửa.
+> Nhân viên báo khi chép việc từ tuần trước thì quy mô bị mất. Tìm nguyên nhân trong frontend/js/views/weekly-input.js, giải thích rồi sửa.
 
 **Rà soát trước khi đưa lên máy chủ:**
-> Rà soát toàn bộ thay đổi so với commit trước: có chỗ nào thiếu esc(), trùng tên biến toàn cục, phá vỡ định dạng dữ liệu cũ, hay lỗ hổng quyền ở server/server.js không?
+> Rà soát toàn bộ thay đổi so với commit trước: có chỗ nào thiếu esc(), trùng tên biến toàn cục, phá vỡ định dạng dữ liệu cũ, hay lỗ hổng quyền ở backend/server.js không?
 
 ### 11.4. Lưu ý an toàn
 - Làm trên **máy cá nhân**, không chạy Claude Code trực tiếp trên máy chủ thật khi phát triển tính năng.
@@ -664,13 +664,13 @@ Luôn mở **F12 → Console** khi thử – dòng đỏ cho biết file và s�
 
 | Hiện tượng | Nguyên nhân | Cách sửa |
 |---|---|---|
-| Trang trắng hoặc kẹt “Đang tải dữ liệu…” | Lỗi cú pháp JS | Console chỉ file:dòng. Kiểm tra nhanh: `node --check client/js/modules/ten.js` |
+| Trang trắng hoặc kẹt “Đang tải dữ liệu…” | Lỗi cú pháp JS | Console chỉ file:dòng. Kiểm tra nhanh: `node --check frontend/js/modules/ten.js` |
 | `Identifier 'X' has already been declared` | Trùng tên `const`/`let` giữa các file | Đổi tên có tiền tố module |
 | `X is not defined` | File dùng hàm của file nạp sau, hoặc quên khai báo `<script>` | Kiểm tra thứ tự trong `index.html` |
 | Menu không có mục mới | Chưa khai báo `<script>` hoặc chưa gọi `registerView` | |
 | Bấm nút không có phản ứng | Sai tên `data-act` so với `ACTIONS[...]` | So khớp chính tả |
 | Lưu báo “Bạn không có quyền” | Collection chưa có trong `RULES` hoặc quy tắc là `admin` | Thêm/sửa `RULES`, khởi động lại máy chủ |
-| Sửa xong không thấy thay đổi | Trình duyệt dùng bản cũ | Ctrl+F5; với `server/server.js` cần khởi động lại (`npm run dev` tự làm) |
+| Sửa xong không thấy thay đổi | Trình duyệt dùng bản cũ | Ctrl+F5; với `backend/server.js` cần khởi động lại (`npm run dev` tự làm) |
 | Dữ liệu người dùng làm vỡ giao diện | Quên `esc()` | Bọc mọi dữ liệu bằng `esc()` |
 | `npm run dev` báo `JWT_SECRET … 32 ký tự` | `.env` thiếu/ngắn | Mục 4.3 |
 | `Không kết nối / khởi tạo được cơ sở dữ liệu MariaDB` trên máy cá nhân | `.env` thiếu `DB_CLIENT=sqlite` | Thêm `DB_CLIENT=sqlite` và `DATA_DIR=./data` |
