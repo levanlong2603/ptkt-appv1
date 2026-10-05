@@ -502,6 +502,35 @@ sudo systemctl status ptkt --no-pager
 
 *(Nếu máy chủ chưa có `rsync`: `sudo apt -y install rsync`.)*
 
+#### E5-a. Chỉ làm MỘT LẦN – khi cập nhật từ bản có cấu trúc cũ
+
+Từ bản này mã nguồn được tách thành `server/` (máy chủ) và `client/` (giao diện); tài liệu chuyển vào `docs/`; `backup.sh` và `check-ha.sh` chuyển từ `scripts/` sang `deploy/`. Vì lệnh `rsync` ở trên **không xoá** file cũ, sau khi chạy E5 trên máy chủ sẽ có cả hai bộ. Làm thêm các bước sau, theo đúng thứ tự:
+
+```bash
+# 1. Nạp lại cấu hình dịch vụ (ExecStart đã đổi sang server/server.js)
+sudo cp /opt/ptkt/deploy/ptkt.service /etc/systemd/system/ptkt.service
+sudo systemctl daemon-reload
+sudo systemctl restart ptkt
+sudo systemctl status ptkt --no-pager      # phải thấy: node /opt/ptkt/server/server.js
+
+# 2. Kiểm tra ứng dụng trả về trang (trước khi xoá gì cả)
+curl -sS -o /dev/null -w "%{http_code}\n" http://127.0.0.1:3000/        # mong đợi 200
+curl -sS http://127.0.0.1:3000/api/health                                 # mong đợi {"ok":true,…}
+
+# 3. Sửa cron sao lưu sang đường dẫn mới
+sudo crontab -e
+#   đổi  /opt/ptkt/scripts/backup.sh   thành   /opt/ptkt/deploy/backup.sh
+sudo /opt/ptkt/deploy/backup.sh && echo "sao lưu chạy được"
+
+# 4. Chỉ khi các bước 1–3 đều đạt: xoá bộ file cũ còn sót
+sudo rm -rf /opt/ptkt/public /opt/ptkt/lib /opt/ptkt/scripts /opt/ptkt/seed /opt/ptkt/server.js
+sudo rm -f  /opt/ptkt/HUONG-DAN-*.md
+sudo systemctl restart ptkt && sudo systemctl status ptkt --no-pager
+```
+
+> Bước 4 là bước duy nhất có thể xoá sai. Nếu không chắc, cứ để nguyên các file cũ – chúng không được dùng nữa và không gây lỗi, chỉ làm thư mục rối.
+
+
 ### E6. Bảo trì hệ điều hành (mỗi tháng)
 ```bash
 sudo apt update && sudo apt -y upgrade
