@@ -1,6 +1,8 @@
 "use strict";
 /* Màn hình: plan */
 /* ================= VIEW: plan ================= */
+/* Nhân viên được sửa dự án do chính mình tạo; trưởng phòng sửa mọi dự án */
+function canManageProject(p){ return !!p && (S.canEdit || (!!S.user && p.created_by === S.user.username)); }
 function viewPlan(){
   const ps = M.projects;
   if(!S.planSel || !M.pById.get(S.planSel)) S.planSel = ps[0] ? ps[0].id : null;
@@ -12,13 +14,13 @@ function viewPlan(){
     list += `<div class="grp">${typeDot(t)}${t}</div>` + g.map(p=>`<button data-act="psel" data-id="${esc(p.id)}" aria-current="${S.planSel===p.id}"><div class="cell-main">${esc(p.name)}</div><div class="small muted">${pct(p._prog)} · ${(p.tasks||[]).length} đầu việc</div></button>`).join("");
   }
   let h = `<div class="head"><div><h1>Kế hoạch dự án</h1><div class="sub">Toàn bộ đầu việc theo quy trình và deadline hợp đồng · trạng thái tự lấy từ dữ liệu nhập theo tuần</div></div>
-    ${S.canEdit?'<button class="btn primary" data-act="newp">+ Dự án mới</button>':""}</div>`;
+    ${S.user?'<button class="btn primary" data-act="newp">+ Dự án mới</button>':""}</div>`;
   const p = M.pById.get(S.planSel);
   let right = "";
-  if(!p) right = `<section class="panel"><div class="empty"><b>Chưa có dự án</b>${S.canEdit?"Bấm “+ Dự án mới” để tạo dự án và các đầu việc theo quy trình.":"Trưởng phòng sẽ tạo dự án ở đây."}</div></section>`;
+  if(!p) right = `<section class="panel"><div class="empty"><b>Chưa có dự án</b>${S.user?"Bấm “+ Dự án mới” để tạo dự án và các đầu việc theo quy trình.":"Chưa có dự án nào."}</div></section>`;
   else {
     right = `<section class="panel" style="margin-bottom:18px"><div class="panel-h"><div><h2>${esc(p.name)}</h2><div class="small muted" style="margin-top:3px">${typeDot(p.type)}${esc(p.type)} · Phụ trách: ${esc(p.owner||"–")}${p.se?" · SE: "+esc(p.se):""}</div></div>
-      ${S.canEdit?`<div class="toolbar"><button class="btn" data-act="editp">Sửa thông tin</button><button class="btn primary" data-act="addtask">+ Đầu việc</button></div>`:""}</div>
+      ${canManageProject(p)?`<div class="toolbar"><button class="btn" data-act="editp">Sửa thông tin</button><button class="btn primary" data-act="addtask">+ Đầu việc</button></div>`:""}</div>
       <div class="panel-b"><div style="display:grid; grid-template-columns:110px 1fr; gap:18px; align-items:center; margin-bottom:14px">
         <div><div class="pct" style="font-size:26px">${pct(p._prog)}</div><div class="small muted">tiến độ</div></div><div>${strip(p)}<div class="legend" style="margin-top:6px">${p._phases.map(ph=>`<span><b>${esc(ph.code)}</b>${esc(ph.name)}</span>`).join("")}</div></div></div>
         <div class="row2"><div><div class="small muted" style="margin-bottom:4px">Mốc hợp đồng</div><div class="note">${esc(p.milestones||"–")}</div></div>
@@ -33,7 +35,7 @@ function viewPlan(){
       <td class="small">${t.upd?`<div class="cell-sub" style="margin:0">${esc(t.upd)}</div>`:""}${t.ms?`<span class="pill ${t.ms>=3?"bad":"warn"}">Ma sát ${t.ms}</span> `:""}${esc(t.nn||"")}</td>
       <td>${warnPills(t.warns)}${t.ontime===true?' <span class="pill ok">Đúng hạn</span>':t.ontime===false?' <span class="pill bad">Trễ hạn</span>':""}${t.status==="Hoàn thành"&&!(t.eval&&t.eval.dat)&&S.canEdit?' <span class="pill info">Chờ đánh giá</span>':""}</td></tr>`).join("");
     right += `<section class="panel tbl-wrap"><table><thead><tr><th>#</th><th style="min-width:260px">Đầu việc</th><th>Phụ trách</th><th>Deadline HĐ</th><th class="num">WL</th><th>Ưu tiên</th><th>Trạng thái</th><th>Cập nhật mới nhất</th><th>Cảnh báo</th></tr></thead>
-      <tbody>${rows||`<tr><td colspan="9"><div class="empty">Dự án chưa có đầu việc.${S.canEdit?" Bấm “+ Đầu việc”.":""}</div></td></tr>`}</tbody></table></section>
+      <tbody>${rows||`<tr><td colspan="9"><div class="empty">Dự án chưa có đầu việc.${canManageProject(p)?" Bấm “+ Đầu việc”.":""}</div></td></tr>`}</tbody></table></section>
       <p class="small muted">Bấm vào một đầu việc để xem chi tiết${S.canEdit?", sửa hoặc đánh giá khi hoàn thành":""}.</p>`;
   }
   return h + `<div class="split"><section class="panel"><div class="panel-b" style="padding-bottom:6px"><input class="inp" type="search" placeholder="Tìm dự án" data-act="pq" value="${esc(S.planQuery)}" aria-label="Tìm dự án"></div><div class="plist">${list||'<div class="empty">Không tìm thấy.</div>'}</div></section><div>${right}</div></div>`;
@@ -76,7 +78,7 @@ function taskForm(p, t){
     : {id:"", dv:"", detail:"", owner:p.owner||"", collab:"", deadline:null, qm:null, pt:null, pr:"P2", st0:"", ms0:null, nn0:"", note:""};
   const dvOpts = S.catalog.filter(c=>c.type===p.type).map(c=>[c.name,c.name]);
   const staffOpts = [["",""],...M.staff.map(s=>[s.name,s.name])];
-  if(!S.canEdit){ return openInfo(p, t); }
+  if(!canManageProject(p)){ if(isNew){ toast("Chỉ trưởng phòng hoặc người tạo dự án mới thêm đầu việc."); return; } return openInfo(p, t); }
   const cOf = n => S.catalog.find(c=>c.name===n)||{};
   openForm({
     title: isNew ? "Thêm đầu việc" : "Đầu việc", subtitle: p.name, values:v,

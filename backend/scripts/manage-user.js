@@ -37,8 +37,14 @@ async function create() {
   const username = await ask("Tên đăng nhập (chữ không dấu, số, . _ -), ví dụ: trp.kythuat : ");
   if (!/^[A-Za-z0-9._-]{3,40}$/.test(username)) throw new Error("Tên đăng nhập không hợp lệ.");
   const display = await ask("Tên hiển thị (ví dụ: Nguyễn Văn A): ") || username;
-  const roleIn = (await ask("Vai trò – gõ 1 = Trưởng phòng (admin), 2 = Nhân viên (member) [1]: ")) || "1";
+  // Không có giá trị mặc định: phải gõ rõ 1 hoặc 2 (tránh tạo nhầm trưởng phòng khi bấm Enter)
+  let roleIn = "";
+  while (roleIn !== "1" && roleIn !== "2") roleIn = await ask("Vai trò – gõ 1 = Trưởng phòng (admin), 2 = Nhân viên (member): ");
   const role = roleIn === "2" ? "member" : "admin";
+  if (role === "admin") {
+    const ok = await ask('Tài khoản TRƯỞNG PHÒNG có toàn quyền. Gõ "dong y" để xác nhận (Enter để huỷ): ');
+    if (ok !== "dong y") throw new Error("Đã huỷ tạo tài khoản.");
+  }
   const names = await staffNames();
   if (names.length) { console.log("Danh sách nhân sự hiện có:"); names.forEach((n, i) => console.log(`  ${i + 1}. ${n}`)); }
   const st = await ask(`Gắn với nhân sự số mấy (Enter để bỏ qua${role === "member" ? " – nhân viên NÊN gắn" : ""}): `);

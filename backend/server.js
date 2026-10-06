@@ -33,15 +33,17 @@ if (JWT_SECRET.length < 32) {
 /*
  * QUY TẮC GHI DỮ LIỆU THEO TỪNG BỘ SƯU TẬP (collection)
  * Thêm module mới cần lưu dữ liệu → thêm 1 dòng vào đây.
- *   "admin"    : chỉ trưởng phòng được ghi/xoá
- *   "member"   : mọi tài khoản đã đăng nhập được ghi/xoá
- *   "own-week" : trưởng phòng ghi tất cả; nhân viên chỉ ghi dữ liệu tuần của chính mình
+ *   "admin"       : chỉ trưởng phòng được ghi/xoá
+ *   "member"      : mọi tài khoản đã đăng nhập được ghi/xoá
+ *   "own-week"    : trưởng phòng ghi tất cả; nhân viên chỉ ghi dữ liệu tuần của chính mình
+ *   "own-project" : trưởng phòng ghi tất cả; nhân viên được TẠO dự án mới, và chỉ sửa/xoá
+ *                   dự án do chính mình tạo (trường created_by do máy chủ ghi, không nhận từ client)
  * Mọi tài khoản đã đăng nhập đều ĐỌC được tất cả.
  */
 const RULES = {
-  config: "admin",     // config/staff (nhân sự), config/catalog (đầu việc chuẩn)
-  projects: "admin",   // projects/<mã dự án>  (thông tin dự án + đầu việc)
-  weeks: "own-week",   // weeks/<thứ 2 của tuần>__<tên>  (dữ liệu nhập theo tuần)
+  config: "admin",          // config/staff (nhân sự), config/catalog (đầu việc chuẩn)
+  projects: "own-project",  // projects/<mã dự án>  (thông tin dự án + đầu việc)
+  weeks: "own-week",        // weeks/<thứ 2 của tuần>__<tên>  (dữ liệu nhập theo tuần)
 };
 const COLLECTIONS = new Set(Object.keys(RULES));
 const ID_RE = /^[A-Za-z0-9_\-.~:@+]{1,200}$/;
@@ -139,6 +141,7 @@ function canWrite(user, coll, id, body, existing) {
   const rule = RULES[coll];
   if (user.role === "admin") return true;
   if (rule === "member") return true;
+  if (rule === "own-project") return existing ? existing.created_by === user.username : true;
   if (rule !== "own-week" || !user.staff_name) return false;
   const check = b => b && b.person === user.staff_name && id === `${b.week}__${slug(b.person)}`;
   if (existing && !check(existing)) return false;
@@ -151,7 +154,9 @@ app.put("/api/doc/:coll/:id", auth, A(async (req, res) => {
   if (!body || typeof body !== "object" || Array.isArray(body)) return res.status(400).json({ error: "Dữ liệu không hợp lệ" });
   const p = `${coll}/${id}`;
   const ex = await store.getDoc(p);
-  if (!canWrite(req.user, coll, id, body, ex && JSON.parse(ex))) return res.status(403).json({ error: "Bạn không có quyền sửa phần này" });
+  const exBody = ex && JSON.parse(ex);
+  if (!canWrite(req.user, coll, id, body, exBody)) return res.status(403).json({ error: "Bạn không có quyền sửa phần này" });
+  if (coll === "projects") body.created_by = exBody ? (exBody.created_by ?? null) : req.user.username;
   await store.upsertDoc(p, coll, id, JSON.stringify(body), req.user.username);
   audit(req.user, "set", p); broadcast(coll);
   res.status(204).end();
@@ -220,6 +225,7 @@ app.patch("/api/users/:id", auth, adminOnly, A(async (req, res) => {
   if (u.role === "admin" && (role !== "admin" || !active) && (await store.countActiveAdmins()) <= 1)
     return res.status(400).json({ error: "Phải còn ít nhất một tài khoản trưởng phòng đang hoạt động" });
   let tv = u.token_version, hash = u.pass_hash;
+  if (role !== u.role) tv++;   // đổi vai trò: buộc đăng nhập lại để nhận quyền mới
   if (b.password) {
     if (String(b.password).length < 8) return res.status(400).json({ error: "Mật khẩu phải có ít nhất 8 ký tự" });
     hash = bcrypt.hashSync(String(b.password), 10); tv++;

@@ -116,7 +116,7 @@ function userForm(u){
       ...(isNew ? [{key:"username", label:"Tên đăng nhập (chữ không dấu, số, . _ -)", type:"text", required:true}] : []),
       {key:"display_name", label:"Tên hiển thị", type:"text", required:true},
       {key:"staff_name", label:"Gắn với nhân sự (để nhập theo tuần)", type:"select", options:[["",""],...M.staff.map(s=>[s.name,s.name])]},
-      {key:"role", label:"Vai trò", type:"seg", options:[["member","Nhân viên"],["admin","Trưởng phòng"]], hint:v=>v==="admin"?"Sửa được kế hoạch, cài đặt, tài khoản và dữ liệu của mọi người.":"Chỉ nhập theo tuần cho chính mình; xem được toàn bộ báo cáo."},
+      {key:"role", label:"Vai trò", type:"seg", options:[["member","Nhân viên"],["admin","Trưởng phòng"]], hint:v=>v==="admin"?"Toàn quyền: sửa mọi dự án, cài đặt, tài khoản và dữ liệu của mọi người.":"Nhập theo tuần cho chính mình; tạo dự án mới và sửa dự án do mình tạo; xem toàn bộ báo cáo."},
       ...(isNew ? [] : [{key:"active", label:"Trạng thái", type:"seg", options:[[true,"Đang hoạt động"],[false,"Khoá"]]}]),
       {key:"pw", label: isNew ? "Mật khẩu (ít nhất 8 ký tự)" : "Đặt mật khẩu mới (để trống nếu không đổi)", type:"password", required:isNew}
     ],
@@ -136,6 +136,6 @@ function usersPanel(){
     <div class="tbl-wrap"><table><thead><tr><th>Tên đăng nhập</th><th>Tên hiển thị</th><th>Gắn với nhân sự</th><th>Vai trò</th><th>Trạng thái</th></tr></thead><tbody>
     ${S.users.map(u=>`<tr class="click" data-act="edituser" data-id="${u.id}" tabindex="0"><td class="cell-main">${esc(u.username)}</td><td>${esc(u.display_name)}</td><td>${esc(u.staff_name||"–")}</td>
       <td>${u.role==="admin"?'<span class="pill info">Trưởng phòng</span>':'<span class="pill mute">Nhân viên</span>'}</td><td>${u.active?'<span class="pill ok">Hoạt động</span>':'<span class="pill bad">Khoá</span>'}</td></tr>`).join("")}
-    </tbody></table></div><div class="panel-b small muted">Nhân viên cần được “gắn với nhân sự” để nhập theo tuần. Nhân viên chỉ sửa được dữ liệu tuần của chính mình.</div></section>`;
+    </tbody></table></div><div class="panel-b small muted">Nhân viên cần được “gắn với nhân sự” để nhập theo tuần. Nhân viên chỉ sửa được dữ liệu tuần của chính mình và các dự án do mình tạo.</div></section>`;
 }
 document.getElementById("userBox").addEventListener("click", e => { const b = e.target.closest("[data-uact]"); if(!b) return; if(b.dataset.uact==="pw") passwordForm(); else logout(); });
