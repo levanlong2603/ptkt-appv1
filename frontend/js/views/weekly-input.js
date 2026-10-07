@@ -22,15 +22,25 @@ function viewInput(){
     <p class="small muted">Bấm vào một dòng để sửa hoặc xoá.</p>`;
 }
 /* Nhóm các dòng đã nhập theo Dự án → hạng mục (giống cây ở Kế hoạch dự án), gấp/mở được */
+/* Màu viền trái theo cấp: đậm dần khi lên cấp cha, để nhìn ra ngay phân cấp mà không cần gấp/mở */
+const INPUT_LVL_BORDER = ["var(--teal)", "color-mix(in srgb, var(--teal) 45%, var(--line))", "var(--line)"];
 function inputRow(e, lvl=1){
   const name = e.ref ? planShortName(e.ref.t.dv) : "(đầu việc đã xoá)";
   return `<tr class="click" data-act="editentry" data-id="${esc(e.id)}" tabindex="0" title="${e.ref?esc(e.ref.t.dv):""}">
-    <td style="padding-left:${10+lvl*22}px"><div class="cell-main">${esc(name)}</div></td>
+    <td style="padding-left:${10+lvl*22}px; border-left:3px solid ${INPUT_LVL_BORDER[lvl]||INPUT_LVL_BORDER[2]}"><div class="cell-main">${esc(name)}</div></td>
     <td>${e.work?esc(e.work):'<span class="muted">–</span>'}</td>
     <td class="num">${e.qm?e.qm:'<span class="pill bad">Chấm quy mô</span>'}</td><td class="num">${e.wl!=null?e.wl:"–"}</td>
     <td>${e.status?stPill(e.status):'<span class="pill warn">Chọn trạng thái</span>'}</td>
     <td>${e.ms!=null&&e.ms!==""?`<span class="pill ${e.ms>=3?"bad":e.ms>=1?"warn":"mute"}">${e.ms}</span>`:""} ${esc(e.nn||"")}</td>
     <td class="small">${esc(e.note||"")}</td></tr>`;
+}
+/* Dòng nhóm tĩnh (không gấp/mở) cho cây ở Nhập theo tuần – luôn hiện hết vì mỗi tuần thường chỉ có ít việc.
+   Dòng dự án chỉ ghi tên (không ghi số đầu việc); số đầu việc chỉ ghi ở dòng hạng mục. */
+function inputGroupRow(lvl, title, meta){
+  const bg = lvl===0 ? "color-mix(in srgb, var(--teal) 14%, var(--surface))" : "color-mix(in srgb, var(--teal) 6%, var(--surface))";
+  const text = lvl===0 ? `<span style="font-weight:700; font-size:14.5px">${esc(title)}</span>`
+    : `<span style="font-weight:650; color:var(--ink); font-size:13.5px">${esc(title)}</span> <span class="small muted">· ${esc(meta)}</span>`;
+  return `<tr><td colspan="7" style="background:${bg}; border-left:4px solid ${INPUT_LVL_BORDER[lvl]}; padding:${lvl?6:10}px 10px ${lvl?6:10}px ${10+lvl*22}px">${text}</td></tr>`;
 }
 function inputTreeRows(es){
   const byProj = new Map();
@@ -43,9 +53,7 @@ function inputTreeRows(es){
   let out = "";
   for(const g of projects){
     const p = M.pById.get(g.pid);
-    const pKey = "input|p:"+g.pid, pOpen = planOpen(pKey, true);
-    out += planGroupRow(pKey, 0, g.name, {meta:`${g.items.length} đầu việc`}, pOpen, "", 7);
-    if(!pOpen) continue;
+    out += inputGroupRow(0, g.name, `${g.items.length} đầu việc`);
     const order = p ? new Map(p._phases.map((ph,i)=>[ph.code,i])) : new Map();
     const byPhase = new Map();
     for(const e of g.items){
@@ -56,9 +64,8 @@ function inputTreeRows(es){
     const phases = [...byPhase.values()].sort((a,b)=>(order.get(a.code)??999)-(order.get(b.code)??999) || a.code.localeCompare(b.code));
     for(const ph of phases){
       if(!ph.code){ for(const e of ph.items) out += inputRow(e, 1); continue; } // không rõ hạng mục: hiện thẳng dưới dự án, không bọc "Khác"
-      const phKey = pKey+"|ph:"+ph.code, phOpen = planOpen(phKey, true);
-      out += planGroupRow(phKey, 1, ph.code+". "+(ph.name||"Khác"), {meta:`${ph.items.length} đầu việc`}, phOpen, "", 7);
-      if(phOpen) for(const e of ph.items) out += inputRow(e, 2);
+      out += inputGroupRow(1, ph.code+". "+(ph.name||"Khác"), `${ph.items.length} đầu việc`);
+      for(const e of ph.items) out += inputRow(e, 2);
     }
   }
   return out;

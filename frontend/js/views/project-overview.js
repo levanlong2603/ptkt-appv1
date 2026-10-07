@@ -21,7 +21,7 @@ function viewDash(){
   for(const f of PLAN_FILTERS){
     if(f.key==="Tất cả") continue;
     if(S.typeFilter!=="Tất cả" && S.typeFilter!==f.key) continue;
-    const ps = P.filter(p=>planMatchFilter(p, f.key));
+    const ps = P.filter(p=>planMatchFilter(p, f.key)).sort((a,b)=>(b._stuck-a._stuck) || (b._late-a._late) || a.name.localeCompare(b.name,"vi"));
     left += `<section class="panel"><div class="panel-h"><h2>${typeDot(f.type)}${esc(f.label)} <span class="muted small">· ${ps.length}</span></h2></div>`;
     if(!ps.length) left += `<div class="empty">Chưa có ${f.label.toLowerCase()} nào. Thêm ở mục Kế hoạch dự án.</div>`;
     for(const p of ps){
@@ -37,24 +37,12 @@ function viewDash(){
     }
     left += `</section>`;
   }
-  // right column
-  const urgent = [...late, ...stuck.filter(t=>!late.includes(t) && (t.ms||0)>=3)].slice(0,12);
-  let right = `<section class="panel"><div class="panel-h"><h2>Cần xử lý</h2><span class="muted small">quá hạn · ma sát cao</span></div><div class="panel-b">`;
-  right += urgent.length ? urgent.map(t=>`<div class="alert-item"><div class="small muted">${esc(t.p.name)}</div><div class="cell-main">${esc(t.dv)}</div>
-      <div class="small" style="margin-top:4px">${warnPills(t.warns)} <span class="muted">${esc(t.owner||"")}${t.deadline?" · hạn "+dmy(t.deadline):""}</span></div></div>`).join("")
-    : `<div class="empty" style="padding:14px">Không có việc quá hạn hay ma sát cao.</div>`;
-  right += `</div></section>`;
-  const byCause = CAUSES.map(c => ({c, n: allT.filter(t=>OPEN.has(t.status) && t.nn===c).length})).filter(x=>x.n).sort((a,b)=>b.n-a.n);
-  const mx = Math.max(1,...byCause.map(x=>x.n));
-  right += `<section class="panel"><div class="panel-h"><h2>Điều gì đang cản trở</h2></div><div class="panel-b">` +
-    (byCause.length ? byCause.map(x=>`<div class="hbar"><span>${esc(x.c)}</span><div class="t"><i style="width:${x.n/mx*100}%; background:var(--bad)"></i></div><span class="num" style="text-align:right">${x.n}</span></div>`).join("")
-    : `<div class="muted small">Chưa có đầu việc nào ghi nhận ma sát.</div>`) + `</div></section>`;
-  return h + `<div class="grid2"><div class="stack">${left}</div><div class="stack">${right}</div></div>`;
+  return h + left;
 }
 function projectDetail(p){
-  const dashRow = (t,i,lvl=1) => `<tr class="${t.status==="Chưa bắt đầu"?"tr-idle":""}" title="${esc(t.dv)}"><td style="padding-left:${10+lvl*22}px"><div class="cell-main">${esc(planShortName(t.dv))}</div>${t.upd?`<div class="cell-sub">${esc(t.upd)}</div>`:""}</td>
+  const dashRow = (t,i,lvl=1) => { const idle = t.status==="Chưa bắt đầu"; return `<tr class="${idle?"tr-idle":""}" title="${esc(t.dv)}"><td style="padding-left:${10+lvl*22}px"><div class="cell-main">${esc(planShortName(t.dv))}</div>${t.detail&&!idle?`<div class="cell-sub">${esc(t.detail)}</div>`:""}${t.upd?`<div class="cell-sub">${esc(t.upd)}</div>`:""}${t.note?`<div class="cell-sub" style="color:var(--teal)">Ghi chú TrP: ${esc(t.note)}</div>`:""}</td>
     <td>${esc(t.owner||"–")}</td><td>${t.deadline?dmy(t.deadline):"–"}</td><td>${stPill(t.status)}<div class="small muted">${esc(t.src)}</div></td>
-    <td>${warnPills(t.warns)}</td></tr>`;
+    <td>${warnPills(t.warns)}</td></tr>`; };
   const rows = planTreeRows(p, {scope:"dash|"+p.id, cols:5, row:dashRow, edit:false});
   return `<div class="pdetail">
     <div class="row2" style="margin:12px 0">

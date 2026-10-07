@@ -38,7 +38,7 @@ function derive(){
       const wl = qm && pt ? qm*pt : null;
       const le = latest.get(k), la = lastAny.get(k);
       const status = le ? le.status : (t.init && t.init.status) || "Chưa bắt đầu";
-      const src = le ? "Tuần "+isoWeek(le.week) : ((t.init && t.init.status) ? "Ban đầu" : "");
+      const src = le ? "Tuần "+isoWeek(le.week) : "";
       const ms = le ? (le.ms ?? null) : (t.init ? t.init.ms ?? null : null);
       const nn = le ? (le.nn||"") : (t.init ? t.init.nn||"" : "");
       const upd = la ? [la.work, la.note].filter(Boolean).join(" · ") : "";

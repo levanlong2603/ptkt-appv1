@@ -36,8 +36,10 @@ if (JWT_SECRET.length < 32) {
  *   "admin"       : chỉ trưởng phòng được ghi/xoá
  *   "member"      : mọi tài khoản đã đăng nhập được ghi/xoá
  *   "own-week"    : trưởng phòng ghi tất cả; nhân viên chỉ ghi dữ liệu tuần của chính mình
- *   "own-project" : trưởng phòng ghi tất cả (kể cả tạo dự án mới); nhân viên chỉ sửa/xoá
- *                   dự án do chính mình tạo (trường created_by do máy chủ ghi, không nhận từ client)
+ *   "own-project" : trưởng phòng ghi tất cả (kể cả tạo dự án mới). Nhân viên: sửa dự án và
+ *                   đầu việc (PUT) nếu là người tạo (created_by, máy chủ ghi, không nhận từ
+ *                   client) HOẶC là TM (owner)/SE của dự án (so khớp staff_name của tài khoản);
+ *                   XOÁ cả dự án (DELETE) thì chỉ người tạo mới được, kể cả là TM/SE
  * Mọi tài khoản đã đăng nhập đều ĐỌC được tất cả.
  */
 const RULES = {
@@ -137,12 +139,18 @@ app.get("/api/collection/:coll", auth, A(async (req, res) => {
   res.json(rows.map(r => ({ id: r.doc_id, data: JSON.parse(r.body) })));
 }));
 
-function canWrite(user, coll, id, body, existing) {
+/* op: "write" (PUT, gồm cả thêm/sửa/xoá đầu việc bên trong) | "delete" (DELETE, xoá cả dự án) */
+function canWrite(user, coll, id, body, existing, op = "write") {
   const rule = RULES[coll];
   if (user.role === "admin") return true;
   if (rule === "member") return true;
-  // Dự án mới (không có bản cũ) chỉ trưởng phòng tạo được; nhân viên chỉ sửa/xoá dự án do mình tạo
-  if (rule === "own-project") return existing ? existing.created_by === user.username : false;
+  if (rule === "own-project") {
+    if (!existing) return false; // dự án mới chỉ trưởng phòng tạo được
+    if (existing.created_by === user.username) return true;
+    // TM (phụ trách) hoặc SE của dự án: được sửa dự án và đầu việc, nhưng KHÔNG được xoá cả dự án
+    if (op === "write" && user.staff_name && (existing.owner === user.staff_name || existing.se === user.staff_name)) return true;
+    return false;
+  }
   if (rule !== "own-week" || !user.staff_name) return false;
   const check = b => b && b.person === user.staff_name && id === `${b.week}__${slug(b.person)}`;
   if (existing && !check(existing)) return false;
@@ -156,7 +164,7 @@ app.put("/api/doc/:coll/:id", auth, A(async (req, res) => {
   const p = `${coll}/${id}`;
   const ex = await store.getDoc(p);
   const exBody = ex && JSON.parse(ex);
-  if (!canWrite(req.user, coll, id, body, exBody)) return res.status(403).json({ error: "Bạn không có quyền sửa phần này" });
+  if (!canWrite(req.user, coll, id, body, exBody, "write")) return res.status(403).json({ error: "Bạn không có quyền sửa phần này" });
   if (coll === "projects") body.created_by = exBody ? (exBody.created_by ?? null) : req.user.username;
   await store.upsertDoc(p, coll, id, JSON.stringify(body), req.user.username);
   audit(req.user, "set", p); broadcast(coll);
@@ -168,7 +176,7 @@ app.delete("/api/doc/:coll/:id", auth, A(async (req, res) => {
   const p = `${coll}/${id}`;
   const ex = await store.getDoc(p);
   if (!ex) return res.status(204).end();
-  if (!canWrite(req.user, coll, id, null, JSON.parse(ex))) return res.status(403).json({ error: "Bạn không có quyền xoá phần này" });
+  if (!canWrite(req.user, coll, id, null, JSON.parse(ex), "delete")) return res.status(403).json({ error: "Bạn không có quyền xoá phần này" });
   await store.deleteDoc(p);
   audit(req.user, "delete", p); broadcast(coll);
   res.status(204).end();

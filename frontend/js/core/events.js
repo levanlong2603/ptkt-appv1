@@ -22,7 +22,7 @@ main.addEventListener("click", e => {
   else if(a==="addentry") entryForm(null);
   else if(a==="editentry"){ const doc=weekDoc(S.week,S.me); const en=doc&&(doc.entries||[]).find(x=>x.id===t.dataset.id); if(en) entryForm(en); }
   else if(a==="copyprev") copyPrev();
-  else if(a==="psel"){ S.planSel=t.dataset.id; render(); }
+  else if(a==="psel"){ S.planSel = S.planSel===t.dataset.id ? null : t.dataset.id; render(); }
   else if(a==="newp") projectForm(null);
   else if(a==="editp") projectForm(M.pById.get(S.planSel));
   else if(a==="addtask") taskForm(M.pById.get(S.planSel), null);

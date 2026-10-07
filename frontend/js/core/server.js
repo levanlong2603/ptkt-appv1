@@ -129,7 +129,7 @@ function userForm(u){
       ...(isNew ? [{key:"username", label:"Tên đăng nhập (chữ không dấu, số, . _ -)", type:"text", required:true}] : []),
       {key:"display_name", label:"Tên hiển thị", type:"text", required:true},
       {key:"staff_name", label:"Gắn với nhân sự (để nhập theo tuần)", type:"select", options:[["",""],...M.staff.map(s=>[s.name,s.name])]},
-      {key:"role", label:"Vai trò", type:"seg", options:[["member","Nhân viên"],["admin","Trưởng phòng"]], hint:v=>v==="admin"?"Toàn quyền: sửa mọi dự án, cài đặt, tài khoản và dữ liệu của mọi người.":"Nhập theo tuần cho chính mình; sửa dự án do mình tạo và thêm đầu việc vào đó; xem toàn bộ báo cáo."},
+      {key:"role", label:"Vai trò", type:"seg", options:[["member","Nhân viên"],["admin","Trưởng phòng"]], hint:v=>v==="admin"?"Toàn quyền: sửa mọi dự án, cài đặt, tài khoản và dữ liệu của mọi người.":"Nhập theo tuần cho chính mình; sửa dự án/đầu việc nếu là người tạo hoặc là TM/SE của dự án (gắn qua “Gắn với nhân sự” bên dưới); xem toàn bộ báo cáo."},
       ...(isNew ? [] : [{key:"active", label:"Trạng thái", type:"seg", options:[[true,"Đang hoạt động"],[false,"Khoá"]]}]),
       {key:"pw", label: isNew ? "Mật khẩu (ít nhất 8 ký tự)" : "Đặt mật khẩu mới (để trống nếu không đổi)", type:"password", required:isNew}
     ],
