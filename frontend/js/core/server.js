@@ -60,10 +60,11 @@ function startSession(user){
   const cutoff = addDays(mondayOf(todayISO()), -7*156);
   db.collection("weeks").where("week", ">=", cutoff).onSnapshot(snap => { S.weeks = snap.docs.map(d=>({...d.data(), _id:d.id})); S.loaded=true; schedule(); }, onErr);
   for(const fn of ON_SESSION){ try{ fn(db); }catch(e){ console.error(e); } }
-  hideLogin(); render();
+  hideLogin(); render(); resetIdleTimer();
 }
 function showLogin(msg){
   if(S.db && S.db.close) S.db.close();
+  stopIdleTimer();
   let w = document.getElementById("loginWrap");
   if(!w){ w = document.createElement("div"); w.id = "loginWrap"; w.className = "login-wrap"; document.body.appendChild(w); }
   w.innerHTML = `<form class="login" id="loginForm" autocomplete="on">
@@ -86,11 +87,23 @@ function showLogin(msg){
   setTimeout(() => document.getElementById("lgU").focus(), 30);
 }
 function hideLogin(){ const w = document.getElementById("loginWrap"); if(w) w.remove(); }
-async function logout(){
+async function logout(msg){
+  stopIdleTimer();
   try{ await fetch("/api/logout", {method:"POST", credentials:"same-origin"}); }catch(e){}
   S.user = null; S.staff=[]; S.catalog=[]; S.projects=[]; S.weeks=[]; S.loaded=false;
-  document.getElementById("userBox").hidden = true; showLogin();
+  document.getElementById("userBox").hidden = true; showLogin(msg);
 }
+/* ---------- tự đăng xuất khi không thao tác ---------- */
+const IDLE_TIMEOUT_MIN = 15;
+let idleTimer = null, idleLastReset = 0;
+function resetIdleTimer(){
+  if(!S.user) return;
+  const now = Date.now(); if(idleTimer && now - idleLastReset < 5000) return; // tối đa đặt lại mỗi 5 giây, đỡ tốn
+  idleLastReset = now; clearTimeout(idleTimer);
+  idleTimer = setTimeout(() => logout(`Đã tự đăng xuất do không thao tác trong ${IDLE_TIMEOUT_MIN} phút.`), IDLE_TIMEOUT_MIN*60*1000);
+}
+function stopIdleTimer(){ clearTimeout(idleTimer); idleTimer = null; }
+["mousemove","keydown","mousedown","touchstart","wheel","scroll"].forEach(ev => document.addEventListener(ev, resetIdleTimer, {passive:true}));
 function passwordForm(){
   openForm({title:"Đổi mật khẩu", subtitle:S.user.display_name, values:{cur:"", n1:"", n2:""},
     fields:[{key:"cur", label:"Mật khẩu hiện tại", type:"password", required:true},
