@@ -2,3 +2,8 @@
 /* ================= plan tree ================= */
 .tr-idle td{padding-top:6px; padding-bottom:6px}
 .tr-idle .cell-sub{display:none}
+/* Phân biệt cấp trong cây: hạng mục (lvl0) rõ hơn nhánh con (lvl1) để nhìn ra thứ bậc */
+.grp-row td{background:color-mix(in srgb, var(--paper) 45%, var(--surface))}
+.grp-row:hover td{background:var(--line-2)}
+.grp-row.lvl1 td{padding-top:6px; padding-bottom:6px}
+.grp-row.lvl1 b{font-weight:600; color:var(--ink-2); font-size:12.5px}

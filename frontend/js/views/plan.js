@@ -48,11 +48,11 @@ function planStat(ts){
 }
 /* Tên đầu việc trong cây bỏ phần "mã. hạng mục –" vì dòng cha đã hiện */
 function planShortName(dv){ return (dv||"").replace(/^[0-9A-Z]{1,2}\d?\.\s*[^–]*–\s*/, ""); }
-function planTaskRow(t, i){
+function planTaskRow(t, i, lvl=1){
   const idle = t.status==="Chưa bắt đầu";
   return `<tr class="click${idle?" tr-idle":""}" data-act="task" data-id="${esc(t.id)}" tabindex="0" title="${esc(t.dv)}">
       <td class="muted">${i}</td>
-      <td><div class="cell-main">${esc(planShortName(t.dv))}</div>${t.detail&&!idle?`<div class="cell-sub">${esc(t.detail)}</div>`:""}</td>
+      <td style="padding-left:${10+lvl*22}px"><div class="cell-main">${esc(planShortName(t.dv))}</div>${t.detail&&!idle?`<div class="cell-sub">${esc(t.detail)}</div>`:""}</td>
       <td>${esc(t.owner||"–")}${t.collab?`<div class="small muted">+ ${esc(t.collab)}</div>`:""}</td>
       <td>${t.deadline?dmy(t.deadline):"–"}</td>
       <td class="num">${t.wl??"–"}</td><td>${t.pr?`<span class="pill ${t.pr==="P1"?"bad":"mute"}">${esc(t.pr)}</span>`:""}</td>
@@ -84,11 +84,11 @@ function planTreeRows(p, o={}){
     const gk = scope+"|grp:"+g.code, open = planOpen(gk);
     out += planGroupRow(gk, 0, (g.code?g.code+". ":"")+(g.name||"Khác"), planStat(g.tasks), open, "", cols);
     if(!open) continue;
-    for(const t of g.tasks.filter(t=>!(t.sub && g.subs.has(t.sub)))) out += rowFn(t, ++i);
+    for(const t of g.tasks.filter(t=>!(t.sub && g.subs.has(t.sub)))) out += rowFn(t, ++i, 1);
     for(const name of g.subs.keys()){
       const ts = g.tasks.filter(t=>t.sub===name), key = scope+"|sub:"+g.code+"|"+name, o2 = planOpen(key);
       out += planGroupRow(key, 1, name, planStat(ts), o2, "", cols);
-      if(o2) for(const t of ts) out += rowFn(t, ++i);
+      if(o2) for(const t of ts) out += rowFn(t, ++i, 2);
     }
   }
   return out;

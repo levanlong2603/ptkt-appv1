@@ -18,15 +18,50 @@ function viewInput(){
     <div class="toolbar" style="margin-left:auto"><button class="btn" data-act="copyprev" ${canCopy?"":"disabled"} title="${canCopy?"Chép các việc chưa xong của tuần trước":"Tuần trước không có việc dở dang"}">Chép việc dở dang từ tuần trước</button>
     <button class="btn primary" data-act="addentry">+ Thêm việc</button></div></div></section>`;
   if(!L.es.length) return h + `<section class="panel"><div class="empty"><b>Chưa có việc nào trong tuần ${isoWeek(w)}</b>Thêm việc bạn làm trong tuần, hoặc chép các việc dở dang từ tuần trước.</div></section>`;
-  const rows = L.es.map(e => `<tr class="click" data-act="editentry" data-id="${esc(e.id)}" tabindex="0">
-    <td><div class="small muted">${esc((M.pById.get(e.projectId)||{}).name||"(dự án đã xoá)")}</div><div class="cell-main">${esc(e.ref?e.ref.t.dv:"(đầu việc đã xoá)")}</div></td>
+  return h + `<section class="panel tbl-wrap"><table><thead><tr><th>Đầu việc</th><th>Việc đã làm</th><th class="num">Quy mô</th><th class="num">Workload</th><th>Trạng thái cuối tuần</th><th>Ma sát</th><th>Vướng / cần hỗ trợ</th></tr></thead><tbody>${inputTreeRows(L.es)}</tbody></table></section>
+    <p class="small muted">Bấm vào một dòng để sửa hoặc xoá.</p>`;
+}
+/* Nhóm các dòng đã nhập theo Dự án → hạng mục (giống cây ở Kế hoạch dự án), gấp/mở được */
+function inputRow(e, lvl=1){
+  const name = e.ref ? planShortName(e.ref.t.dv) : "(đầu việc đã xoá)";
+  return `<tr class="click" data-act="editentry" data-id="${esc(e.id)}" tabindex="0" title="${e.ref?esc(e.ref.t.dv):""}">
+    <td style="padding-left:${10+lvl*22}px"><div class="cell-main">${esc(name)}</div></td>
     <td>${e.work?esc(e.work):'<span class="muted">–</span>'}</td>
     <td class="num">${e.qm?e.qm:'<span class="pill bad">Chấm quy mô</span>'}</td><td class="num">${e.wl!=null?e.wl:"–"}</td>
     <td>${e.status?stPill(e.status):'<span class="pill warn">Chọn trạng thái</span>'}</td>
     <td>${e.ms!=null&&e.ms!==""?`<span class="pill ${e.ms>=3?"bad":e.ms>=1?"warn":"mute"}">${e.ms}</span>`:""} ${esc(e.nn||"")}</td>
-    <td class="small">${esc(e.note||"")}</td></tr>`).join("");
-  return h + `<section class="panel tbl-wrap"><table><thead><tr><th>Dự án / đầu việc</th><th>Việc đã làm</th><th class="num">Quy mô</th><th class="num">Workload</th><th>Trạng thái cuối tuần</th><th>Ma sát</th><th>Vướng / cần hỗ trợ</th></tr></thead><tbody>${rows}</tbody></table></section>
-    <p class="small muted">Bấm vào một dòng để sửa hoặc xoá.</p>`;
+    <td class="small">${esc(e.note||"")}</td></tr>`;
+}
+function inputTreeRows(es){
+  const byProj = new Map();
+  for(const e of es){
+    const pid = e.projectId;
+    if(!byProj.has(pid)) byProj.set(pid, {pid, name:(M.pById.get(pid)||{}).name||"(dự án đã xoá)", items:[]});
+    byProj.get(pid).items.push(e);
+  }
+  const projects = [...byProj.values()].sort((a,b)=>a.name.localeCompare(b.name,"vi"));
+  let out = "";
+  for(const g of projects){
+    const p = M.pById.get(g.pid);
+    const pKey = "input|p:"+g.pid, pOpen = planOpen(pKey, true);
+    out += planGroupRow(pKey, 0, g.name, {meta:`${g.items.length} đầu việc`}, pOpen, "", 7);
+    if(!pOpen) continue;
+    const order = p ? new Map(p._phases.map((ph,i)=>[ph.code,i])) : new Map();
+    const byPhase = new Map();
+    for(const e of g.items){
+      const code = e.ref ? phaseOf(e.ref.t.dv) : "";
+      if(!byPhase.has(code)) byPhase.set(code, {code, name: p ? ((p._phases.find(ph=>ph.code===code)||{}).name||"") : "", items:[]});
+      byPhase.get(code).items.push(e);
+    }
+    const phases = [...byPhase.values()].sort((a,b)=>(order.get(a.code)??999)-(order.get(b.code)??999) || a.code.localeCompare(b.code));
+    for(const ph of phases){
+      if(!ph.code){ for(const e of ph.items) out += inputRow(e, 1); continue; } // không rõ hạng mục: hiện thẳng dưới dự án, không bọc "Khác"
+      const phKey = pKey+"|ph:"+ph.code, phOpen = planOpen(phKey, true);
+      out += planGroupRow(phKey, 1, ph.code+". "+(ph.name||"Khác"), {meta:`${ph.items.length} đầu việc`}, phOpen, "", 7);
+      if(phOpen) for(const e of ph.items) out += inputRow(e, 2);
+    }
+  }
+  return out;
 }
 function entryForm(entry){
   const isNew = !entry;
@@ -35,20 +70,18 @@ function entryForm(entry){
      Ẩn dự án đã hoàn thành 100%, trừ khi đó là dự án của dòng đang sửa (giữ lại để không mất dữ liệu) */
   const assigned = p => S.canEdit || projectAssigned(p, S.me) || (p.tasks||[]).some(t=>t.owner===S.me || t.collab===S.me);
   const projOpts = M.projects.filter(p=>(p.tasks||[]).length && (assigned(p) || p.id===e.projectId) && (!planIsDone(p) || p.id===e.projectId)).map(p=>[p.id, p.name+(planIsDone(p)?" (đã hoàn thành)":"")]);
-  /* Chỉ cho chọn đầu việc chưa hoàn thành (OPEN: chưa bắt đầu/đang làm/đang vướng/tạm dừng), gom theo hạng mục.
-     keepId: giữ lại đầu việc đang chọn của dòng đang sửa dù đã xong/huỷ, để không bị mất khi lưu lại. */
+  /* Xem được tất cả đầu việc của dự án (kể cả đã xong/huỷ), gom theo hạng mục */
   const taskOpts = (pid, keepId) => {
     const p = M.pById.get(pid); if(!p) return [];
     const order = new Map(p._phases.map((ph,i)=>[ph.code,i]));
     const groups = new Map();
     for(const t of p._tasks){
-      if(!OPEN.has(t.status) && t.id!==keepId) continue;
       const code = t.phase||"";
       if(!groups.has(code)) groups.set(code, {code, name:(p._phases.find(ph=>ph.code===code)||{}).name||"", items:[]});
       groups.get(code).items.push(t);
     }
     return [...groups.values()].sort((a,b)=>(order.get(a.code)??999)-(order.get(b.code)??999) || a.code.localeCompare(b.code))
-      .map(g => ({group:(g.code?g.code+". ":"")+(g.name||"Khác"), options:g.items.map(t=>[t.id, planShortName(t.dv)+(t.id===keepId&&!OPEN.has(t.status)?" ("+t.status+")":"")])}));
+      .map(g => ({group:(g.code?g.code+". ":"")+(g.name||"Khác"), options:g.items.map(t=>[t.id, planShortName(t.dv)+(OPEN.has(t.status)?"":" ("+t.status+")")])}));
   };
   openForm({
     title: isNew ? "Thêm việc trong tuần" : "Sửa việc trong tuần",
@@ -68,6 +101,8 @@ function entryForm(entry){
     saveLabel: isNew ? "Thêm việc" : "Lưu thay đổi",
     onSave: async v => {
       const doc = weekDoc(S.week, S.me); const list = doc ? [...(doc.entries||[])] : [];
+      if(list.some(x=>x.id!==v.id && x.projectId===v.projectId && x.taskId===v.taskId))
+        throw new Error("Đầu việc này đã có trong tuần. Bấm vào dòng đó trong bảng để sửa thay vì thêm mới.");
       const i = list.findIndex(x=>x.id===v.id); const clean = {id:v.id, projectId:v.projectId, taskId:v.taskId, work:v.work||"", qm:v.qm||null, pt:v.pt||null, status:v.status||"", ms:v.ms??null, nn:v.nn||"", note:v.note||""};
       if(i>=0) list[i]=clean; else list.push(clean);
       await saveWeek(S.week, S.me, list); toast(isNew?"Đã thêm việc":"Đã lưu thay đổi");

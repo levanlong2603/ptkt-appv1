@@ -52,7 +52,7 @@ function viewDash(){
   return h + `<div class="grid2"><div class="stack">${left}</div><div class="stack">${right}</div></div>`;
 }
 function projectDetail(p){
-  const dashRow = t => `<tr class="${t.status==="Chưa bắt đầu"?"tr-idle":""}" title="${esc(t.dv)}"><td><div class="cell-main">${esc(planShortName(t.dv))}</div>${t.upd?`<div class="cell-sub">${esc(t.upd)}</div>`:""}</td>
+  const dashRow = (t,i,lvl=1) => `<tr class="${t.status==="Chưa bắt đầu"?"tr-idle":""}" title="${esc(t.dv)}"><td style="padding-left:${10+lvl*22}px"><div class="cell-main">${esc(planShortName(t.dv))}</div>${t.upd?`<div class="cell-sub">${esc(t.upd)}</div>`:""}</td>
     <td>${esc(t.owner||"–")}</td><td>${t.deadline?dmy(t.deadline):"–"}</td><td>${stPill(t.status)}<div class="small muted">${esc(t.src)}</div></td>
     <td>${warnPills(t.warns)}</td></tr>`;
   const rows = planTreeRows(p, {scope:"dash|"+p.id, cols:5, row:dashRow, edit:false});
