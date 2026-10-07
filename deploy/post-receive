@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# Hook cài vào bare repo trên máy chủ: /opt/ptkt-repo.git/hooks/post-receive
+# Chạy tự động mỗi khi "git push" tới bare repo thành công.
+# Lấy mã nhánh BRANCH ra /opt/ptkt (giữ nguyên .env và dữ liệu ngoài đó),
+# cài lại phụ thuộc rồi khởi động lại dịch vụ.
+set -euo pipefail
+
+TARGET="/opt/ptkt"
+GIT_DIR="/opt/ptkt-repo.git"
+BRANCH="master"
+LOG="/var/log/ptkt-deploy.log"
+
+exec >>"$LOG" 2>&1
+
+while read -r oldrev newrev ref; do
+  [ "$ref" = "refs/heads/$BRANCH" ] || continue
+
+  echo "=== $(date '+%F %T') Triển khai $BRANCH ($oldrev -> $newrev) ==="
+
+  git --work-tree="$TARGET" --git-dir="$GIT_DIR" checkout -f "$BRANCH"
+
+  cd "$TARGET"
+  npm ci --omit=dev
+
+  sudo /bin/systemctl restart ptkt
+  echo "=== $(date '+%F %T') Xong, dịch vụ ptkt đã khởi động lại ==="
+done
