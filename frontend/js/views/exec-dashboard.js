@@ -40,14 +40,12 @@ const EXICON = {
 function viewExec(){
   const kind = S.period || "week";
   const P = periodInfo(S.week, kind);
-  const prevAnchor = shiftAnchor(S.week, kind, -1); const PP = periodInfo(prevAnchor, kind);
   const nW = Math.max(1, P.weeks.length);
-  const inP = new Set(P.weeks), inPP = new Set(PP.weeks);
-  const E = M.entries.filter(e=>inP.has(e.week)), EP = M.entries.filter(e=>inPP.has(e.week));
+  const inP = new Set(P.weeks);
+  const E = M.entries.filter(e=>inP.has(e.week));
   const sumWl = arr => arr.reduce((a,e)=>a+(e.wl||0),0);
-  const wl = sumWl(E), wlPrev = sumWl(EP);
+  const wl = sumWl(E);
   const capWeek = M.staff.reduce((a,s)=>a+s.cap,0), cap = capWeek*nW;
-  const delta = wlPrev ? (wl-wlPrev)/wlPrev : null;
   // people
   const people = M.staff.map(s => {
     const es = E.filter(e=>e.person===s.name); const w = sumWl(es); const c = s.cap*nW; const u = c ? w/c : 0;
@@ -78,10 +76,6 @@ function viewExec(){
       <div class="ex-seg"><button data-act="present" aria-pressed="false">${document.body.classList.contains("present")?"Thoát trình chiếu":"Trình chiếu"}</button></div></div></div>`;
   // KPI row
   h += `<div class="ex-kpis">
-    <div class="ex-card"><h4>Tổng workload phòng</h4><div class="ex-k"><div class="ex-ico" style="background:#E8F0FE">${EXICON.layers}</div><div><div class="ex-big">${fmt1(wl)}</div><div class="ex-unit">điểm</div>
-      ${delta==null?`<div class="ex-unit" style="margin-top:4px">chưa có dữ liệu ${P.short} trước</div>`:`<div class="ex-delta" style="color:${delta>=0?EXC.green:EXC.red}">${delta>=0?"↑":"↓"} ${Math.abs(Math.round(delta*100))}% <span class="ex-unit" style="font-weight:400">so với ${P.short} trước</span></div>`}</div></div></div>
-    <div class="ex-card"><h4>Tổng capacity phòng</h4><div class="ex-k"><div class="ex-ico" style="background:#E8F0FE">${EXICON.user}</div><div style="flex:1"><div class="ex-big">${fmt1(cap)}</div><div class="ex-unit">điểm/${nW>1?nW+" tuần":"tuần"} · ${M.staff.length} người</div>
-      <div class="ex-ubar" style="margin-top:6px"><div class="t"><i style="width:80%; background:#5B7FB8"></i></div></div><div class="ex-unit" style="font-size:11.5px">Đã trừ họp & phát sinh</div></div></div></div>
     <div class="ex-card"><h4>Mức sử dụng phòng</h4><div class="ex-donut">${donut([{v:Math.min(U,1),color:U>1?EXC.red:U>=.8?EXC.orange:EXC.green,label:"Đã dùng"},{v:Math.max(0,1-U),color:"var(--line-2)",label:"Còn trống"}], pct(U), "", 104)}
       <ul class="ex-list"><li><i style="background:${EXC.red}"></i>&gt; 100%: ${over} người</li><li><i style="background:${EXC.orange}"></i>80 – 100%: ${high} người</li><li><i style="background:${EXC.green}"></i>&lt; 80%: ${low} người</li>${none?`<li><i style="background:${EXC.grey}"></i>Chưa nhập: ${none} người</li>`:""}</ul></div></div>
     <div class="ex-card"><h4>Công việc</h4><div class="ex-k"><div class="ex-ico" style="background:#E8F0FE">${EXICON.task}</div><div><div><span class="ex-big">${active.length}</span> <span class="ex-unit">đang thực hiện</span></div>
@@ -117,9 +111,6 @@ function viewExec(){
   let parr = [...byP.entries()].sort((a,b)=>b[1]-a[1]); if(parr.length>7){ const rest=parr.slice(6).reduce((a,x)=>a+x[1],0); parr=[...parr.slice(0,6),["Khác",rest]]; }
   const barCols = [EXC.red, EXC.orange, EXC.blue, EXC.teal, EXC.purple, EXC.pink, EXC.grey];
   const mx = Math.max(1,...parr.map(x=>x[1]));
-  const prW = {P1:0,P2:0,P3:0,P4:0}; for(const e of E){ if(!e.wl) continue; const k = e.ref && e.ref.t.pr; if(prW[k]!=null) prW[k]+=e.wl; else prW.P2+=0; }
-  const prSeg = [["P1",EXC.red],["P2",EXC.orange],["P3",EXC.yellow],["P4",EXC.grey]].map(([k,c])=>({v:prW[k],color:c,label:k}));
-  const prTot = prSeg.reduce((a,s)=>a+s.v,0);
   const stT = T.filter(t=>t.p._prog==null || t.p._prog<1);
   const stDef = [["Hoàn thành",EXC.teal],["Đang làm",EXC.blue],["Tạm dừng",EXC.orange,"Đang chờ"],["Đang vướng",EXC.red,"Bị vướng"],["Chưa bắt đầu",EXC.grey,"Chưa làm"]];
   const stSeg = stDef.map(([k,c,l])=>({v:stT.filter(t=>t.status===k).length,color:c,label:l||k}));
@@ -127,8 +118,6 @@ function viewExec(){
   h += `<div class="ex-row ex-r3">
     <div class="ex-card"><div class="ex-h"><h3>PHÂN BỔ WORKLOAD THEO DỰ ÁN</h3></div>
       ${parr.length?parr.map(([n,v],i)=>`<div class="ex-hb"><span title="${esc(n)}">${esc(n)}</span><div class="t"><i style="width:${v/mx*100}%; background:${barCols[i%barCols.length]}"></i></div><b>${fmt1(v)} <span class="muted" style="font-weight:400">(${wl?Math.round(v/wl*100):0}%)</span></b></div>`).join(""):`<div class="ex-empty">Chưa có dữ liệu nhập ${P.short} này.</div>`}</div>
-    <div class="ex-card"><div class="ex-h"><h3>PHÂN BỔ WORKLOAD THEO ƯU TIÊN</h3></div><div class="ex-donut">${donut(prSeg, fmt1(prTot), "điểm")}
-      <ul class="ex-list" style="font-size:13px">${prSeg.map(s=>`<li><i style="background:${s.color}"></i>${s.label}: ${fmt1(s.v)} (${prTot?Math.round(s.v/prTot*100):0}%)</li>`).join("")}</ul></div></div>
     <div class="ex-card"><div class="ex-h"><h3>TÌNH TRẠNG CÔNG VIỆC</h3><span class="muted small">dự án đang chạy</span></div><div class="ex-donut">${donut(stSeg, String(stTot), "việc")}
       <ul class="ex-list" style="font-size:13px">${stSeg.map(s=>`<li><i style="background:${s.color}"></i>${s.label}: ${s.v} (${stTot?Math.round(s.v/stTot*100):0}%)</li>`).join("")}</ul></div></div>
     <div class="ex-card"><div class="ex-h"><h3>MA SÁT ĐANG THEO DÕI <span class="muted" style="font-weight:500">(${fr.length} việc)</span></h3></div>

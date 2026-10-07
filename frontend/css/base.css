@@ -27,7 +27,7 @@ main,.page,.stack,.grid2>*,.split>*,.prow,.prow>*,.lrow,.lrow>*,.me-sum>*,.toolb
 .dot{width:8px; height:8px; border-radius:50%; background:var(--grey)}
 .dot.on{background:#4CC38A} .dot.off{background:#E0685A}
 /* ---------- main ---------- */
-main{overflow:auto; height:100%}
+main{overflow-y:auto; overflow-x:hidden; height:100%}
 .page{width:100%; max-width:1760px; margin:0 auto; padding:26px 32px 60px}
 .head{display:flex; align-items:flex-end; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-bottom:20px}
 h1{font-size:24px; line-height:1.2; font-weight:700; letter-spacing:-.015em; margin:0}
