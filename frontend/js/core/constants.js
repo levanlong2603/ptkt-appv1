@@ -3,6 +3,24 @@
 /* ================= constants ================= */
 const TYPES = ["Triển khai", "Thầu", "Tư vấn", "Nội bộ"];
 const TYPE_COLOR = {"Triển khai":"var(--teal)","Thầu":"var(--indigo)","Tư vấn":"var(--ochre)","Nội bộ":"var(--grey)"};
+/* Bộ lọc dự án dùng chung cho Kế hoạch dự án & Tổng quan dự án (S.typeFilter) – tách Triển khai thành Đang triển khai / Hoàn thành */
+const PLAN_FILTERS = [
+  {key:"Tất cả", label:"Tất cả"},
+  {key:"Đang triển khai", label:"Đang triển khai", type:"Triển khai", done:false},
+  {key:"Hoàn thành", label:"Hoàn thành", type:"Triển khai", done:true},
+  {key:"Thầu", label:"Thầu", type:"Thầu"},
+  {key:"Tư vấn", label:"Tư vấn", type:"Tư vấn"}
+];
+function planIsDone(p){ return p._prog === 1; }
+/* TM (Phụ trách) hoặc SE của dự án – dùng để giới hạn những dự án nhân viên được thấy */
+function projectAssigned(p, name){ return !!name && (p.owner===name || p.se===name); }
+function planMatchFilter(p, key){
+  const f = PLAN_FILTERS.find(x=>x.key===key) || PLAN_FILTERS[0];
+  if(f.key==="Tất cả") return true;
+  if(f.type && p.type!==f.type) return false;
+  if(f.done!=null && planIsDone(p)!==f.done) return false;
+  return true;
+}
 const ST_ALL = ["Chưa bắt đầu","Đang làm","Đang vướng","Tạm dừng","Hoàn thành","Hủy"];
 const ST_WEEK = ["Đang làm","Đang vướng","Tạm dừng","Hoàn thành","Hủy"];
 const OPEN = new Set(["Chưa bắt đầu","Đang làm","Đang vướng","Tạm dừng"]);

@@ -11,14 +11,14 @@ main.addEventListener("click", e => {
   if(a==="expr"){ S.exPr = t.dataset.p; render(); return; }
   if(a==="golo"){ S.view="load"; store("view","load"); render(); return; }
   if(a==="godash"){ S.view="dash"; store("view","dash"); render(); return; }
-  if(a==="exgo"){ const g=t.dataset.go; if(g==="load"){ S.view="load"; } else { S.view="plan"; S.planSel=g.slice(2); } store("view",S.view); document.body.classList.remove("present"); if(document.fullscreenElement) document.exitFullscreen().catch(()=>{}); render(); return; }
+  if(a==="exgo"){ const g=t.dataset.go; if(g==="load"){ S.view="load"; } else { S.view="plan"; S.planSel=g.slice(2); S.typeFilter="Tất cả"; } store("view",S.view); document.body.classList.remove("present"); if(document.fullscreenElement) document.exitFullscreen().catch(()=>{}); render(); return; }
   if(a==="present"){ const on = !document.body.classList.contains("present"); document.body.classList.toggle("present", on);
     try{ if(on && document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(()=>{}); else if(!on && document.fullscreenElement) document.exitFullscreen().catch(()=>{}); }catch(e){}
     render(); return; }
   if(a==="wk"){ const d=+t.dataset.d; S.week = d===0 ? mondayOf(todayISO()) : addDays(S.week, d); render(); }
   else if(a==="tf"){ S.typeFilter=t.dataset.t; render(); }
   else if(a==="openp"){ S.openProject = S.openProject===t.dataset.id ? null : t.dataset.id; render(); }
-  else if(a==="goplan"){ S.planSel=t.dataset.id; S.view="plan"; store("view","plan"); render(); }
+  else if(a==="goplan"){ S.planSel=t.dataset.id; S.typeFilter="Tất cả"; S.view="plan"; store("view","plan"); render(); }
   else if(a==="addentry") entryForm(null);
   else if(a==="editentry"){ const doc=weekDoc(S.week,S.me); const en=doc&&(doc.entries||[]).find(x=>x.id===t.dataset.id); if(en) entryForm(en); }
   else if(a==="copyprev") copyPrev();

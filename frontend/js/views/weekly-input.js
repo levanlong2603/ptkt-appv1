@@ -31,15 +31,32 @@ function viewInput(){
 function entryForm(entry){
   const isNew = !entry;
   const e = entry ? {...entry} : {id:uid("e"), projectId:"", taskId:"", work:"", qm:null, pt:null, status:"", ms:null, nn:"", note:""};
-  const projOpts = M.projects.filter(p=>(p.tasks||[]).length).map(p=>[p.id, p.name]);
-  const taskOpts = pid => { const p=M.pById.get(pid); return p ? p._tasks.filter(t=>t.status!=="Hủy").map(t=>[t.id, t.dv + (t.status==="Hoàn thành"?" (đã xong)":"")]) : []; };
+  /* Nhân viên chỉ chọn được dự án mình là TM/SE, hoặc có đầu việc được giao/phối hợp; trưởng phòng không giới hạn.
+     Ẩn dự án đã hoàn thành 100%, trừ khi đó là dự án của dòng đang sửa (giữ lại để không mất dữ liệu) */
+  const assigned = p => S.canEdit || projectAssigned(p, S.me) || (p.tasks||[]).some(t=>t.owner===S.me || t.collab===S.me);
+  const projOpts = M.projects.filter(p=>(p.tasks||[]).length && (assigned(p) || p.id===e.projectId) && (!planIsDone(p) || p.id===e.projectId)).map(p=>[p.id, p.name+(planIsDone(p)?" (đã hoàn thành)":"")]);
+  /* Chỉ cho chọn đầu việc chưa hoàn thành (OPEN: chưa bắt đầu/đang làm/đang vướng/tạm dừng), gom theo hạng mục.
+     keepId: giữ lại đầu việc đang chọn của dòng đang sửa dù đã xong/huỷ, để không bị mất khi lưu lại. */
+  const taskOpts = (pid, keepId) => {
+    const p = M.pById.get(pid); if(!p) return [];
+    const order = new Map(p._phases.map((ph,i)=>[ph.code,i]));
+    const groups = new Map();
+    for(const t of p._tasks){
+      if(!OPEN.has(t.status) && t.id!==keepId) continue;
+      const code = t.phase||"";
+      if(!groups.has(code)) groups.set(code, {code, name:(p._phases.find(ph=>ph.code===code)||{}).name||"", items:[]});
+      groups.get(code).items.push(t);
+    }
+    return [...groups.values()].sort((a,b)=>(order.get(a.code)??999)-(order.get(b.code)??999) || a.code.localeCompare(b.code))
+      .map(g => ({group:(g.code?g.code+". ":"")+(g.name||"Khác"), options:g.items.map(t=>[t.id, planShortName(t.dv)+(t.id===keepId&&!OPEN.has(t.status)?" ("+t.status+")":"")])}));
+  };
   openForm({
     title: isNew ? "Thêm việc trong tuần" : "Sửa việc trong tuần",
     subtitle: `${S.me} · tuần ${isoWeek(S.week)} (${dm(S.week)} – ${dm(addDays(S.week,6))})`,
     values: e,
     fields: [
       {key:"projectId", label:"Dự án", type:"select", options:projOpts, required:true, onChange:(v,f)=>{ f.setOptions("taskId", taskOpts(v)); }},
-      {key:"taskId", label:"Đầu việc (theo kế hoạch của dự án)", type:"select", options:taskOpts(e.projectId), required:true},
+      {key:"taskId", label:"Đầu việc (theo kế hoạch của dự án)", type:"select", options:taskOpts(e.projectId, e.taskId), required:true},
       {key:"work", label:"Việc đã làm trong tuần", type:"textarea"},
       {key:"qm", label:"Quy mô phần việc trong tuần", type:"seg", options:[1,2,3,4,5].map(n=>[n,String(n)]), hint:v=>v?QM_HINT[v]:"1 = 0,5–2h · 2 = 2–8h · 3 = 8–24h · 4 = trên 24h · 5 = cả tuần", required:true},
       {key:"pt", label:"Độ phức tạp (để trống = theo kế hoạch)", type:"seg", options:[[null,"Theo kế hoạch"],...[1,2,3,4,5].map(n=>[n,String(n)])], hint:v=>v?PT_HINT[v]:""},

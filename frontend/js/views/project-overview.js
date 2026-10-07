@@ -2,7 +2,6 @@
 /* Màn hình: dashboard */
 /* ================= VIEW: dashboard ================= */
 function viewDash(){
-  const types = ["Triển khai","Thầu","Tư vấn"];
   const P = M.projects.filter(p => p.type!=="Nội bộ");
   const allT = M.tasks.filter(t=>t.p.type!=="Nội bộ");
   const late = allT.filter(t=>t.warns.some(w=>w[1]==="Quá hạn"));
@@ -10,7 +9,7 @@ function viewDash(){
   const stuck = allT.filter(t=>OPEN.has(t.status) && (t.status==="Đang vướng"||(t.ms||0)>=1));
   const running = t => P.filter(p=>p.type===t && (p._prog==null || p._prog<1)).length;
   let h = `<div class="head"><div><h1>Tổng quan dự án</h1><div class="sub">Cập nhật ${dmy(M.today)} · tiến độ tính theo workload các đầu việc đã hoàn thành</div></div>
-    <div class="chips" role="group" aria-label="Lọc theo loại">${["Tất cả",...types].map(t=>`<button class="chip-btn" data-act="tf" data-t="${t}" aria-pressed="${S.typeFilter===t}">${t}</button>`).join("")}</div></div>`;
+    <div class="chips" role="group" aria-label="Lọc theo loại">${PLAN_FILTERS.map(f=>`<button class="chip-btn" data-act="tf" data-t="${esc(f.key)}" aria-pressed="${S.typeFilter===f.key}">${esc(f.label)}</button>`).join("")}</div></div>`;
   h += `<div class="band">
     <div class="stat"><div class="v">${running("Triển khai")}</div><div class="l">${typeDot("Triển khai")}Dự án triển khai đang chạy</div></div>
     <div class="stat"><div class="v">${running("Thầu")}</div><div class="l">${typeDot("Thầu")}Gói thầu đang làm</div></div>
@@ -19,13 +18,12 @@ function viewDash(){
     <div class="stat ${soon.length?"warn":""}"><div class="v">${soon.length}</div><div class="l">Đến hạn trong 14 ngày</div></div>
     <div class="stat ${stuck.length?"warn":""}"><div class="v">${stuck.length}</div><div class="l">Đầu việc đang vướng</div></div></div>`;
   let left = "";
-  for(const t of types){
-    if(S.typeFilter!=="Tất cả" && S.typeFilter!==t) continue;
-    const ps = P.filter(p=>p.type===t);
-    const phs = phasesFor(t);
-    left += `<section class="panel"><div class="panel-h"><h2>${typeDot(t)}${t} <span class="muted small">· ${ps.length}</span></h2>
-      <div class="legend full">${phs.map(ph=>`<span><b>${esc(ph.code)}</b>${esc(ph.name)}</span>`).join("")}</div></div>`;
-    if(!ps.length) left += `<div class="empty">Chưa có ${t.toLowerCase()} nào. Thêm ở mục Kế hoạch dự án.</div>`;
+  for(const f of PLAN_FILTERS){
+    if(f.key==="Tất cả") continue;
+    if(S.typeFilter!=="Tất cả" && S.typeFilter!==f.key) continue;
+    const ps = P.filter(p=>planMatchFilter(p, f.key));
+    left += `<section class="panel"><div class="panel-h"><h2>${typeDot(f.type)}${esc(f.label)} <span class="muted small">· ${ps.length}</span></h2></div>`;
+    if(!ps.length) left += `<div class="empty">Chưa có ${f.label.toLowerCase()} nào. Thêm ở mục Kế hoạch dự án.</div>`;
     for(const p of ps){
       const open = S.openProject===p.id;
       left += `<div class="prow" data-act="openp" data-id="${esc(p.id)}" role="button" tabindex="0" aria-expanded="${open}">
@@ -54,9 +52,10 @@ function viewDash(){
   return h + `<div class="grid2"><div class="stack">${left}</div><div class="stack">${right}</div></div>`;
 }
 function projectDetail(p){
-  const rows = p._tasks.map(t => `<tr><td><div class="cell-main">${esc(t.dv)}</div>${t.upd?`<div class="cell-sub">${esc(t.upd)}</div>`:""}</td>
+  const dashRow = t => `<tr class="${t.status==="Chưa bắt đầu"?"tr-idle":""}" title="${esc(t.dv)}"><td><div class="cell-main">${esc(planShortName(t.dv))}</div>${t.upd?`<div class="cell-sub">${esc(t.upd)}</div>`:""}</td>
     <td>${esc(t.owner||"–")}</td><td>${t.deadline?dmy(t.deadline):"–"}</td><td>${stPill(t.status)}<div class="small muted">${esc(t.src)}</div></td>
-    <td>${warnPills(t.warns)}</td></tr>`).join("");
+    <td>${warnPills(t.warns)}</td></tr>`;
+  const rows = planTreeRows(p, {scope:"dash|"+p.id, cols:5, row:dashRow, edit:false});
   return `<div class="pdetail">
     <div class="row2" style="margin:12px 0">
       <div><div class="small muted" style="margin-bottom:4px">Mốc hợp đồng</div><div class="note">${esc(p.milestones||"–")}</div></div>

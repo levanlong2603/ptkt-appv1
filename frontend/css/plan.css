@@ -1,0 +1,4 @@
+/* KẾ HOẠCH – cây đầu việc (tiền tố .tr-idle cho đầu việc chưa bắt đầu) */
+/* ================= plan tree ================= */
+.tr-idle td{padding-top:6px; padding-bottom:6px}
+.tr-idle .cell-sub{display:none}

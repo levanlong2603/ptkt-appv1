@@ -19,10 +19,29 @@ function viewSettings(){
     const list = S.catalog.map((c,i)=>({...c,i})).filter(c=>c.type===t);
     h += `<section class="panel" style="margin-bottom:18px"><div class="panel-h"><h2>${typeDot(t)}Quy trình ${t.toLowerCase()} <span class="muted small">· ${list.length} đầu việc chuẩn</span></h2>${ro?"":`<button class="btn" data-act="addcat" data-t="${t}">+ Đầu việc chuẩn</button>`}</div>
       <div class="tbl-wrap"><table><thead><tr><th>Đầu việc</th><th class="num">Quy mô</th><th class="num">Độ phức tạp</th><th class="num">Workload</th><th>Kết quả cần đạt</th><th>Minh chứng</th></tr></thead><tbody>
-      ${list.map(c=>`<tr class="${ro?"":"click"}" data-act="${ro?"":"editcat"}" data-i="${c.i}" tabindex="0"><td class="cell-main">${esc(c.name)}</td><td class="num">${c.qm??"–"}</td><td class="num">${c.pt??"–"}</td><td class="num">${c.qm&&c.pt?c.qm*c.pt:"–"}</td><td class="small">${esc(c.result||"")}</td><td class="small">${esc(c.evidence||"")}</td></tr>`).join("")}
+      ${catTreeRows(list, ro, t)}
       </tbody></table></div></section>`;
   }
   return h;
+}
+/* Đầu việc chuẩn của một quy trình, gom theo hạng mục (mã đầu việc) dạng cây gấp/mở */
+function catTreeRows(list, ro, type){
+  const phs = phasesFor(type), order = new Map(phs.map((ph,i)=>[ph.code,i]));
+  const groups = new Map();
+  for(const c of list){
+    const code = phaseOf(c.name);
+    if(!groups.has(code)) groups.set(code, {code, name:(phs.find(ph=>ph.code===code)||{}).name||"", items:[]});
+    groups.get(code).items.push(c);
+  }
+  const sorted = [...groups.values()].sort((a,b)=>(order.get(a.code)??999)-(order.get(b.code)??999) || a.code.localeCompare(b.code));
+  let out = "";
+  for(const g of sorted){
+    const key = "cat|"+type+"|"+g.code, open = planOpen(key);
+    out += planGroupRow(key, 0, (g.code?g.code+". ":"")+(g.name||"Khác"), {meta:`${g.items.length} đầu việc chuẩn`}, open, "", 6);
+    if(!open) continue;
+    for(const c of g.items) out += `<tr class="${ro?"":"click"}" data-act="${ro?"":"editcat"}" data-i="${c.i}" tabindex="0"><td class="cell-main">${esc(c.name)}</td><td class="num">${c.qm??"–"}</td><td class="num">${c.pt??"–"}</td><td class="num">${c.qm&&c.pt?c.qm*c.pt:"–"}</td><td class="small">${esc(c.result||"")}</td><td class="small">${esc(c.evidence||"")}</td></tr>`;
+  }
+  return out;
 }
 function staffForm(i){
   const isNew = i==null; const s = isNew ? {name:"", hours:40, pct:0.2, factor:1.0} : {...S.staff[i]};

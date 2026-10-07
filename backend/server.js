@@ -36,7 +36,7 @@ if (JWT_SECRET.length < 32) {
  *   "admin"       : chỉ trưởng phòng được ghi/xoá
  *   "member"      : mọi tài khoản đã đăng nhập được ghi/xoá
  *   "own-week"    : trưởng phòng ghi tất cả; nhân viên chỉ ghi dữ liệu tuần của chính mình
- *   "own-project" : trưởng phòng ghi tất cả; nhân viên được TẠO dự án mới, và chỉ sửa/xoá
+ *   "own-project" : trưởng phòng ghi tất cả (kể cả tạo dự án mới); nhân viên chỉ sửa/xoá
  *                   dự án do chính mình tạo (trường created_by do máy chủ ghi, không nhận từ client)
  * Mọi tài khoản đã đăng nhập đều ĐỌC được tất cả.
  */
@@ -141,7 +141,8 @@ function canWrite(user, coll, id, body, existing) {
   const rule = RULES[coll];
   if (user.role === "admin") return true;
   if (rule === "member") return true;
-  if (rule === "own-project") return existing ? existing.created_by === user.username : true;
+  // Dự án mới (không có bản cũ) chỉ trưởng phòng tạo được; nhân viên chỉ sửa/xoá dự án do mình tạo
+  if (rule === "own-project") return existing ? existing.created_by === user.username : false;
   if (rule !== "own-week" || !user.staff_name) return false;
   const check = b => b && b.person === user.staff_name && id === `${b.week}__${slug(b.person)}`;
   if (existing && !check(existing)) return false;
