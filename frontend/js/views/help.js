@@ -19,7 +19,7 @@ function viewHelp(){
     ["Việc ngoài dự án", "Hỗ trợ, việc phát sinh, đào tạo nội bộ: chọn dự án “Việc chung của phòng”."]]) +
   sec("Trưởng phòng", [
     ["Dự án mới", "Chỉ trưởng phòng: “Kế hoạch dự án” → “+ Dự án mới”, chọn loại Triển khai / Thầu / Tư vấn và bật “Tạo sẵn toàn bộ đầu việc theo quy trình”."],
-    ["Kế hoạch dự án – ai thấy gì", "Nhân viên chỉ thấy dự án mình là TM (phụ trách) hoặc SE, và sửa được dự án đó (kể cả thêm/sửa/xoá đầu việc). Chỉ người tạo dự án hoặc trưởng phòng xoá được cả dự án. Muốn xem toàn bộ dự án của phòng, vào “Tổng quan dự án”."],
+    ["Kế hoạch dự án – ai thấy gì", "Nhân viên chỉ thấy dự án mình là TM (phụ trách), SE, hoặc người mình tạo, và sửa được dự án đó (kể cả thêm/sửa/xoá đầu việc). Chỉ người tạo dự án hoặc trưởng phòng xoá được cả dự án. Muốn xem toàn bộ dự án của phòng (chỉ xem, không sửa), vào “Tổng quan dự án”."],
     ["Lập kế hoạch", "Bấm từng đầu việc để điền người phụ trách, deadline theo HĐ, ưu tiên. Quy mô và độ phức tạp để “Chuẩn” nếu không có gì khác thường."],
     ["Mỗi tuần", "Xem “Tải tuần” (ai quá tải, ai còn khả năng, việc bị vướng) và “Tổng quan dự án” (quá hạn, sắp đến hạn, tiến độ theo giai đoạn)."],
     ["Đánh giá", "Đầu việc hoàn thành có nhãn “Chờ đánh giá” – bấm vào để chấm đạt yêu cầu, chất lượng, tự chủ, nhận xét."],

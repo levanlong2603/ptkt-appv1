@@ -90,14 +90,16 @@ td.num,th.num{text-align:right}
 .badges{display:flex; gap:5px; justify-content:flex-end; flex-wrap:wrap}
 .pdetail{padding:4px 18px 18px; border-top:1px dashed var(--line); background:color-mix(in srgb, var(--paper) 55%, var(--surface))}
 .note{white-space:pre-wrap; font-size:13px; color:var(--ink-2); background:var(--surface); border:1px solid var(--line-2); border-radius:8px; padding:10px 12px; max-height:180px; overflow:auto}
-/* phase strip — signature */
-.strip{display:grid; grid-auto-flow:column; grid-auto-columns:minmax(0,1fr); gap:3px; align-items:end}
-.seg{position:relative; height:22px; border-radius:3px; background:var(--line-2); overflow:hidden; border:1px solid var(--line)}
-.seg i{position:absolute; left:0; right:0; bottom:0; background:var(--teal)}
+/* phase strip — signature (mỗi ô = 1 hạng mục, màu/số theo cảnh báo, không phải % tiến độ) */
+.strip{display:grid; grid-auto-flow:column; grid-auto-columns:minmax(0,1fr); gap:3px; align-items:stretch}
+.seg{position:relative; height:22px; border-radius:3px; background:var(--line-2); border:1px solid var(--line);
+  display:flex; align-items:center; justify-content:center; gap:3px; font-size:10.5px; font-weight:600; color:var(--ink-3)}
 .seg.none{background:transparent; border-style:dashed; opacity:.55}
-.seg.part i{background:color-mix(in srgb, var(--teal) 70%, var(--ochre))}
-.seg b{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:10.5px; font-weight:600; color:var(--ink-3); mix-blend-mode:normal}
-.seg.full b{color:#fff}
+.seg.ok{background:var(--ok-soft); color:var(--ok); border-color:transparent}
+.seg.warn{background:var(--warn-soft); color:var(--warn); border-color:transparent}
+.seg.bad{background:var(--bad-soft); color:var(--bad); border-color:transparent}
+.seg b{font-weight:700}
+.seg .segn{font-weight:800; font-size:10px}
 .legend{display:flex; flex-wrap:wrap; gap:4px 14px; font-size:12px; color:var(--ink-3)}
 .legend b{color:var(--ink-2); font-weight:600; margin-right:3px}
 /* load bars */

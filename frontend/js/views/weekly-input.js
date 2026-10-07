@@ -18,7 +18,7 @@ function viewInput(){
     <div class="toolbar" style="margin-left:auto"><button class="btn" data-act="copyprev" ${canCopy?"":"disabled"} title="${canCopy?"Chép các việc chưa xong của tuần trước":"Tuần trước không có việc dở dang"}">Chép việc dở dang từ tuần trước</button>
     <button class="btn primary" data-act="addentry">+ Thêm việc</button></div></div></section>`;
   if(!L.es.length) return h + `<section class="panel"><div class="empty"><b>Chưa có việc nào trong tuần ${isoWeek(w)}</b>Thêm việc bạn làm trong tuần, hoặc chép các việc dở dang từ tuần trước.</div></section>`;
-  return h + `<section class="panel tbl-wrap"><table><thead><tr><th>Đầu việc</th><th>Việc đã làm</th><th class="num">Quy mô</th><th class="num">Workload</th><th>Trạng thái cuối tuần</th><th>Ma sát</th><th>Vướng / cần hỗ trợ</th></tr></thead><tbody>${inputTreeRows(L.es)}</tbody></table></section>
+  return h + `<section class="panel tbl-wrap"><table style="table-layout:fixed"><thead><tr><th style="width:20%">Đầu việc</th><th style="width:20%">Việc đã làm</th><th style="width:8%; text-align:center">Quy mô</th><th style="width:10%; text-align:center">Workload</th><th style="width:14%">Trạng thái cuối tuần</th><th style="width:12%">Ma sát</th><th style="width:16%">Vướng / cần hỗ trợ</th></tr></thead><tbody>${inputTreeRows(L.es)}</tbody></table></section>
     <p class="small muted">Bấm vào một dòng để sửa hoặc xoá.</p>`;
 }
 /* Nhóm các dòng đã nhập theo Dự án → hạng mục (giống cây ở Kế hoạch dự án), gấp/mở được */
@@ -29,7 +29,7 @@ function inputRow(e, lvl=1){
   return `<tr class="click" data-act="editentry" data-id="${esc(e.id)}" tabindex="0" title="${e.ref?esc(e.ref.t.dv):""}">
     <td style="padding-left:${10+lvl*22}px; border-left:3px solid ${INPUT_LVL_BORDER[lvl]||INPUT_LVL_BORDER[2]}"><div class="cell-main">${esc(name)}</div></td>
     <td>${e.work?esc(e.work):'<span class="muted">–</span>'}</td>
-    <td class="num">${e.qm?e.qm:'<span class="pill bad">Chấm quy mô</span>'}</td><td class="num">${e.wl!=null?e.wl:"–"}</td>
+    <td style="text-align:center">${e.qm?e.qm:'<span class="pill bad">Chấm quy mô</span>'}</td><td style="text-align:center">${e.wl!=null?e.wl:"–"}</td>
     <td>${e.status?stPill(e.status):'<span class="pill warn">Chọn trạng thái</span>'}</td>
     <td>${e.ms!=null&&e.ms!==""?`<span class="pill ${e.ms>=3?"bad":e.ms>=1?"warn":"mute"}">${e.ms}</span>`:""} ${esc(e.nn||"")}</td>
     <td class="small">${esc(e.note||"")}</td></tr>`;

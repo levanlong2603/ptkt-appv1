@@ -27,12 +27,20 @@ function render(){
 
 
 /* ================= shared pieces ================= */
+/* Dải hạng mục: thay vì thanh tiến độ, mỗi ô hiện số cảnh báo (quá hạn/vướng/sắp hạn) của hạng mục đó,
+   khớp với cột "Cảnh báo" trong bảng đầu việc, để nhìn dải là biết ngay hạng mục nào cần theo dõi. */
 function strip(p){
   if(!p._phases.length) return '<span class="muted small">–</span>';
-  return `<div class="strip" role="img" aria-label="Tiến độ theo giai đoạn">` + p._phases.map(ph => {
-    const v = ph.v; const cls = v==null ? "none" : v>=1 ? "full" : v>0 ? "part" : "";
-    const tip = `${ph.code}. ${ph.name}: ${v==null?"không có đầu việc":pct(v)+" hoàn thành"}`;
-    return `<div class="seg ${cls}" title="${esc(tip)}"><i style="height:${v==null?0:Math.round(v*100)}%"></i><b>${esc(ph.code)}</b></div>`;
+  return `<div class="strip" role="img" aria-label="Cảnh báo theo giai đoạn">` + p._phases.map(ph => {
+    const ts = p._tasks.filter(t=>t.phase===ph.code);
+    const late = ts.filter(t=>t.warns.some(w=>w[1]==="Quá hạn")).length;
+    const soon = ts.filter(t=>t.warns.some(w=>w[1]==="Sắp đến hạn")).length;
+    const stuck = ts.filter(t=>OPEN.has(t.status) && (t.status==="Đang vướng" || (t.ms||0)>=1)).length;
+    const n = late+stuck+soon;
+    const cls = !ts.length ? "none" : late ? "bad" : (stuck||soon) ? "warn" : "ok";
+    const parts = [late&&`${late} quá hạn`, stuck&&`${stuck} vướng`, soon&&`${soon} sắp hạn`].filter(Boolean);
+    const tip = `${ph.code}. ${ph.name}: ${!ts.length?"không có đầu việc":parts.length?parts.join(", "):"không có cảnh báo"}`;
+    return `<div class="seg ${cls}" title="${esc(tip)}"><b>${esc(ph.code)}</b>${n?`<span class="segn">${n}</span>`:""}</div>`;
   }).join("") + `</div>`;
 }
 function stPill(st){

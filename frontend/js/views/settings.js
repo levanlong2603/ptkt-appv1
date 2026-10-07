@@ -12,13 +12,13 @@ function viewSettings(){
       ${S.canEdit?`<button class="btn primary" data-act="exp-json">Tải file sao lưu (.json)</button><button class="btn" data-act="imp-json">Khôi phục từ file sao lưu…</button><input type="file" accept=".json,application/json" id="impFile" hidden>`:""}</div>
       <div class="small muted">Máy chủ tự sao lưu hằng ngày. ${S.canEdit?"Khôi phục từ file sao lưu sẽ THAY TOÀN BỘ dữ liệu hiện tại cho cả phòng.":""}</div></div></section>`;
   h += `<section class="panel" style="margin-bottom:18px"><div class="panel-h"><h2>Nhân sự & capacity</h2>${ro?"":'<button class="btn primary" data-act="addstaff">+ Nhân sự</button>'}</div>
-    <div class="tbl-wrap"><table><thead><tr><th>Họ tên</th><th class="num">Giờ / tuần</th><th class="num">% trừ họp, phát sinh</th><th class="num">Hệ số năng lực</th><th class="num">Capacity (điểm/tuần)</th></tr></thead><tbody>
-    ${M.staff.map((s,i)=>`<tr class="${ro?"":"click"}" data-act="${ro?"":"editstaff"}" data-i="${i}" tabindex="0"><td class="cell-main">${esc(s.name)}</td><td class="num">${s.hours}</td><td class="num">${Math.round(s.pct*100)}%</td><td class="num">${fmt1(s.factor)}</td><td class="num" style="font-weight:600">${fmt1(s.cap)}</td></tr>`).join("")||'<tr><td colspan="5" class="muted">Chưa có nhân sự.</td></tr>'}
+    <div class="tbl-wrap"><table style="table-layout:fixed"><thead><tr><th style="width:30%">Họ tên</th><th style="width:17.5%; text-align:center">Giờ / tuần</th><th style="width:17.5%; text-align:center">% trừ họp, phát sinh</th><th style="width:17.5%; text-align:center">Hệ số năng lực</th><th style="width:17.5%; text-align:center">Capacity (điểm/tuần)</th></tr></thead><tbody>
+    ${M.staff.map((s,i)=>`<tr class="${ro?"":"click"}" data-act="${ro?"":"editstaff"}" data-i="${i}" tabindex="0"><td class="cell-main">${esc(s.name)}</td><td style="text-align:center">${s.hours}</td><td style="text-align:center">${Math.round(s.pct*100)}%</td><td style="text-align:center">${fmt1(s.factor)}</td><td style="text-align:center; font-weight:600">${fmt1(s.cap)}</td></tr>`).join("")||'<tr><td colspan="5" class="muted">Chưa có nhân sự.</td></tr>'}
     </tbody></table></div><div class="panel-b small muted">Capacity = Giờ/tuần × (1 − % họp, phát sinh) × Hệ số năng lực. Hệ số: 0,8 đang học việc · 1,0 phù hợp · 1,2 chuyên gia (không phải điểm đánh giá).</div></section>`;
   for(const t of TYPES){
     const list = S.catalog.map((c,i)=>({...c,i})).filter(c=>c.type===t);
     h += `<section class="panel" style="margin-bottom:18px"><div class="panel-h"><h2>${typeDot(t)}Quy trình ${t.toLowerCase()} <span class="muted small">· ${list.length} đầu việc chuẩn</span></h2>${ro?"":`<button class="btn" data-act="addcat" data-t="${t}">+ Đầu việc chuẩn</button>`}</div>
-      <div class="tbl-wrap"><table><thead><tr><th>Đầu việc</th><th class="num">Quy mô</th><th class="num">Độ phức tạp</th><th class="num">Workload</th><th>Kết quả cần đạt</th><th>Minh chứng</th></tr></thead><tbody>
+      <div class="tbl-wrap"><table style="table-layout:fixed"><thead><tr><th style="width:30%">Đầu việc</th><th style="width:11%; text-align:center">Quy mô</th><th style="width:13%; text-align:center">Độ phức tạp</th><th style="width:11%; text-align:center">Workload</th><th style="width:35%">Kết quả đầu ra</th></tr></thead><tbody>
       ${catTreeRows(list, ro, t)}
       </tbody></table></div></section>`;
   }
@@ -37,9 +37,9 @@ function catTreeRows(list, ro, type){
   let out = "";
   for(const g of sorted){
     const key = "cat|"+type+"|"+g.code, open = planOpen(key);
-    out += planGroupRow(key, 0, (g.code?g.code+". ":"")+(g.name||"Khác"), {meta:`${g.items.length} đầu việc chuẩn`}, open, "", 6);
+    out += planGroupRow(key, 0, (g.code?g.code+". ":"")+(g.name||"Khác"), {meta:`${g.items.length} đầu việc chuẩn`}, open, "", 5);
     if(!open) continue;
-    for(const c of g.items) out += `<tr class="${ro?"":"click"}" data-act="${ro?"":"editcat"}" data-i="${c.i}" tabindex="0"><td class="cell-main">${esc(c.name)}</td><td class="num">${c.qm??"–"}</td><td class="num">${c.pt??"–"}</td><td class="num">${c.qm&&c.pt?c.qm*c.pt:"–"}</td><td class="small">${esc(c.result||"")}</td><td class="small">${esc(c.evidence||"")}</td></tr>`;
+    for(const c of g.items) out += `<tr class="${ro?"":"click"}" data-act="${ro?"":"editcat"}" data-i="${c.i}" tabindex="0" title="${esc(c.name)}"><td style="padding-left:36px"><div class="cell-main">${esc(planShortName(c.name))}</div></td><td style="text-align:center">${c.qm??"–"}</td><td style="text-align:center">${c.pt??"–"}</td><td style="text-align:center">${c.qm&&c.pt?c.qm*c.pt:"–"}</td><td class="small">${esc(c.result||"")}</td></tr>`;
   }
   return out;
 }
@@ -64,7 +64,7 @@ function catForm(i, type){
     fields:[{key:"name", label:"Tên đầu việc", type:"text", required:true, hint:()=>"Giữ mã giai đoạn ở đầu tên, ví dụ “05. Thiết kế – LLD”, “T3. Hồ sơ kỹ thuật – …”."},
       {key:"qm", label:"Quy mô chuẩn", type:"seg", options:[[null,"–"],...[1,2,3,4,5].map(n=>[n,String(n)])]},
       {key:"pt", label:"Độ phức tạp chuẩn", type:"seg", options:[[null,"–"],...[1,2,3,4,5].map(n=>[n,String(n)])]},
-      {key:"result", label:"Kết quả cần đạt", type:"textarea"}, {key:"evidence", label:"Minh chứng", type:"text"}],
+      {key:"result", label:"Kết quả đầu ra", type:"textarea"}, {key:"evidence", label:"Minh chứng", type:"text"}],
     onSave: async x => {
       if(!x.name.trim()) throw new Error("Nhập tên đầu việc.");
       const list=[...S.catalog]; const row={type:c.type, name:x.name.trim(), qm:x.qm||null, pt:x.pt||null, result:x.result||"", evidence:x.evidence||""};

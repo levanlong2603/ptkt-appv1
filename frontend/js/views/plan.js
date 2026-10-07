@@ -6,15 +6,21 @@
 function canManageProject(p){ return !!p && (S.canEdit || (!!S.user && (p.created_by === S.user.username || projectAssigned(p, S.user.staff_name)))); }
 function canDeleteProject(p){ return !!p && (S.canEdit || (!!S.user && p.created_by === S.user.username)); }
 function viewPlan(){
-  /* Nhân viên chỉ thấy dự án mình là TM (phụ trách) hoặc SE; trưởng phòng thấy mọi dự án */
+  /* Nhân viên chỉ thấy dự án mình là TM (phụ trách) hoặc SE ở đây; trưởng phòng thấy mọi dự án.
+     Muốn xem toàn bộ dự án của phòng (chỉ xem, không sửa) thì vào Tổng quan dự án. */
   const ps = S.canEdit ? M.projects : M.projects.filter(p=>projectAssigned(p, S.user&&S.user.staff_name));
   const filt = S.typeFilter || "Tất cả";
   const q = S.planQuery.toLowerCase();
   const pool = ps.filter(p=>planMatchFilter(p, filt) && (!q || p.name.toLowerCase().includes(q)))
     .sort((a,b)=>(b._stuck-a._stuck) || (b._late-a._late) || a.name.localeCompare(b.name,"vi"));
-  /* Lọc "Đang triển khai": tự mở dự án vướng nhiều nhất nếu chưa có dự án nào đang mở trong danh sách này */
-  if(filt==="Đang triển khai" && pool.length && !pool.some(p=>p.id===S.planSel)) S.planSel = pool[0].id;
-  const chips = `<div class="chips" role="group" aria-label="Lọc dự án">${PLAN_FILTERS.map(f=>`<button class="chip-btn" data-act="tf" data-t="${esc(f.key)}" aria-pressed="${filt===f.key}">${esc(f.label)} <span class="muted">${ps.filter(p=>planMatchFilter(p,f.key)).length}</span></button>`).join("")}</div>`;
+  /* Lọc "Đang triển khai": chỉ tự mở dự án vướng nhiều nhất một lần đầu tiên; sau đó tôn trọng việc đóng/mở thủ công,
+     kể cả khi rời trang rồi quay lại (không tự mở lại mỗi lần vẽ lại trang) */
+  S.planAutoOpened = S.planAutoOpened || {};
+  if(filt==="Đang triển khai" && pool.length && !S.planAutoOpened[filt]){
+    if(!pool.some(p=>p.id===S.planSel)) S.planSel = pool[0].id;
+    S.planAutoOpened[filt] = true;
+  }
+  const chips = `<div class="chips" role="group" aria-label="Lọc dự án">${PLAN_FILTERS.map(f=>`<button class="chip-btn" data-act="tf" data-t="${esc(f.key)}" aria-pressed="${filt===f.key}">${esc(f.label)}</button>`).join("")}</div>`;
   let h = `<div class="head"><div><h1>Kế hoạch dự án</h1><div class="sub">Toàn bộ đầu việc theo quy trình và deadline hợp đồng · trạng thái tự lấy từ dữ liệu nhập theo tuần</div></div>
     <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap">${chips}
       <input class="inp" type="search" placeholder="Tìm dự án" style="width:180px" data-act="pq" value="${esc(S.planQuery)}" aria-label="Tìm dự án">
@@ -37,20 +43,18 @@ function viewPlan(){
     }
     body += `</section>`;
   }
-  if(!body) body = `<section class="panel"><div class="empty"><b>${ps.length?"Không có dự án nào trong bộ lọc này":"Chưa có dự án"}</b>${!ps.length ? (S.canEdit?"Bấm “+ Dự án mới” để tạo dự án và các đầu việc theo quy trình.":"Bạn chưa được gán làm TM hoặc SE của dự án nào. Xem toàn bộ dự án ở mục Tổng quan dự án.") : ""}</div></section>`;
+  if(!body) body = `<section class="panel"><div class="empty"><b>${ps.length?"Không có dự án nào trong bộ lọc này":"Chưa có dự án"}</b>${!ps.length ? (S.canEdit?"Bấm “+ Dự án mới” để tạo dự án và các đầu việc theo quy trình.":"Bạn chưa được gán làm TM hoặc SE của dự án nào. Xem toàn bộ dự án (chỉ xem) ở mục Tổng quan dự án.") : ""}</div></section>`;
   return h + body;
 }
 /* Bảng đầu việc đầy đủ, xổ ra ngay dưới dòng dự án khi bấm vào (giống cách mở rộng ở Tổng quan dự án) */
 function planDetail(p){
   let out = `<div class="pdetail">
-    <div style="display:grid; grid-template-columns:110px 1fr; gap:18px; align-items:center; margin:12px 0 14px">
-      <div><div class="pct" style="font-size:26px">${pct(p._prog)}</div><div class="small muted">tiến độ</div></div><div>${strip(p)}</div></div>
-    <div class="row2" style="margin-bottom:14px"><div><div class="small muted" style="margin-bottom:4px">Mốc hợp đồng</div><div class="note">${esc(p.milestones||"–")}</div></div>
+    <div class="row2" style="margin:12px 0 14px"><div><div class="small muted" style="margin-bottom:4px">Mốc hợp đồng</div><div class="note">${esc(p.milestones||"–")}</div></div>
       <div><div class="small muted" style="margin-bottom:4px">Tình hình / vướng mắc chung</div><div class="note">${esc(p.situation||"–")}</div></div></div>
     ${canManageProject(p)?`<div class="toolbar" style="margin-bottom:12px"><button class="btn" data-act="editp" data-id="${esc(p.id)}">Sửa thông tin</button><button class="btn primary" data-act="addtask" data-id="${esc(p.id)}">+ Đầu việc</button></div>`:""}`;
   const rows = planTreeRows(p);
-  out += `<div class="tbl-wrap panel"><table><thead><tr><th>#</th><th style="min-width:260px">Đầu việc</th><th>Phụ trách</th><th>Deadline HĐ</th><th class="num">WL</th><th>Ưu tiên</th><th>Trạng thái</th><th>Cập nhật mới nhất</th><th>Cảnh báo</th></tr></thead>
-    <tbody>${rows||`<tr><td colspan="9"><div class="empty">Dự án chưa có đầu việc.${canManageProject(p)?" Bấm “+ Đầu việc”.":""}</div></td></tr>`}</tbody></table></div>
+  out += `<div class="tbl-wrap panel"><table style="table-layout:fixed"><thead><tr><th style="width:26%">Đầu việc</th><th style="width:11%">Phụ trách</th><th style="width:9%">Deadline HĐ</th><th style="width:6%; text-align:center">WL</th><th style="width:8%; text-align:center">Ưu tiên</th><th style="width:12%">Trạng thái</th><th style="width:16%">Cập nhật mới nhất</th><th style="width:12%">Cảnh báo</th></tr></thead>
+    <tbody>${rows||`<tr><td colspan="8"><div class="empty">Dự án chưa có đầu việc.${canManageProject(p)?" Bấm “+ Đầu việc”.":""}</div></td></tr>`}</tbody></table></div>
     <p class="small muted" style="margin:8px 0 0">Bấm vào một đầu việc để xem chi tiết${S.canEdit?", sửa hoặc đánh giá khi hoàn thành":""}.</p></div>`;
   return out;
 }
@@ -68,11 +72,10 @@ function planShortName(dv){ return (dv||"").replace(/^[0-9A-Z]{1,2}\d?\.\s*[^–
 function planTaskRow(t, i, lvl=1){
   const idle = t.status==="Chưa bắt đầu";
   return `<tr class="click${idle?" tr-idle":""}" data-act="task" data-id="${esc(t.id)}" tabindex="0" title="${esc(t.dv)}">
-      <td class="muted">${i}</td>
-      <td style="padding-left:${10+lvl*22}px"><div class="cell-main">${esc(planShortName(t.dv))}</div>${t.detail&&!idle?`<div class="cell-sub">${esc(t.detail)}</div>`:""}${t.note?`<div class="cell-sub" style="color:var(--teal)">Ghi chú TrP: ${esc(t.note)}</div>`:""}</td>
+      <td style="padding-left:${10+lvl*32}px"><div class="cell-main">${esc(planShortName(t.dv))}</div>${t.detail&&!idle?`<div class="cell-sub">${esc(t.detail)}</div>`:""}${t.note?`<div class="cell-sub" style="color:var(--teal)">Ghi chú TrP: ${esc(t.note)}</div>`:""}</td>
       <td>${esc(t.owner||"–")}${t.collab?`<div class="small muted">+ ${esc(t.collab)}</div>`:""}</td>
       <td>${t.deadline?dmy(t.deadline):"–"}</td>
-      <td class="num">${t.wl??"–"}</td><td>${t.pr?`<span class="pill ${t.pr==="P1"?"bad":"mute"}">${esc(t.pr)}</span>`:""}</td>
+      <td style="text-align:center">${t.wl??"–"}</td><td style="text-align:center">${t.pr?`<span class="pill ${t.pr==="P1"?"bad":"mute"}">${esc(t.pr)}</span>`:""}</td>
       <td>${stPill(t.status)}<div class="small muted">${esc(t.src)}${t.done?" · xong tuần "+isoWeek(t.done):""}</div></td>
       <td class="small">${t.upd?`<div class="cell-sub" style="margin:0">${esc(t.upd)}</div>`:""}${t.ms?`<span class="pill ${t.ms>=3?"bad":"warn"}">Ma sát ${t.ms}</span> `:""}${esc(t.nn||"")}</td>
       <td>${warnPills(t.warns)}${t.ontime===true?' <span class="pill ok">Đúng hạn</span>':t.ontime===false?' <span class="pill bad">Trễ hạn</span>':""}${t.status==="Hoàn thành"&&!(t.eval&&t.eval.dat)&&S.canEdit?' <span class="pill info">Chờ đánh giá</span>':""}</td></tr>`;
@@ -88,7 +91,7 @@ function planGroupRow(key, lvl, title, st, open, extra, cols=9){
 }
 /* Bảng cây đầu việc dùng chung: o.scope tách trạng thái gấp/mở, o.row dựng dòng, o.cols số cột, o.edit cho phép thêm nhánh con */
 function planTreeRows(p, o={}){
-  const scope = o.scope||"plan", cols = o.cols||9, rowFn = o.row||planTaskRow;
+  const scope = o.scope||"plan", cols = o.cols||8, rowFn = o.row||planTaskRow;
   const order = new Map(p._phases.map((ph,i)=>[ph.code,i]));
   const groups = new Map();
   const grp = code => { if(!groups.has(code)) groups.set(code, {code, name:"", tasks:[], subs:new Map()}); return groups.get(code); };
@@ -148,14 +151,26 @@ function taskForm(p, t){
   const raw = t ? (p.tasks||[]).find(x=>x.id===t.id) : null;
   const v = raw ? {...raw, st0:(raw.init||{}).status||"", ms0:(raw.init||{}).ms??null, nn0:(raw.init||{}).nn||"", dat:(raw.eval||{}).dat||"", cl:(raw.eval||{}).cl??null, tc:(raw.eval||{}).tc??null, nx:(raw.eval||{}).nx||""}
     : {id:"", dv:"", detail:"", owner:p.owner||"", collab:"", deadline:null, qm:null, pt:null, pr:"P2", st0:"", ms0:null, nn0:"", note:""};
-  const dvOpts = S.catalog.filter(c=>c.type===p.type).map(c=>[c.name,c.name]);
+  /* Gom theo hạng mục bằng optgroup, bỏ phần "mã. hạng mục –" lặp lại trong tên hiển thị – giống ô chọn ở Nhập theo tuần */
+  const dvOpts = (() => {
+    const items = S.catalog.filter(c=>c.type===p.type);
+    const phs = phasesFor(p.type), order = new Map(phs.map((ph,i)=>[ph.code,i]));
+    const groups = new Map();
+    for(const c of items){
+      const code = phaseOf(c.name);
+      if(!groups.has(code)) groups.set(code, {code, name:(phs.find(ph=>ph.code===code)||{}).name||"", items:[]});
+      groups.get(code).items.push(c);
+    }
+    return [...groups.values()].sort((a,b)=>(order.get(a.code)??999)-(order.get(b.code)??999) || a.code.localeCompare(b.code))
+      .map(g => ({group:(g.code?g.code+". ":"")+(g.name||"Khác"), options:g.items.map(c=>[c.name, planShortName(c.name)])}));
+  })();
   const staffOpts = [["",""],...M.staff.map(s=>[s.name,s.name])];
   if(!canManageProject(p)){ if(isNew){ toast("Chỉ trưởng phòng hoặc người tạo dự án mới thêm đầu việc."); return; } return openInfo(p, t); }
   const cOf = n => S.catalog.find(c=>c.name===n)||{};
   openForm({
     title: isNew ? "Thêm đầu việc" : "Đầu việc", subtitle: p.name, values:v,
     info: t ? `<div class="kv" style="margin-bottom:16px"><dt>Trạng thái hiện tại</dt><dd>${stPill(t.status)} <span class="muted small">${esc(t.src)}</span></dd>
-      <dt>Cập nhật mới nhất</dt><dd>${esc(t.upd||"–")}</dd><dt>Kết quả cần đạt</dt><dd>${esc(cOf(t.dv).result||"–")}</dd><dt>Minh chứng</dt><dd>${esc(cOf(t.dv).evidence||"–")}</dd></div>` : "",
+      <dt>Cập nhật mới nhất</dt><dd>${esc(t.upd||"–")}</dd><dt>Kết quả đầu ra</dt><dd>${esc(cOf(t.dv).result||"–")}</dd><dt>Minh chứng</dt><dd>${esc(cOf(t.dv).evidence||"–")}</dd></div>` : "",
     fields:[
       {key:"dv", label:"Đầu việc (quy trình "+p.type+")", type:"select", options:dvOpts, required:true},
       {key:"detail", label:"Nội dung chi tiết", type:"textarea"},
@@ -192,7 +207,7 @@ function openInfo(p, t){
   openForm({title:"Đầu việc", subtitle:p.name, values:{}, fields:[], readOnly:true,
     info:`<h3 style="margin-bottom:12px">${esc(t.dv)}</h3><div class="kv"><dt>Nội dung</dt><dd>${esc(t.detail||"–")}</dd><dt>Phụ trách</dt><dd>${esc(t.owner||"–")}</dd>
     <dt>Deadline HĐ</dt><dd>${dmy(t.deadline)}</dd><dt>Trạng thái</dt><dd>${stPill(t.status)} <span class="small muted">${esc(t.src)}</span></dd><dt>Cập nhật</dt><dd>${esc(t.upd||"–")}</dd>
-    <dt>Kết quả cần đạt</dt><dd>${esc(c.result||"–")}</dd><dt>Minh chứng</dt><dd>${esc(c.evidence||"–")}</dd><dt>Workload</dt><dd>${t.wl??"–"}</dd>
+    <dt>Kết quả đầu ra</dt><dd>${esc(c.result||"–")}</dd><dt>Minh chứng</dt><dd>${esc(c.evidence||"–")}</dd><dt>Workload</dt><dd>${t.wl??"–"}</dd>
     <dt>Ghi chú TrP</dt><dd>${esc(t.note||"–")}</dd></div>`});
 }
 
