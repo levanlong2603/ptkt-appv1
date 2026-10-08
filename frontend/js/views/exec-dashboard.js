@@ -97,7 +97,7 @@ function viewExec(){
   // Row 2: people + task list
   const pr = S.exPr || "Tất cả";
   const prRank = {P1:1,P2:2,P3:3,P4:4};
-  const list = T.filter(t=>OPEN.has(t.status) && t.status!=="Chưa bắt đầu" && (pr==="Tất cả" || t.pr===pr))
+  const list = T.filter(t=>(t.status==="Đang làm"||t.status==="Đang vướng") && (pr==="Tất cả" || t.pr===pr))
     .sort((a,b)=>(b.ms||0)-(a.ms||0) || (prRank[a.pr]||9)-(prRank[b.pr]||9) || String(a.deadline||"9999").localeCompare(String(b.deadline||"9999")));
   const utilColor = u => u>1?EXC.red:u>=.8?EXC.orange:EXC.teal;
   h += `<div class="ex-row ex-r2">
@@ -106,7 +106,7 @@ function viewExec(){
       ${people.map((p,i)=>`<tr><td class="c">${i+1}</td><td>${esc(p.s.name)}</td><td class="c">${fmt1(p.c)}</td><td class="c">${fmt1(p.w)}</td>
         <td><div class="ex-ubar"><div class="t"><i style="width:${Math.min(100,p.u*100)}%; background:${utilColor(p.u)}"></i></div><b style="color:${p.u>1?EXC.red:"inherit"}">${p.n?pct(p.u):"–"}</b></div></td>
         <td class="c"><span class="ex-tag ${p.st[0]}">${p.st[1]}</span></td></tr>`).join("")}</tbody></table></div></div>
-    <div class="ex-card"><div class="ex-h"><h3>DANH SÁCH CÔNG VIỆC ĐANG THỰC HIỆN <span class="muted" style="font-weight:500">(${list.length})</span></h3>
+    <div class="ex-card"><div class="ex-h"><h3>DANH SÁCH CÔNG VIỆC ĐANG THỰC HIỆN</h3>
       <div class="ex-chips" role="group" aria-label="Lọc ưu tiên">${["Tất cả","P1","P2","P3","P4"].map(x=>`<button data-act="expr" data-p="${x}" aria-pressed="${pr===x}">${x}</button>`).join("")}</div></div>
       <div class="ex-scroll"><table class="ex-t"><thead><tr><th class="c">#</th><th>Công việc</th><th>Dự án</th><th>Phụ trách</th><th class="c">Quy<br>mô</th><th class="c">Độ phức<br>tạp</th><th class="c">Work-<br>load</th><th class="c">Ưu<br>tiên</th><th class="c">Hạn</th><th class="c">Ma sát</th><th class="c">Trạng thái</th></tr></thead><tbody>
       ${list.map((t,i)=>`<tr><td class="c">${i+1}</td><td class="w">${esc(t.dv.replace(/^[0-9A-Z]{1,2}\d?\.\s*[^–]*–\s*/,""))}</td><td class="w2">${esc(t.p.name)}</td><td class="w2">${esc(t.owner||"–")}</td>
