@@ -3,7 +3,7 @@
 /* ================= VIEW: weekly input ================= */
 function viewInput(){
   const w = S.week;
-  let h = `<div class="head"><div><h1>Nhập theo tuần</h1><div class="sub">Mỗi đầu việc làm trong tuần là một dòng · trạng thái cuối tuần tự cập nhật về kế hoạch dự án</div></div>${weekNav()}</div>`;
+  let h = `<div class="head"><div><h1>Nhập theo tuần</h1></div>${weekNav()}</div>`;
   if(S.me==="__all__") return h + viewInputAll(w);
   if(!S.me && S.user && S.user.role!=="admin") return h + `<section class="panel"><div class="empty"><b>Tài khoản chưa gắn với nhân sự</b>Nhờ trưởng phòng vào Cài đặt → Tài khoản đăng nhập để gắn tài khoản của bạn với tên nhân sự.</div></section>`;
   if(!S.me) return h + `<section class="panel"><div class="empty"><b>Chọn tên của bạn</b>Chọn tên ở mục “Tôi là” (góc dưới thanh bên) để nhập công việc của mình.</div>

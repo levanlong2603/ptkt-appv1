@@ -26,7 +26,7 @@ function viewLoad(){
   const done = wkE.filter(e=>e.status==="Hoàn thành").length;
   const blocked = wkE.filter(e=>e.status==="Đang vướng" || (e.ms||0)>=3);
   const over = rows.filter(r=>r.u>1).length;
-  let h = `<div class="head"><div><h1>Tải tuần</h1><div class="sub">Workload từng người trong tuần, so với capacity · nguồn: dữ liệu nhập theo tuần${simAs?` · đang xem riêng: ${esc(simAs)}`:""}</div></div>${weekNav()}</div>`;
+  let h = `<div class="head"><div><h1>Tải tuần</h1>${simAs?`<div class="sub">Đang xem riêng: ${esc(simAs)}</div>`:""}</div>${weekNav()}</div>`;
   const uAll = capE ? wlE/capE : null;
   h += `<div class="band">
     <div class="stat ${uAll>1?"bad":uAll>=.8?"warn":uAll!=null?"ok":""}"><div class="v">${pct(uAll)}</div><div class="l">Mức sử dụng (người đã nhập)</div></div>

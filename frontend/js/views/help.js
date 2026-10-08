@@ -3,7 +3,7 @@
 /* ================= VIEW: help ================= */
 function viewHelp(){
   const sec = (t, rows) => `<section class="panel" style="margin-bottom:16px"><div class="panel-h"><h2>${t}</h2></div><div class="panel-b"><dl class="kv" style="grid-template-columns:190px 1fr; gap:10px 16px">${rows.map(r=>`<dt style="font-weight:600;color:var(--ink)">${r[0]}</dt><dd>${r[1]}</dd>`).join("")}</dl></div></section>`;
-  return `<div class="head"><div><h1>Hướng dẫn</h1><div class="sub">Kế hoạch (trưởng phòng) → nhập theo tuần (nhân viên) → tải tuần & tổng quan dự án (tự động)</div></div></div>` +
+  return `<div class="head"><div><h1>Hướng dẫn</h1></div></div>` +
   (S.server ? sec("Tài khoản", [
     ["Đăng nhập", "Mỗi người dùng tài khoản riêng do trưởng phòng cấp. Nhân viên chỉ sửa được dữ liệu “Nhập theo tuần” của chính mình."],
     ["Đổi mật khẩu", "Bấm “Đổi mật khẩu” ở góc dưới thanh bên."],
