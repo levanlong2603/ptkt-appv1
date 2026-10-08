@@ -4,7 +4,13 @@
 function loadFor(name, week){
   const es = M.entries.filter(e=>e.person===name && e.week===week);
   const byType = {}; let wl=0, missing=0;
-  for(const e of es){ if(e.wl==null){ missing++; continue; } wl+=e.wl; byType[e.type]=(byType[e.type]||0)+e.wl; }
+  /* Đầu việc đã Hoàn thành/Hủy không còn tính vào workload (và mức sử dụng) của tuần nữa, dù vẫn hiện
+     trong danh sách (es) để xem lại việc đã làm. */
+  for(const e of es){
+    if(e.status==="Hoàn thành" || e.status==="Hủy") continue;
+    if(e.wl==null){ missing++; continue; }
+    wl+=e.wl; byType[e.type]=(byType[e.type]||0)+e.wl;
+  }
   return {es, wl, byType, missing};
 }
 function viewLoad(){
