@@ -62,7 +62,9 @@ function viewExec(){
   // tasks
   // Danh sách theo đầu việc (Công việc, Ma sát, Lịch hết hạn…) siết tới đúng đầu việc người đó phụ trách/phối hợp,
   // không phải mọi đầu việc của dự án họ là TM/SE – danh sách "Dự án" (runP bên dưới) vẫn giữ theo TM/SE của cả dự án.
-  const T = M.tasks.filter(t=>t.p.type!=="Nội bộ" && (!simAs || t.owner===simAs || t.collab===simAs));
+  const seenKey = new Set();
+  const T = M.tasks.filter(t=>t.p.type!=="Nội bộ" && (!simAs || (projectAssigned(t.p, simAs) && (t.owner===simAs || t.collab===simAs)))
+    && !seenKey.has(t.key) && seenKey.add(t.key)); // chặn trùng dòng nếu cùng một đầu việc (dự án+id) lọt vào nhiều lần
   const active = T.filter(t=>t.status==="Đang làm"||t.status==="Đang vướng");
   const isLate = t => t.warns.some(w=>w[1]==="Quá hạn"), isSoon = t => t.warns.some(w=>w[1]==="Sắp đến hạn");
   const aLate = active.filter(isLate).length, aSoon = active.filter(t=>!isLate(t)&&isSoon(t)).length, aOk = active.length-aLate-aSoon;
@@ -96,7 +98,7 @@ function viewExec(){
   const pr = S.exPr || "Tất cả";
   const prRank = {P1:1,P2:2,P3:3,P4:4};
   const list = T.filter(t=>OPEN.has(t.status) && t.status!=="Chưa bắt đầu" && (pr==="Tất cả" || t.pr===pr))
-    .sort((a,b)=>(prRank[a.pr]||9)-(prRank[b.pr]||9) || String(a.deadline||"9999").localeCompare(String(b.deadline||"9999")));
+    .sort((a,b)=>(b.ms||0)-(a.ms||0) || (prRank[a.pr]||9)-(prRank[b.pr]||9) || String(a.deadline||"9999").localeCompare(String(b.deadline||"9999")));
   const utilColor = u => u>1?EXC.red:u>=.8?EXC.orange:EXC.teal;
   h += `<div class="ex-row ex-r2">
     <div class="ex-card"><div class="ex-h"><h3>TÌNH TRẠNG NGUỒN LỰC NHÂN VIÊN <span class="muted" style="font-weight:500">(${people.length} người)</span></h3><button class="lnk" data-act="golo">Xem chi tiết ›</button></div>
@@ -118,15 +120,9 @@ function viewExec(){
   let parr = [...byP.entries()].sort((a,b)=>b[1]-a[1]); if(parr.length>7){ const rest=parr.slice(6).reduce((a,x)=>a+x[1],0); parr=[...parr.slice(0,6),["Khác",rest]]; }
   const barCols = [EXC.red, EXC.orange, EXC.blue, EXC.teal, EXC.purple, EXC.pink, EXC.grey];
   const mx = Math.max(1,...parr.map(x=>x[1]));
-  const stT = T.filter(t=>t.p._prog==null || t.p._prog<1);
-  const stDef = [["Hoàn thành",EXC.teal],["Đang làm",EXC.blue],["Tạm dừng",EXC.orange,"Đang chờ"],["Đang vướng",EXC.red,"Bị vướng"],["Chưa bắt đầu",EXC.grey,"Chưa làm"]];
-  const stSeg = stDef.map(([k,c,l])=>({v:stT.filter(t=>t.status===k).length,color:c,label:l||k}));
-  const stTot = stSeg.reduce((a,s)=>a+s.v,0);
   h += `<div class="ex-row ex-r3">
     <div class="ex-card"><div class="ex-h"><h3>PHÂN BỔ WORKLOAD THEO DỰ ÁN</h3></div>
       ${parr.length?parr.map(([n,v],i)=>`<div class="ex-hb"><span title="${esc(n)}">${esc(n)}</span><div class="t"><i style="width:${v/mx*100}%; background:${barCols[i%barCols.length]}"></i></div><b>${fmt1(v)} <span class="muted" style="font-weight:400">(${wl?Math.round(v/wl*100):0}%)</span></b></div>`).join(""):`<div class="ex-empty">Chưa có dữ liệu nhập ${P.short} này.</div>`}</div>
-    <div class="ex-card"><div class="ex-h"><h3>TÌNH TRẠNG CÔNG VIỆC</h3><span class="muted small">dự án đang chạy</span></div><div class="ex-donut">${donut(stSeg, String(stTot), "việc")}
-      <ul class="ex-list" style="font-size:13px">${stSeg.map(s=>`<li><i style="background:${s.color}"></i>${s.label}: ${s.v} (${stTot?Math.round(s.v/stTot*100):0}%)</li>`).join("")}</ul></div></div>
     <div class="ex-card"><div class="ex-h"><h3>MA SÁT ĐANG THEO DÕI <span class="muted" style="font-weight:500">(${fr.length} việc)</span></h3></div>
       <div class="ex-scroll" style="max-height:210px"><table class="ex-t"><thead><tr><th class="c">#</th><th>Công việc</th><th>Nguyên nhân</th><th class="c">Mức</th><th class="c">Hạn</th></tr></thead><tbody>
       ${fr.map((t,i)=>`<tr><td class="c">${i+1}</td><td class="w"><b>${esc(t.p.name)}</b><div class="muted" style="font-size:11.5px">${esc(t.dv.replace(/^[0-9A-Z]{1,2}\d?\.\s*[^–]*–\s*/,""))}</div></td><td>${esc(t.nn||"–")}</td>
