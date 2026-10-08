@@ -27,6 +27,12 @@ main.addEventListener("click", e => {
   else if(a==="newp") projectForm(null);
   else if(a==="editp") projectForm(M.pById.get(S.planSel));
   else if(a==="addtask") taskForm(M.pById.get(S.planSel), null);
+  else if(a==="delp"){
+    const p = M.pById.get(S.planSel);
+    if(p && canDeleteProject(p) && confirm(`Xoá dự án “${p.name}” và toàn bộ đầu việc?`)){
+      remove("projects/"+p.id); S.planSel=null; toast("Đã xoá dự án");
+    }
+  }
   else if(a==="task"){ const p=M.pById.get(S.planSel); const tk=p._tasks.find(x=>x.id===t.dataset.id); taskForm(p, tk); }
   else if(a==="addstaff") staffForm(null);
   else if(a==="editstaff") staffForm(+t.dataset.i);

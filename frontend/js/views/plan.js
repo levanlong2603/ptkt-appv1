@@ -51,7 +51,7 @@ function planDetail(p){
   let out = `<div class="pdetail">
     <div class="row2" style="margin:12px 0 14px"><div><div class="small muted" style="margin-bottom:4px">Mốc hợp đồng</div><div class="note">${esc(p.milestones||"–")}</div></div>
       <div><div class="small muted" style="margin-bottom:4px">Tình hình / vướng mắc chung</div><div class="note">${esc(p.situation||"–")}</div></div></div>
-    ${canManageProject(p)?`<div class="toolbar" style="margin-bottom:12px"><button class="btn" data-act="editp" data-id="${esc(p.id)}">Sửa thông tin</button><button class="btn primary" data-act="addtask" data-id="${esc(p.id)}">+ Đầu việc</button></div>`:""}`;
+    ${canManageProject(p)?`<div class="toolbar" style="margin-bottom:12px">${canDeleteProject(p)?`<button class="btn danger" data-act="delp" data-id="${esc(p.id)}">Xoá dự án</button>`:""}<button class="btn" data-act="editp" data-id="${esc(p.id)}">Sửa thông tin</button><button class="btn primary" data-act="addtask" data-id="${esc(p.id)}">+ Đầu việc</button></div>`:""}`;
   const rows = planTreeRows(p);
   out += `<div class="tbl-wrap panel"><table style="table-layout:fixed"><thead><tr><th style="width:26%">Đầu việc</th><th style="width:11%">Phụ trách</th><th style="width:9%">Deadline HĐ</th><th style="width:6%; text-align:center">WL</th><th style="width:8%; text-align:center">Ưu tiên</th><th style="width:12%">Trạng thái</th><th style="width:16%">Cập nhật mới nhất</th><th style="width:12%">Cảnh báo</th></tr></thead>
     <tbody>${rows||`<tr><td colspan="8"><div class="empty">Dự án chưa có đầu việc.${canManageProject(p)?" Bấm “+ Đầu việc”.":""}</div></td></tr>`}</tbody></table></div>
@@ -182,7 +182,8 @@ function taskForm(p, t){
       {key:"pt", label:"Độ phức tạp (trống = chuẩn)", type:"seg", options:[[null,"Chuẩn"],...[1,2,3,4,5].map(n=>[n,String(n)])], hint:(val,vals)=>"Chuẩn: "+(cOf(vals.dv).pt??"–")},
       {key:"st0", label:"Trạng thái ban đầu (chỉ dùng khi chưa có dữ liệu tuần)", type:"select", options:[["",""],...ST_ALL.map(s=>[s,s])]},
       {key:"note", label:"Ghi chú của trưởng phòng", type:"textarea"},
-      ...(t && t.status==="Hoàn thành" ? [
+      /* Chỉ trưởng phòng đánh giá khi hoàn thành, không phải nhân viên (kể cả TM/SE/người tạo được sửa đầu việc) */
+      ...(t && t.status==="Hoàn thành" && S.canEdit ? [
         {heading:"Đánh giá khi hoàn thành"},
         {key:"dat", label:"Đạt yêu cầu?", type:"seg", options:[["Đạt","Đạt"],["Đạt một phần","Đạt một phần"],["Không đạt","Không đạt"]]},
         {key:"cl", label:"Chất lượng (1–5)", type:"seg", options:[1,2,3,4,5].map(n=>[n,String(n)]), half:true},
@@ -194,7 +195,7 @@ function taskForm(p, t){
       const tasks = [...(p.tasks||[])];
       const body = {id: x.id || nextTaskId(p), dv:x.dv, detail:x.detail||"", owner:x.owner||"", collab:x.collab||"", deadline:x.deadline||null, qm:x.qm||null, pt:x.pt||null, pr:x.pr||"",
         init:{status:x.st0||"", ms:x.ms0??null, nn:x.nn0||""}, note:x.note||"", eval: raw&&raw.eval ? {...raw.eval} : {}};
-      if(t && t.status==="Hoàn thành") body.eval = {dat:x.dat||"", cl:x.cl??null, tc:x.tc??null, nx:x.nx||""};
+      if(t && t.status==="Hoàn thành" && S.canEdit) body.eval = {dat:x.dat||"", cl:x.cl??null, tc:x.tc??null, nx:x.nx||""};
       const i = tasks.findIndex(q=>q.id===body.id); if(i>=0) tasks[i]=body; else tasks.push(body);
       await saveProject({...p, tasks}); toast(isNew?"Đã thêm đầu việc":"Đã lưu đầu việc");
     },

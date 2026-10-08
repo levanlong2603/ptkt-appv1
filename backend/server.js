@@ -39,7 +39,9 @@ if (JWT_SECRET.length < 32) {
  *   "own-project" : trưởng phòng ghi tất cả (kể cả tạo dự án mới). Nhân viên: sửa dự án và
  *                   đầu việc (PUT) nếu là người tạo (created_by, máy chủ ghi, không nhận từ
  *                   client) HOẶC là TM (owner)/SE của dự án (so khớp staff_name của tài khoản);
- *                   XOÁ cả dự án (DELETE) thì chỉ người tạo mới được, kể cả là TM/SE
+ *                   XOÁ cả dự án (DELETE) thì chỉ người tạo mới được, kể cả là TM/SE.
+ *                   Riêng "Đánh giá khi hoàn thành" (task.eval) chỉ trưởng phòng ghi được;
+ *                   nhân viên gửi gì cũng bị máy chủ giữ nguyên giá trị cũ (xem route PUT /api/doc/projects/:id)
  * Mọi tài khoản đã đăng nhập đều ĐỌC được tất cả.
  */
 const RULES = {
@@ -165,7 +167,14 @@ app.put("/api/doc/:coll/:id", auth, A(async (req, res) => {
   const ex = await store.getDoc(p);
   const exBody = ex && JSON.parse(ex);
   if (!canWrite(req.user, coll, id, body, exBody, "write")) return res.status(403).json({ error: "Bạn không có quyền sửa phần này" });
-  if (coll === "projects") body.created_by = exBody ? (exBody.created_by ?? null) : req.user.username;
+  if (coll === "projects") {
+    body.created_by = exBody ? (exBody.created_by ?? null) : req.user.username;
+    // Đánh giá khi hoàn thành (task.eval) chỉ trưởng phòng được ghi; nhân viên gửi gì cũng giữ nguyên giá trị cũ
+    if (req.user.role !== "admin" && exBody) {
+      const exTasks = new Map((exBody.tasks || []).map(t => [t.id, t]));
+      for (const t of body.tasks || []) t.eval = (exTasks.get(t.id) || {}).eval ?? {};
+    }
+  }
   await store.upsertDoc(p, coll, id, JSON.stringify(body), req.user.username);
   audit(req.user, "set", p); broadcast(coll);
   res.status(204).end();
