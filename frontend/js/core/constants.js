@@ -27,6 +27,12 @@ const OPEN = new Set(["Chưa bắt đầu","Đang làm","Đang vướng","Tạm 
 const CAUSES = ["Khách hàng","Hãng","Hàng hóa / thiết bị","Cộng sự","Hệ thống","Thay đổi yêu cầu","Chờ quyết định"];
 const QM_HINT = {1:"0,5–2 giờ",2:"2–8 giờ",3:"8–24 giờ",4:"trên 24 giờ",5:"cả tuần và hơn"};
 const PT_HINT = {1:"Đơn giản",2:"Quen thuộc",3:"Cần chuyên môn",4:"Cần chuyên gia",5:"Chưa có tiền lệ"};
+/* Công thức Workload: quy Quy mô (bậc thời gian) ra số giờ đại diện thực tế, nhân với hệ số thời gian của
+   Độ phức tạp — để Workload (giờ) chia cho Capacity (giờ/tuần, xem settings.js) ra đúng % tải thực tế,
+   thay vì một điểm số tuỳ ý (trước đây = qm×pt, 1–25 điểm, không cùng đơn vị với Capacity). */
+const QM_HOURS = {1:1.25, 2:5, 3:16, 4:30, 5:40};
+const PT_MULT = {1:0.8, 2:1.0, 3:1.2, 4:1.4, 5:1.6};
+function wlOf(qm, pt){ return qm && pt ? Math.round(QM_HOURS[qm]*PT_MULT[pt]*10)/10 : null; }
 const ICONS = {
   dash:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>',
   load:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>',

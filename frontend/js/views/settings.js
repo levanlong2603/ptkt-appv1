@@ -15,6 +15,7 @@ function viewSettings(){
     <div class="tbl-wrap"><table style="table-layout:fixed"><thead><tr><th style="width:24%">Họ tên</th><th style="width:13%; text-align:center">Giờ / tuần</th><th style="width:15%; text-align:center">% trừ họp, phát sinh</th><th style="width:14%; text-align:center">Kinh nghiệm (năm)</th><th style="width:16%; text-align:center">Hệ số năng lực</th><th style="width:18%; text-align:center">Capacity (điểm/tuần)</th></tr></thead><tbody>
     ${M.staff.map((s,i)=>`<tr class="${ro?"":"click"}" data-act="${ro?"":"editstaff"}" data-i="${i}" tabindex="0"><td class="cell-main">${esc(s.name)}</td><td style="text-align:center">${s.hours}</td><td style="text-align:center">${Math.round(s.pct*100)}%</td><td style="text-align:center">${s.years||"–"}</td><td style="text-align:center">${fmt1(s.factor)}</td><td style="text-align:center; font-weight:600">${fmt1(s.cap)}</td></tr>`).join("")||'<tr><td colspan="6" class="muted">Chưa có nhân sự.</td></tr>'}
     </tbody></table></div><div class="panel-b small muted">Capacity = Giờ/tuần × (1 − % họp, phát sinh) × Hệ số năng lực. Hệ số năng lực theo kinh nghiệm (gợi ý, trưởng phòng tự chọn): &lt;1 năm → 0,8 · 1–3 năm → 1,0 · 3–5 năm → 1,1 · 5–8 năm → 1,2 · &gt;8 năm → 1,3.</div></section>`;
+  h += `<p class="small muted" style="margin:-8px 0 14px">Workload (giờ) = số giờ đại diện của Quy mô (0,5–2 · 2–8 · 8–24 · trên 24 · cả tuần) × hệ số của Độ phức tạp (Đơn giản ×0,8 · Quen thuộc ×1,0 · Cần chuyên môn ×1,2 · Cần chuyên gia ×1,4 · Chưa có tiền lệ ×1,6) — cùng đơn vị giờ với Capacity ở trên, nên Workload ÷ Capacity ra đúng % tải thực tế.</p>`;
   for(const t of TYPES){
     const list = S.catalog.map((c,i)=>({...c,i})).filter(c=>c.type===t);
     h += `<section class="panel" style="margin-bottom:18px"><div class="panel-h"><h2>${typeDot(t)}Quy trình ${t.toLowerCase()} <span class="muted small">· ${list.length} đầu việc chuẩn</span></h2>${ro?"":`<button class="btn" data-act="addcat" data-t="${t}">+ Đầu việc chuẩn</button>`}</div>
@@ -39,7 +40,7 @@ function catTreeRows(list, ro, type){
     const key = "cat|"+type+"|"+g.code, open = planOpen(key);
     out += planGroupRow(key, 0, (g.code?g.code+". ":"")+(g.name||"Khác"), {meta:`${g.items.length} đầu việc chuẩn`}, open, "", 5);
     if(!open) continue;
-    for(const c of g.items) out += `<tr class="${ro?"":"click"}" data-act="${ro?"":"editcat"}" data-i="${c.i}" tabindex="0" title="${esc(c.name)}"><td style="padding-left:36px"><div class="cell-main">${esc(planShortName(c.name))}</div></td><td style="text-align:center">${c.qm??"–"}</td><td style="text-align:center">${c.pt??"–"}</td><td style="text-align:center">${c.qm&&c.pt?c.qm*c.pt:"–"}</td><td class="small">${esc(c.result||"")}</td></tr>`;
+    for(const c of g.items) out += `<tr class="${ro?"":"click"}" data-act="${ro?"":"editcat"}" data-i="${c.i}" tabindex="0" title="${esc(c.name)}"><td style="padding-left:36px"><div class="cell-main">${esc(planShortName(c.name))}</div></td><td style="text-align:center">${c.qm??"–"}</td><td style="text-align:center">${c.pt??"–"}</td><td style="text-align:center">${wlOf(c.qm,c.pt)??"–"}</td><td class="small">${esc(c.result||"")}</td></tr>`;
   }
   return out;
 }
