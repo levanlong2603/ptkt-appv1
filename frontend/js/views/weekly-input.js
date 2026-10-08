@@ -7,7 +7,7 @@ function viewInput(){
   if(S.me==="__all__") return h + viewInputAll(w);
   if(!S.me && S.user && S.user.role!=="admin") return h + `<section class="panel"><div class="empty"><b>Tài khoản chưa gắn với nhân sự</b>Nhờ trưởng phòng vào Cài đặt → Tài khoản đăng nhập để gắn tài khoản của bạn với tên nhân sự.</div></section>`;
   if(!S.me) return h + `<section class="panel"><div class="empty"><b>Chọn tên của bạn</b>Chọn tên ở mục “Tôi là” (góc dưới thanh bên) để nhập công việc của mình.</div>
-    <div class="panel-b" style="text-align:center"><select class="inp" style="max-width:280px" data-act="pickme"><option value="">— chọn tên —</option><option value="__all__">— Tất cả —</option>${M.staff.map(s=>`<option>${esc(s.name)}</option>`).join("")}</select></div></section>`;
+    <div class="panel-b" style="text-align:center"><select class="inp" style="max-width:280px" data-act="pickme"><option value="__all__">— Tất cả —</option>${M.staff.map(s=>`<option>${esc(s.name)}</option>`).join("")}</select></div></section>`;
   const st = M.staff.find(s=>s.name===S.me) || {cap:0};
   const L = loadFor(S.me, w); const u = st.cap ? L.wl/st.cap : null;
   const prev = weekDoc(addDays(w,-7), S.me);

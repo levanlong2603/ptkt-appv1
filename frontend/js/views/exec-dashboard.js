@@ -60,7 +60,9 @@ function viewExec(){
   const over = people.filter(p=>p.n && p.u>1).length, high = people.filter(p=>p.n && p.u>=.8 && p.u<=1).length, low = people.filter(p=>p.n && p.u<.8).length, none = people.filter(p=>!p.n).length;
   const U = cap ? wl/cap : 0;
   // tasks
-  const T = M.tasks.filter(t=>t.p.type!=="Nội bộ" && (!simAs || projectAssigned(t.p, simAs)));
+  // Danh sách theo đầu việc (Công việc, Ma sát, Lịch hết hạn…) siết tới đúng đầu việc người đó phụ trách/phối hợp,
+  // không phải mọi đầu việc của dự án họ là TM/SE – danh sách "Dự án" (runP bên dưới) vẫn giữ theo TM/SE của cả dự án.
+  const T = M.tasks.filter(t=>t.p.type!=="Nội bộ" && (!simAs || t.owner===simAs || t.collab===simAs));
   const active = T.filter(t=>t.status==="Đang làm"||t.status==="Đang vướng");
   const isLate = t => t.warns.some(w=>w[1]==="Quá hạn"), isSoon = t => t.warns.some(w=>w[1]==="Sắp đến hạn");
   const aLate = active.filter(isLate).length, aSoon = active.filter(t=>!isLate(t)&&isSoon(t)).length, aOk = active.length-aLate-aSoon;

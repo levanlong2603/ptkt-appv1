@@ -7,11 +7,14 @@ function renderNav(){
   const ub = document.getElementById("userBox");
   if(S.user){ ub.hidden = false; ub.innerHTML = `<b>${esc(S.user.display_name)}</b><span>${S.user.role==="admin"?"Trưởng phòng":"Nhân viên"}</span><div class="acts"><button data-uact="pw">Đổi mật khẩu</button><button data-uact="out">Đăng xuất</button></div>`; }
   const sel = document.getElementById("meSel");
-  sel.disabled = !!(S.user && S.user.role!=="admin");
+  const isAdmin = !!(S.user && S.user.role==="admin");
+  sel.disabled = !!(S.user && !isAdmin);
   const names = S.staff.map(s=>s.name);
-  /* "Tất cả" chỉ dành cho trưởng phòng: xem gộp dữ liệu mọi người thay vì theo một cá nhân */
-  const allOpt = (S.user && S.user.role==="admin") ? `<option value="__all__" ${S.me==="__all__"?"selected":""}>— Tất cả —</option>` : "";
-  sel.innerHTML = `<option value="">— chọn tên —</option>${allOpt}` + names.map(n=>`<option ${n===S.me?"selected":""}>${esc(n)}</option>`).join("");
+  /* "Tất cả" chỉ dành cho trưởng phòng: xem gộp dữ liệu mọi người thay vì theo một cá nhân.
+     Trưởng phòng không có lựa chọn "— chọn tên —" bỏ trống nữa — chưa chọn ai thì mặc định là "Tất cả". */
+  if(isAdmin && !S.me){ S.me = "__all__"; store("me", S.me); }
+  const allOpt = isAdmin ? `<option value="__all__" ${S.me==="__all__"?"selected":""}>— Tất cả —</option>` : '<option value="">— chọn tên —</option>';
+  sel.innerHTML = allOpt + names.map(n=>`<option ${n===S.me?"selected":""}>${esc(n)}</option>`).join("");
 }
 document.getElementById("nav").addEventListener("click", e => { const b=e.target.closest("button[data-view]"); if(!b) return; S.view=b.dataset.view; store("view",S.view); render(); document.getElementById("main").scrollTop=0; });
 document.getElementById("meSel").addEventListener("change", e => { S.me=e.target.value; store("me",S.me); render(); });
