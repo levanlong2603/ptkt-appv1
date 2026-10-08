@@ -77,7 +77,7 @@ function planTaskRow(t, i, lvl=1){
       <td>${esc(t.owner||"–")}${t.collab?`<div class="small muted">+ ${esc(t.collab)}</div>`:""}</td>
       <td>${t.deadline?dmy(t.deadline):"–"}</td>
       <td style="text-align:center">${t.wl??"–"}</td><td style="text-align:center">${t.pr?`<span class="pill ${t.pr==="P1"?"bad":"mute"}">${esc(t.pr)}</span>`:""}</td>
-      <td>${stPill(t.status)}<div class="small muted">${esc(t.src)}${t.done?" · xong tuần "+isoWeek(t.done):""}</div></td>
+      <td>${stPill(t.status)}${t.done?`<div class="small muted">xong tuần ${isoWeek(t.done)}</div>`:""}</td>
       <td class="small">${t.upd?`<div class="cell-sub" style="margin:0">${esc(t.upd)}</div>`:""}${t.ms?`<span class="pill ${t.ms>=3?"bad":"warn"}">Ma sát ${t.ms}</span> `:""}${esc(t.nn||"")}</td>
       <td>${warnPills(t.warns)}${t.ontime===true?' <span class="pill ok">Đúng hạn</span>':t.ontime===false?' <span class="pill bad">Trễ hạn</span>':""}${t.status==="Hoàn thành"&&!(t.eval&&t.eval.dat)&&S.canEdit?' <span class="pill info">Chờ đánh giá</span>':""}</td></tr>`;
 }
@@ -170,8 +170,8 @@ function taskForm(p, t){
   const cOf = n => S.catalog.find(c=>c.name===n)||{};
   openForm({
     title: isNew ? "Thêm đầu việc" : "Đầu việc", subtitle: p.name, values:v,
-    info: t ? `<div class="kv" style="margin-bottom:16px"><dt>Trạng thái hiện tại</dt><dd>${stPill(t.status)} <span class="muted small">${esc(t.src)}</span></dd>
-      <dt>Cập nhật mới nhất</dt><dd>${esc(t.upd||"–")}</dd><dt>Kết quả đầu ra</dt><dd>${esc(cOf(t.dv).result||"–")}</dd><dt>Minh chứng</dt><dd>${esc(cOf(t.dv).evidence||"–")}</dd></div>` : "",
+    info: t ? `<div class="kv" style="margin-bottom:16px"><dt>Trạng thái hiện tại</dt><dd>${stPill(t.status)}</dd>
+      <dt>Cập nhật mới nhất</dt><dd>${esc(t.upd||"–")}</dd><dt>Ngày cập nhật</dt><dd>${esc(t.updDate||"–")}</dd><dt>Kết quả đầu ra</dt><dd>${esc(cOf(t.dv).result||"–")}</dd><dt>Minh chứng</dt><dd>${esc(cOf(t.dv).evidence||"–")}</dd></div>` : "",
     fields:[
       {key:"dv", label:"Đầu việc (quy trình "+p.type+")", type:"select", options:dvOpts, required:true},
       {key:"detail", label:"Nội dung chi tiết", type:"textarea"},
@@ -208,7 +208,7 @@ function openInfo(p, t){
   const c = S.catalog.find(x=>x.name===t.dv)||{};
   openForm({title:"Đầu việc", subtitle:p.name, values:{}, fields:[], readOnly:true,
     info:`<h3 style="margin-bottom:12px">${esc(t.dv)}</h3><div class="kv"><dt>Nội dung</dt><dd>${esc(t.detail||"–")}</dd><dt>Phụ trách</dt><dd>${esc(t.owner||"–")}</dd>
-    <dt>Deadline HĐ</dt><dd>${dmy(t.deadline)}</dd><dt>Trạng thái</dt><dd>${stPill(t.status)} <span class="small muted">${esc(t.src)}</span></dd><dt>Cập nhật</dt><dd>${esc(t.upd||"–")}</dd>
+    <dt>Deadline HĐ</dt><dd>${dmy(t.deadline)}</dd><dt>Trạng thái</dt><dd>${stPill(t.status)}</dd><dt>Cập nhật</dt><dd>${esc(t.upd||"–")}</dd><dt>Ngày cập nhật</dt><dd>${esc(t.updDate||"–")}</dd>
     <dt>Kết quả đầu ra</dt><dd>${esc(c.result||"–")}</dd><dt>Workload</dt><dd>${t.wl??"–"}</dd>
     <dt>Ghi chú TrP</dt><dd>${esc(t.note||"–")}</dd></div>`});
 }

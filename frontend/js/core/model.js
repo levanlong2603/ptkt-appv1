@@ -41,9 +41,9 @@ function derive(){
       const src = le ? "Tuần "+isoWeek(le.week) : "";
       const ms = le ? (le.ms ?? null) : (t.init ? t.init.ms ?? null : null);
       const nn = le ? (le.nn||"") : (t.init ? t.init.nn||"" : "");
-      /* "Cập nhật": luôn hiện tuần/ngày nhân viên lưu lần gần nhất, dù không gõ "Việc đã làm"/"Vướng mắc" */
-      const updText = la ? [la.work, la.note].filter(Boolean).join(" · ") : "";
-      const upd = la ? `Tuần ${isoWeek(la.week)} · ${dmy(la.week)}` + (updText ? " · "+updText : "") : "";
+      const upd = la ? [la.work, la.note].filter(Boolean).join(" · ") : "";
+      /* "Ngày cập nhật": tuần/ngày nhân viên lưu lần gần nhất, tách riêng khỏi nội dung "Cập nhật" ở trên */
+      const updDate = la ? dmy(la.week) : "";
       const lastWeek = la ? la.week : null;
       const done = status==="Hoàn thành" ? (doneWk.get(k) || null) : null;
       const ontime = done && t.deadline ? (done <= t.deadline) : null;
@@ -55,7 +55,7 @@ function derive(){
         if(OPEN.has(status) && (ms||0) >= 3) warns.push(["bad","Ma sát cao"]);
         if((status==="Đang làm"||status==="Đang vướng") && (!lastWeek || lastWeek < addDays(thisMon,-14))) warns.push(["warn","Không cập nhật >2 tuần"]);
       }
-      const o = {...t, p, key:k, qmE:qm, ptE:pt, wl, status, src, ms, nn, upd, lastWeek, done, ontime, warns, phase: phaseOf(t.dv)};
+      const o = {...t, p, key:k, qmE:qm, ptE:pt, wl, status, src, ms, nn, upd, updDate, lastWeek, done, ontime, warns, phase: phaseOf(t.dv)};
       tasks.push(o); return o;
     });
     const live = p._tasks.filter(t => t.status!=="Hủy");
