@@ -43,7 +43,11 @@ function derive(){
       const nn = le ? (le.nn||"") : (t.init ? t.init.nn||"" : "");
       const upd = la ? [la.work, la.note].filter(Boolean).join(" · ") : "";
       /* "Ngày cập nhật": tuần/ngày nhân viên lưu lần gần nhất, tách riêng khỏi nội dung "Cập nhật" ở trên */
-      const updDate = la ? dmy(la.week) : "";
+      /* Ngày cập nhật = mốc gần nhất giữa lần nhập theo tuần và lần trưởng phòng/TM/SE sửa trực tiếp đầu việc ở Kế hoạch dự án */
+      const weekDate = la ? parse(la.week) : null;
+      const editDate = t.updatedAt ? new Date(t.updatedAt) : null;
+      const latestDate = weekDate && editDate ? (weekDate >= editDate ? weekDate : editDate) : (weekDate || editDate);
+      const updDate = latestDate ? dmy(iso(latestDate)) : "";
       const lastWeek = la ? la.week : null;
       const done = status==="Hoàn thành" ? (doneWk.get(k) || null) : null;
       const ontime = done && t.deadline ? (done <= t.deadline) : null;

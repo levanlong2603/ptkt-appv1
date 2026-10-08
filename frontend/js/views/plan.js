@@ -195,7 +195,7 @@ function taskForm(p, t){
     onSave: async x => {
       const tasks = [...(p.tasks||[])];
       const body = {id: x.id || nextTaskId(p), dv:x.dv, detail:x.detail||"", owner:x.owner||"", collab:x.collab||"", deadline:x.deadline||null, qm:x.qm||null, pt:x.pt||null, pr:x.pr||"",
-        init:{status:x.st0||"", ms:x.ms0??null, nn:x.nn0||""}, note:x.note||"", eval: raw&&raw.eval ? {...raw.eval} : {}};
+        init:{status:x.st0||"", ms:x.ms0??null, nn:x.nn0||""}, note:x.note||"", eval: raw&&raw.eval ? {...raw.eval} : {}, updatedAt:Date.now()};
       if(t && t.status==="Hoàn thành" && S.canEdit) body.eval = {dat:x.dat||"", cl:x.cl??null, tc:x.tc??null, nx:x.nx||""};
       const i = tasks.findIndex(q=>q.id===body.id); if(i>=0) tasks[i]=body; else tasks.push(body);
       await saveProject({...p, tasks}); toast(isNew?"Đã thêm đầu việc":"Đã lưu đầu việc");
