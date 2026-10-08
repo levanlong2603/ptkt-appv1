@@ -17,7 +17,7 @@ function derive(){
     const ref = taskMap.get(e.projectId+"|"+e.taskId);
     const c = ref ? cat.get(ref.t.dv) : null;
     const pt = e.pt || (ref && ref.t.pt) || (c && c.pt) || null;
-    const wl = e.qm && pt ? Math.round(e.qm*pt*((ref && ref.p.difficulty) || 1)*10)/10 : null;
+    const wl = e.qm && pt ? Math.round(e.qm*pt*10)/10 : null;
     entries.push({...e, week:w.week, person:w.person, docId:w._id, ref, wl, type: ref ? ref.p.type : (pById.get(e.projectId)||{}).type || "Nội bộ"});
   }
   // latest per task
@@ -35,8 +35,9 @@ function derive(){
     p._tasks = (p.tasks||[]).map(t => {
       const k = p.id+"|"+t.id, c = cat.get(t.dv)||{};
       const qm = t.qm || c.qm, pt = t.pt || c.pt;
-      /* Workload = Quy mô × Độ phức tạp đầu việc × Độ khó dự án (p.difficulty, mặc định 1 = Trung bình nếu dự án chưa chọn) */
-      const wl = qm && pt ? Math.round(qm*pt*(p.difficulty||1)*10)/10 : null;
+      /* Workload = Quy mô × Độ phức tạp đầu việc. "Độ khó dự án" (p.difficulty) chỉ là nhãn phân loại dự án,
+         không tham gia công thức tính tải theo quyết định của trưởng phòng. */
+      const wl = qm && pt ? Math.round(qm*pt*10)/10 : null;
       const le = latest.get(k), la = lastAny.get(k);
       const status = le ? le.status : (t.init && t.init.status) || "Chưa bắt đầu";
       const src = le ? "Tuần "+isoWeek(le.week) : "";
