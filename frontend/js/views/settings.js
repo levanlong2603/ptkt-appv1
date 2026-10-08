@@ -5,7 +5,6 @@ function viewSettings(){
   const ro = !S.canEdit;
   let h = `<div class="head"><div><h1>Cài đặt</h1><div class="sub">Nhân sự & capacity, đầu việc chuẩn theo quy trình${ro?" · chỉ trưởng phòng được sửa":""}</div></div></div>`;
   h += usersPanel();
-  h += auditPanel();
   h += `<section class="panel" style="margin-bottom:18px"><div class="panel-h"><h2>Dữ liệu</h2><span class="muted small">lưu trên máy chủ của phòng</span></div>
     <div class="panel-b"><div class="toolbar" style="margin-bottom:10px">
       <button class="btn" data-act="exp-plan">Xuất Excel: kế hoạch dự án</button>
