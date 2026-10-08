@@ -5,10 +5,7 @@ let M = null;
 function derive(){
   const today = todayISO(), thisMon = mondayOf(today);
   const cat = new Map(S.catalog.map(c => [c.name, c]));
-  /* Capacity = giờ rảnh thực tế trong tuần, không nhân hệ số năng lực nữa — hệ số được chuyển sang
-     chia vào Workload của từng người bên dưới (người giỏi hơn tốn ít giờ hơn cho cùng một đầu việc,
-     người kém hơn tốn nhiều giờ hơn), để tránh tính hệ số năng lực hai lần. */
-  const staff = S.staff.map(s => ({...s, cap: Math.round((+s.hours||0)*(1-(+s.pct||0))*10)/10}));
+  const staff = S.staff.map(s => ({...s, cap: Math.round((+s.hours||0)*(1-(+s.pct||0))*(+s.factor||1)*10)/10}));
   const capOf = new Map(staff.map(s => [s.name, s.cap]));
   const factorOf = new Map(staff.map(s => [s.name, +s.factor||1]));
   const projects = [...S.projects].sort((a,b)=>(a.order??999)-(b.order??999) || a.name.localeCompare(b.name,"vi"));
