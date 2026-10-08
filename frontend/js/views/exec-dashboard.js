@@ -123,7 +123,7 @@ function viewExec(){
   h += `<div class="ex-row ex-r3">
     <div class="ex-card"><div class="ex-h"><h3>PHÂN BỔ WORKLOAD THEO DỰ ÁN</h3></div>
       ${parr.length?parr.map(([n,v],i)=>`<div class="ex-hb"><span title="${esc(n)}">${esc(n)}</span><div class="t"><i style="width:${v/mx*100}%; background:${barCols[i%barCols.length]}"></i></div><b>${fmt1(v)} <span class="muted" style="font-weight:400">(${wl?Math.round(v/wl*100):0}%)</span></b></div>`).join(""):`<div class="ex-empty">Chưa có dữ liệu nhập ${P.short} này.</div>`}</div>
-    <div class="ex-card"><div class="ex-h"><h3>MA SÁT ĐANG THEO DÕI <span class="muted" style="font-weight:500">(${fr.length} việc)</span></h3></div>
+    <div class="ex-card"><div class="ex-h"><h3>MA SÁT ĐANG THEO DÕI</h3></div>
       <div class="ex-scroll" style="max-height:210px"><table class="ex-t"><thead><tr><th class="c">#</th><th>Công việc</th><th>Nguyên nhân</th><th class="c">Mức</th><th class="c">Hạn</th></tr></thead><tbody>
       ${fr.map((t,i)=>`<tr><td class="c">${i+1}</td><td class="w"><b>${esc(t.p.name)}</b><div class="muted" style="font-size:11.5px">${esc(t.dv.replace(/^[0-9A-Z]{1,2}\d?\.\s*[^–]*–\s*/,""))}</div></td><td>${esc(t.nn||"–")}</td>
         <td class="c"><span class="ex-tag ${t.ms>=3?"tg-red":t.ms>=2?"tg-org":"tg-yel"}">${t.ms}</span></td><td class="c">${t.deadline?dm(t.deadline):"–"}</td></tr>`).join("")||`<tr><td colspan="5" class="ex-empty">Không có việc nào đang vướng.</td></tr>`}</tbody></table></div></div></div>`;
