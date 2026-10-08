@@ -209,7 +209,7 @@ function openInfo(p, t){
   openForm({title:"Đầu việc", subtitle:p.name, values:{}, fields:[], readOnly:true,
     info:`<h3 style="margin-bottom:12px">${esc(t.dv)}</h3><div class="kv"><dt>Nội dung</dt><dd>${esc(t.detail||"–")}</dd><dt>Phụ trách</dt><dd>${esc(t.owner||"–")}</dd>
     <dt>Deadline HĐ</dt><dd>${dmy(t.deadline)}</dd><dt>Trạng thái</dt><dd>${stPill(t.status)} <span class="small muted">${esc(t.src)}</span></dd><dt>Cập nhật</dt><dd>${esc(t.upd||"–")}</dd>
-    <dt>Kết quả đầu ra</dt><dd>${esc(c.result||"–")}</dd><dt>Minh chứng</dt><dd>${esc(c.evidence||"–")}</dd><dt>Workload</dt><dd>${t.wl??"–"}</dd>
+    <dt>Kết quả đầu ra</dt><dd>${esc(c.result||"–")}</dd><dt>Workload</dt><dd>${t.wl??"–"}</dd>
     <dt>Ghi chú TrP</dt><dd>${esc(t.note||"–")}</dd></div>`});
 }
 

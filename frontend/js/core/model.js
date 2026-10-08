@@ -41,7 +41,9 @@ function derive(){
       const src = le ? "Tuần "+isoWeek(le.week) : "";
       const ms = le ? (le.ms ?? null) : (t.init ? t.init.ms ?? null : null);
       const nn = le ? (le.nn||"") : (t.init ? t.init.nn||"" : "");
-      const upd = la ? [la.work, la.note].filter(Boolean).join(" · ") : "";
+      /* "Cập nhật": luôn hiện tuần/ngày nhân viên lưu lần gần nhất, dù không gõ "Việc đã làm"/"Vướng mắc" */
+      const updText = la ? [la.work, la.note].filter(Boolean).join(" · ") : "";
+      const upd = la ? `Tuần ${isoWeek(la.week)} · ${dmy(la.week)}` + (updText ? " · "+updText : "") : "";
       const lastWeek = la ? la.week : null;
       const done = status==="Hoàn thành" ? (doneWk.get(k) || null) : null;
       const ontime = done && t.deadline ? (done <= t.deadline) : null;

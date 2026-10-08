@@ -220,6 +220,12 @@ app.post("/api/restore", auth, adminOnly, A(async (req, res) => {
   res.status(204).end();
 }));
 
+/* --- nhật ký cập nhật (trưởng phòng) – lưu vết ai sửa/xoá gì và lúc nào, kể cả Nhập theo tuần --- */
+app.get("/api/audit", auth, adminOnly, A(async (req, res) => {
+  const rows = await store.listAudit(Math.min(Number(req.query.limit) || 200, 1000));
+  res.json(rows);
+}));
+
 /* --- quản lý tài khoản (trưởng phòng) --- */
 app.get("/api/users", auth, adminOnly, A(async (req, res) => {
   res.json((await store.listUsers()).map(publicUser));

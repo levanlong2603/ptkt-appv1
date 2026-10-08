@@ -48,7 +48,7 @@ async function connectServer(){
 }
 function startSession(user){
   if(S.db && S.db.close) S.db.close();
-  S.user = user; S.server = true; S.canEdit = user.role==="admin"; S.users = null;
+  S.user = user; S.server = true; S.canEdit = user.role==="admin"; S.users = null; S.audit = null;
   if(user.role!=="admin"){ S.me = user.staff_name || ""; } else if(!S.me && user.staff_name){ S.me = user.staff_name; }
   const db = makeServerDb(); S.db = db; S.conn = "on"; S.loaded = false; setConn();
   const onErr = () => {};
@@ -150,5 +150,22 @@ function usersPanel(){
     ${S.users.map(u=>`<tr class="click" data-act="edituser" data-id="${u.id}" tabindex="0"><td class="cell-main">${esc(u.username)}</td><td>${esc(u.display_name)}</td><td>${esc(u.staff_name||"–")}</td>
       <td>${u.role==="admin"?'<span class="pill info">Trưởng phòng</span>':'<span class="pill mute">Nhân viên</span>'}</td><td>${u.active?'<span class="pill ok">Hoạt động</span>':'<span class="pill bad">Khoá</span>'}</td></tr>`).join("")}
     </tbody></table></div><div class="panel-b small muted">Nhân viên cần được “gắn với nhân sự” để nhập theo tuần. Nhân viên chỉ sửa được dữ liệu tuần của chính mình và các dự án do mình tạo.</div></section>`;
+}
+/* ---------- nhật ký cập nhật: ai sửa/xoá gì và lúc nào (kể cả Nhập theo tuần), chỉ trưởng phòng xem ---------- */
+async function loadAudit(){
+  if(S.auditLoading) return; S.auditLoading = true;
+  try{ S.audit = await S.db.api("GET", "/api/audit?limit=200"); }catch(e){ S.audit = []; }
+  S.auditLoading = false; schedule();
+}
+const AUDIT_ACTION_LABEL = {set:"Lưu", delete:"Xoá", login:"Đăng nhập", "change-password":"Đổi mật khẩu", restore:"Khôi phục sao lưu", "user-create":"Tạo tài khoản", "user-update":"Sửa tài khoản"};
+function auditPanel(){
+  if(!(S.server && S.canEdit)) return "";
+  if(S.audit == null){ loadAudit(); return `<section class="panel" style="margin-bottom:18px"><div class="panel-h"><h2>Nhật ký cập nhật</h2></div><div class="empty">Đang tải…</div></section>`; }
+  return `<section class="panel" style="margin-bottom:18px"><div class="panel-h"><h2>Nhật ký cập nhật</h2><span class="muted small">${S.audit.length} dòng gần nhất</span></div>
+    <div class="tbl-wrap"><table><thead><tr><th style="min-width:140px">Thời điểm</th><th>Người thực hiện</th><th>Hành động</th><th>Dữ liệu</th></tr></thead><tbody>
+    ${S.audit.length ? S.audit.map(a=>`<tr><td class="small">${esc(new Date(a.ts).toLocaleString("vi-VN"))}</td><td>${esc(a.username||"–")}</td>
+      <td>${esc(AUDIT_ACTION_LABEL[a.action]||a.action)}</td><td class="small muted">${esc(a.path||"–")}</td></tr>`).join("")
+      : '<tr><td colspan="4" class="muted">Chưa có gì được ghi nhận.</td></tr>'}
+    </tbody></table></div><div class="panel-b small muted">Mỗi lần lưu hoặc xoá dữ liệu (kể cả Nhập theo tuần) đều được ghi lại thời điểm và người thực hiện.</div></section>`;
 }
 document.getElementById("userBox").addEventListener("click", e => { const b = e.target.closest("[data-uact]"); if(!b) return; if(b.dataset.uact==="pw") passwordForm(); else logout(); });
