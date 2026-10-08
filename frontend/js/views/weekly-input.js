@@ -141,6 +141,13 @@ function entryForm(entry){
       const i = list.findIndex(x=>x.id===v.id); const clean = {id:v.id, projectId:v.projectId, taskId:v.taskId, work:v.work||"", qm:v.qm||null, pt:v.pt||null, status:v.status||"", ms:v.ms??null, nn:v.nn||"", note:v.note||""};
       if(i>=0) list[i]=clean; else list.push(clean);
       await saveWeek(S.week, S.me, list); toast(isNew?"Đã thêm việc":"Đã lưu thay đổi");
+      /* Nhân viên tự đánh giá Độ phức tạp ngay trong tuần → đồng bộ về đúng đầu việc ở Kế hoạch dự án,
+         không chỉ dùng cho mỗi tuần này. Không chặn việc lưu tuần nếu đồng bộ thất bại (vd không đủ quyền). */
+      const taskRef = M.taskMap.get(v.projectId+"|"+v.taskId);
+      if(v.pt && taskRef && v.pt !== taskRef.t.pt){
+        try{ await S.db.api("PATCH", `/api/doc/projects/${v.projectId}/task-pt`, {taskId:v.taskId, pt:v.pt}); }
+        catch(e){ toast("Đã lưu việc trong tuần, nhưng không đồng bộ được độ phức tạp vào Kế hoạch dự án."); }
+      }
     },
     onDelete: isNew ? null : async () => {
       const doc = weekDoc(S.week, S.me); const list = (doc.entries||[]).filter(x=>x.id!==e.id);

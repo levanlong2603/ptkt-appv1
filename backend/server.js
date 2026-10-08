@@ -179,6 +179,31 @@ app.put("/api/doc/:coll/:id", auth, A(async (req, res) => {
   audit(req.user, "set", p); broadcast(coll);
   res.status(204).end();
 }));
+/* Đồng bộ "Độ phức tạp" từ Nhập theo tuần vào đúng đầu việc ở Kế hoạch dự án. Phạm vi hẹp có chủ đích:
+   chỉ sửa trường pt của một đầu việc, không đụng gì khác trong dự án — nên cho phép cả nhân viên chỉ là
+   phụ trách/phối hợp của đúng đầu việc đó (không cần là TM/SE/người tạo cả dự án) tự đánh giá độ khó
+   việc mình làm. Vẫn phải qua auth, không phải "ai cũng sửa được bất cứ gì". */
+app.patch("/api/doc/projects/:id/task-pt", auth, A(async (req, res) => {
+  const { id } = req.params;
+  const { taskId, pt } = req.body || {};
+  if (!ID_RE.test(id) || typeof taskId !== "string" || !(pt === null || (Number.isInteger(pt) && pt >= 1 && pt <= 5)))
+    return res.status(400).json({ error: "Dữ liệu không hợp lệ" });
+  const p = `projects/${id}`;
+  const ex = await store.getDoc(p);
+  if (!ex) return res.status(404).json({ error: "Không tìm thấy dự án" });
+  const body = JSON.parse(ex);
+  const task = (body.tasks || []).find(t => t.id === taskId);
+  if (!task) return res.status(404).json({ error: "Không tìm thấy đầu việc" });
+  const u = req.user;
+  const allowed = u.role === "admin" || body.created_by === u.username
+    || (u.staff_name && (body.owner === u.staff_name || body.se === u.staff_name))
+    || (u.staff_name && (task.owner === u.staff_name || task.collab === u.staff_name));
+  if (!allowed) return res.status(403).json({ error: "Bạn không có quyền sửa đầu việc này" });
+  task.pt = pt;
+  await store.upsertDoc(p, "projects", id, JSON.stringify(body), u.username);
+  audit(u, "set", p); broadcast("projects");
+  res.status(204).end();
+}));
 app.delete("/api/doc/:coll/:id", auth, A(async (req, res) => {
   const { coll, id } = req.params;
   if (!COLLECTIONS.has(coll) || !ID_RE.test(id)) return res.status(400).json({ error: "Đường dẫn không hợp lệ" });
