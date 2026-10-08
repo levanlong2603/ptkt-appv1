@@ -48,8 +48,8 @@ function viewExec(){
   const simAs = (S.canEdit && S.me && S.me!=="__all__") ? S.me : null;
   const staffList = simAs ? M.staff.filter(s=>s.name===simAs) : M.staff;
   const E = M.entries.filter(e=>inP.has(e.week) && (!simAs || e.person===simAs));
-  /* Đầu việc đã Hoàn thành/Hủy không tính vào workload, đồng bộ với loadFor() ở weekly-load.js */
-  const sumWl = arr => arr.reduce((a,e)=>a+(e.status==="Hoàn thành"||e.status==="Hủy"?0:(e.wl||0)),0);
+  /* Đầu việc Hủy không tính vào workload, đồng bộ với loadFor() ở weekly-load.js */
+  const sumWl = arr => arr.reduce((a,e)=>a+(e.status==="Hủy"?0:(e.wl||0)),0);
   const wl = sumWl(E);
   const capWeek = staffList.reduce((a,s)=>a+s.cap,0), cap = capWeek*nW;
   // people
