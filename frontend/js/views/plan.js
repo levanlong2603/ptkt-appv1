@@ -118,7 +118,7 @@ function planTreeRows(p, o={}){
 ACTIONS["tgl"] = el => { S.planTog = S.planTog || {}; S.planTog[el.dataset.key] = el.getAttribute("aria-expanded")!=="true"; render(); };
 function projectForm(p){
   const isNew = !p;
-  const v = p ? {...clean(p)} : {id:"", name:"", type:"Triển khai", owner:"", se:"", milestones:"", situation:"", gen:true};
+  const v = p ? {...clean(p)} : {id:"", name:"", type:"Triển khai", owner:"", se:"", milestones:"", situation:"", difficulty:1, gen:true};
   const staffOpts = [["",""],...M.staff.map(s=>[s.name,s.name])];
   openForm({
     title: isNew ? "Dự án mới" : "Sửa thông tin dự án", values:v,
@@ -129,6 +129,8 @@ function projectForm(p){
       {key:"se", label:"SE", type:"select", options:staffOpts},
       {key:"milestones", label:"Mốc hợp đồng / hạn nộp", type:"textarea"},
       {key:"situation", label:"Tình hình / vướng mắc chung", type:"textarea"},
+      {key:"difficulty", label:"Độ khó dự án", type:"seg", options:[[0.8,"Dễ"],[1,"Trung bình"],[1.3,"Khó"],[1.6,"Cực khó"]],
+        hint:v=>({0.8:"Dự án mở rộng, chỉ giao hàng, không cần triển khai.",1:"Đã triển khai công nghệ này trước đây.",1.3:"Triển khai mới.",1.6:"Công nghệ mới, cần chuyên gia hỗ trợ."}[v]||"")},
       ...(isNew?[{key:"gen", label:"Tạo sẵn toàn bộ đầu việc theo quy trình của loại này", type:"check"}]:[])
     ],
     saveLabel: isNew ? "Tạo dự án" : "Lưu thay đổi",
@@ -138,10 +140,10 @@ function projectForm(p){
         let id = "p-"+slug(x.name); if(M.pById.get(id)) id += "-"+Math.random().toString(36).slice(2,5);
         const tasks = x.gen ? S.catalog.filter(c=>c.type===x.type && !/Việc khác/.test(c.name)).map((c,i)=>({id:"t"+String(i+1).padStart(3,"0"), dv:c.name, detail:"", owner:x.owner||"", collab:"", deadline:null, qm:null, pt:null, pr:"P2", init:{status:"",ms:null,nn:""}, note:"", eval:{}})) : [];
         const order = Math.max(0,...M.projects.map(q=>q.order||0))+1;
-        await saveProject({id, name:x.name.trim(), type:x.type, owner:x.owner||"", se:x.se||"", milestones:x.milestones||"", situation:x.situation||"", order, tasks});
+        await saveProject({id, name:x.name.trim(), type:x.type, owner:x.owner||"", se:x.se||"", milestones:x.milestones||"", situation:x.situation||"", difficulty:x.difficulty||1, order, tasks});
         S.planSel = id; toast(`Đã tạo dự án${tasks.length?" với "+tasks.length+" đầu việc":""}`);
       } else {
-        await saveProject({...p, name:x.name.trim(), type:x.type, owner:x.owner||"", se:x.se||"", milestones:x.milestones||"", situation:x.situation||""}); toast("Đã lưu thông tin dự án");
+        await saveProject({...p, name:x.name.trim(), type:x.type, owner:x.owner||"", se:x.se||"", milestones:x.milestones||"", situation:x.situation||"", difficulty:x.difficulty||1}); toast("Đã lưu thông tin dự án");
       }
     },
     onDelete: (isNew || !canDeleteProject(p)) ? null : async () => { if(!confirm(`Xoá dự án “${p.name}” và toàn bộ đầu việc?`)) return false; await remove("projects/"+p.id); S.planSel=null; toast("Đã xoá dự án"); }
