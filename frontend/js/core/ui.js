@@ -9,7 +9,9 @@ function renderNav(){
   const sel = document.getElementById("meSel");
   sel.disabled = !!(S.user && S.user.role!=="admin");
   const names = S.staff.map(s=>s.name);
-  sel.innerHTML = '<option value="">— chọn tên —</option>' + names.map(n=>`<option ${n===S.me?"selected":""}>${esc(n)}</option>`).join("");
+  /* "Tất cả" chỉ dành cho trưởng phòng: xem gộp dữ liệu mọi người thay vì theo một cá nhân */
+  const allOpt = (S.user && S.user.role==="admin") ? `<option value="__all__" ${S.me==="__all__"?"selected":""}>— Tất cả —</option>` : "";
+  sel.innerHTML = `<option value="">— chọn tên —</option>${allOpt}` + names.map(n=>`<option ${n===S.me?"selected":""}>${esc(n)}</option>`).join("");
 }
 document.getElementById("nav").addEventListener("click", e => { const b=e.target.closest("button[data-view]"); if(!b) return; S.view=b.dataset.view; store("view",S.view); render(); document.getElementById("main").scrollTop=0; });
 document.getElementById("meSel").addEventListener("change", e => { S.me=e.target.value; store("me",S.me); render(); });

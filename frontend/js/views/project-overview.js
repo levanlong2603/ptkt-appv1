@@ -2,13 +2,16 @@
 /* Màn hình: dashboard */
 /* ================= VIEW: dashboard ================= */
 function viewDash(){
-  const P = M.projects.filter(p => p.type!=="Nội bộ");
-  const allT = M.tasks.filter(t=>t.p.type!=="Nội bộ");
+  /* Trưởng phòng chọn một người cụ thể ở "Tôi là" (không phải "Tất cả") → chỉ thấy dự án người đó là TM/SE,
+     như đang xem thay họ. Tài khoản nhân viên tự đăng nhập thì không bị thu hẹp, vẫn thấy cả phòng. */
+  const simAs = (S.canEdit && S.me && S.me!=="__all__") ? S.me : null;
+  const P = M.projects.filter(p => p.type!=="Nội bộ" && (!simAs || projectAssigned(p, simAs)));
+  const allT = M.tasks.filter(t=>t.p.type!=="Nội bộ" && (!simAs || projectAssigned(t.p, simAs)));
   const late = allT.filter(t=>t.warns.some(w=>w[1]==="Quá hạn"));
   const soon = allT.filter(t=>t.warns.some(w=>w[1]==="Sắp đến hạn"));
   const stuck = allT.filter(t=>OPEN.has(t.status) && (t.status==="Đang vướng"||(t.ms||0)>=1));
   const running = t => P.filter(p=>p.type===t && (p._prog==null || p._prog<1)).length;
-  let h = `<div class="head"><div><h1>Tổng quan dự án</h1><div class="sub">Cập nhật ${dmy(M.today)} · tiến độ tính theo workload các đầu việc đã hoàn thành</div></div>
+  let h = `<div class="head"><div><h1>Tổng quan dự án</h1><div class="sub">Cập nhật ${dmy(M.today)} · tiến độ tính theo workload các đầu việc đã hoàn thành${simAs?` · đang xem riêng: ${esc(simAs)}`:""}</div></div>
     <div class="chips" role="group" aria-label="Lọc theo loại">${PLAN_FILTERS.map(f=>`<button class="chip-btn" data-act="tf" data-t="${esc(f.key)}" aria-pressed="${S.typeFilter===f.key}">${esc(f.label)}</button>`).join("")}</div></div>`;
   h += `<div class="band">
     <div class="stat"><div class="v">${running("Triển khai")}</div><div class="l">${typeDot("Triển khai")}Dự án triển khai đang chạy</div></div>

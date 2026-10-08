@@ -4,9 +4,10 @@
 function viewInput(){
   const w = S.week;
   let h = `<div class="head"><div><h1>Nhập theo tuần</h1><div class="sub">Mỗi đầu việc làm trong tuần là một dòng · trạng thái cuối tuần tự cập nhật về kế hoạch dự án</div></div>${weekNav()}</div>`;
+  if(S.me==="__all__") return h + viewInputAll(w);
   if(!S.me && S.user && S.user.role!=="admin") return h + `<section class="panel"><div class="empty"><b>Tài khoản chưa gắn với nhân sự</b>Nhờ trưởng phòng vào Cài đặt → Tài khoản đăng nhập để gắn tài khoản của bạn với tên nhân sự.</div></section>`;
   if(!S.me) return h + `<section class="panel"><div class="empty"><b>Chọn tên của bạn</b>Chọn tên ở mục “Tôi là” (góc dưới thanh bên) để nhập công việc của mình.</div>
-    <div class="panel-b" style="text-align:center"><select class="inp" style="max-width:280px" data-act="pickme"><option value="">— chọn tên —</option>${M.staff.map(s=>`<option>${esc(s.name)}</option>`).join("")}</select></div></section>`;
+    <div class="panel-b" style="text-align:center"><select class="inp" style="max-width:280px" data-act="pickme"><option value="">— chọn tên —</option><option value="__all__">— Tất cả —</option>${M.staff.map(s=>`<option>${esc(s.name)}</option>`).join("")}</select></div></section>`;
   const st = M.staff.find(s=>s.name===S.me) || {cap:0};
   const L = loadFor(S.me, w); const u = st.cap ? L.wl/st.cap : null;
   const prev = weekDoc(addDays(w,-7), S.me);
@@ -20,6 +21,33 @@ function viewInput(){
   if(!L.es.length) return h + `<section class="panel"><div class="empty"><b>Chưa có việc nào trong tuần ${isoWeek(w)}</b>Thêm việc bạn làm trong tuần, hoặc chép các việc dở dang từ tuần trước.</div></section>`;
   return h + `<section class="panel tbl-wrap"><table style="table-layout:fixed"><thead><tr><th style="width:20%">Đầu việc</th><th style="width:20%">Việc đã làm</th><th style="width:8%; text-align:center">Quy mô</th><th style="width:10%; text-align:center">Workload</th><th style="width:14%">Trạng thái cuối tuần</th><th style="width:12%">Ma sát</th><th style="width:16%">Vướng / cần hỗ trợ</th></tr></thead><tbody>${inputTreeRows(L.es)}</tbody></table></section>
     <p class="small muted">Bấm vào một dòng để sửa hoặc xoá.</p>`;
+}
+/* "Tất cả" (chỉ trưởng phòng): liệt kê gộp việc đã nhập của mọi người trong tuần, gom theo người. Chỉ xem, không sửa ở đây –
+   muốn sửa một dòng, chọn đúng tên người đó ở "Tôi là". */
+function viewInputAll(w){
+  const es = M.entries.filter(e=>e.week===w);
+  if(!es.length) return `<section class="panel"><div class="empty"><b>Chưa có ai nhập việc trong tuần ${isoWeek(w)}</b></div></section>`;
+  const byPerson = new Map();
+  for(const e of es){ if(!byPerson.has(e.person)) byPerson.set(e.person, []); byPerson.get(e.person).push(e); }
+  const people = [...byPerson.keys()].sort((a,b)=>a.localeCompare(b,"vi"));
+  let rows = "";
+  for(const person of people){
+    const pes = byPerson.get(person), wl = pes.reduce((a,e)=>a+(e.wl||0),0);
+    rows += inputGroupRow(0, person, `${pes.length} đầu việc · ${fmt1(wl)} điểm`, 6);
+    for(const e of pes) rows += inputAllRow(e);
+  }
+  return `<section class="panel tbl-wrap"><table style="table-layout:fixed"><thead><tr><th style="width:30%">Đầu việc</th><th style="width:18%">Việc đã làm</th><th style="width:8%; text-align:center">Quy mô</th><th style="width:10%; text-align:center">Workload</th><th style="width:14%">Trạng thái cuối tuần</th><th style="width:20%">Ma sát / vướng mắc</th></tr></thead><tbody>${rows}</tbody></table></section>
+    <p class="small muted">Chỉ xem. Muốn sửa một dòng, chọn đúng tên người đó ở “Tôi là”.</p>`;
+}
+function inputAllRow(e){
+  const name = e.ref ? planShortName(e.ref.t.dv) : "(đầu việc đã xoá)";
+  const proj = (M.pById.get(e.projectId)||{}).name || "(dự án đã xoá)";
+  return `<tr title="${e.ref?esc(e.ref.t.dv):""}">
+    <td style="padding-left:32px"><div class="small muted">${esc(proj)}</div><div class="cell-main">${esc(name)}</div></td>
+    <td>${e.work?esc(e.work):'<span class="muted">–</span>'}</td>
+    <td style="text-align:center">${e.qm?e.qm:"–"}</td><td style="text-align:center">${e.wl!=null?e.wl:"–"}</td>
+    <td>${e.status?stPill(e.status):"–"}</td>
+    <td>${e.ms!=null&&e.ms!==""?`<span class="pill ${e.ms>=3?"bad":e.ms>=1?"warn":"mute"}">${e.ms}</span> `:""}${esc(e.nn||"")}${e.note?` · ${esc(e.note)}`:""}</td></tr>`;
 }
 /* Nhóm các dòng đã nhập theo Dự án → hạng mục (giống cây ở Kế hoạch dự án), gấp/mở được */
 /* Màu viền trái theo cấp: đậm dần khi lên cấp cha, để nhìn ra ngay phân cấp mà không cần gấp/mở */
@@ -36,11 +64,11 @@ function inputRow(e, lvl=1){
 }
 /* Dòng nhóm tĩnh (không gấp/mở) cho cây ở Nhập theo tuần – luôn hiện hết vì mỗi tuần thường chỉ có ít việc.
    Dòng dự án chỉ ghi tên (không ghi số đầu việc); số đầu việc chỉ ghi ở dòng hạng mục. */
-function inputGroupRow(lvl, title, meta){
+function inputGroupRow(lvl, title, meta, cols=7){
   const bg = lvl===0 ? "color-mix(in srgb, var(--teal) 14%, var(--surface))" : "color-mix(in srgb, var(--teal) 6%, var(--surface))";
   const text = lvl===0 ? `<span style="font-weight:700; font-size:14.5px">${esc(title)}</span>`
     : `<span style="font-weight:650; color:var(--ink); font-size:13.5px">${esc(title)}</span> <span class="small muted">· ${esc(meta)}</span>`;
-  return `<tr><td colspan="7" style="background:${bg}; border-left:4px solid ${INPUT_LVL_BORDER[lvl]}; padding:${lvl?6:10}px 10px ${lvl?6:10}px ${10+lvl*22}px">${text}</td></tr>`;
+  return `<tr><td colspan="${cols}" style="background:${bg}; border-left:4px solid ${INPUT_LVL_BORDER[lvl]}; padding:${lvl?6:10}px 10px ${lvl?6:10}px ${10+lvl*22}px">${text}</td></tr>`;
 }
 function inputTreeRows(es){
   const byProj = new Map();

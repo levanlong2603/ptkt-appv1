@@ -6,9 +6,10 @@
 function canManageProject(p){ return !!p && (S.canEdit || (!!S.user && (p.created_by === S.user.username || projectAssigned(p, S.user.staff_name)))); }
 function canDeleteProject(p){ return !!p && (S.canEdit || (!!S.user && p.created_by === S.user.username)); }
 function viewPlan(){
-  /* Nhân viên chỉ thấy dự án mình là TM (phụ trách) hoặc SE ở đây; trưởng phòng thấy mọi dự án.
-     Muốn xem toàn bộ dự án của phòng (chỉ xem, không sửa) thì vào Tổng quan dự án. */
-  const ps = S.canEdit ? M.projects : M.projects.filter(p=>projectAssigned(p, S.user&&S.user.staff_name));
+  /* Góc nhìn theo "Tôi là": chọn một người (kể cả khi tài khoản là trưởng phòng) thì chỉ thấy dự án
+     người đó là TM (phụ trách) hoặc SE. Chọn "Tất cả" (chỉ trưởng phòng chọn được) hoặc chưa gắn với
+     ai thì thấy mọi dự án. Muốn xem toàn bộ dự án của phòng mà không đổi "Tôi là" thì vào Tổng quan dự án. */
+  const ps = (!S.me || S.me==="__all__") ? M.projects : M.projects.filter(p=>projectAssigned(p, S.me));
   const filt = S.typeFilter || "Tất cả";
   const q = S.planQuery.toLowerCase();
   const pool = ps.filter(p=>planMatchFilter(p, filt) && (!q || p.name.toLowerCase().includes(q)))
@@ -43,7 +44,7 @@ function viewPlan(){
     }
     body += `</section>`;
   }
-  if(!body) body = `<section class="panel"><div class="empty"><b>${ps.length?"Không có dự án nào trong bộ lọc này":"Chưa có dự án"}</b>${!ps.length ? (S.canEdit?"Bấm “+ Dự án mới” để tạo dự án và các đầu việc theo quy trình.":"Bạn chưa được gán làm TM hoặc SE của dự án nào. Xem toàn bộ dự án (chỉ xem) ở mục Tổng quan dự án.") : ""}</div></section>`;
+  if(!body) body = `<section class="panel"><div class="empty"><b>${ps.length?"Không có dự án nào trong bộ lọc này":"Chưa có dự án"}</b>${!ps.length ? (S.canEdit?`“${esc(S.me)}” chưa được gán làm TM hoặc SE của dự án nào. Đổi “Tôi là” thành “— Tất cả —” để xem hết, hoặc bấm “+ Dự án mới” để tạo.`:"Bạn chưa được gán làm TM hoặc SE của dự án nào. Xem toàn bộ dự án (chỉ xem) ở mục Tổng quan dự án.") : ""}</div></section>`;
   return h + body;
 }
 /* Bảng đầu việc đầy đủ, xổ ra ngay dưới dòng dự án khi bấm vào (giống cách mở rộng ở Tổng quan dự án) */

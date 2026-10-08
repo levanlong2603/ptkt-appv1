@@ -42,12 +42,17 @@ function viewExec(){
   const P = periodInfo(S.week, kind);
   const nW = Math.max(1, P.weeks.length);
   const inP = new Set(P.weeks);
-  const E = M.entries.filter(e=>inP.has(e.week));
+  /* Trưởng phòng chọn một người cụ thể ở "Tôi là" (không phải "Tất cả") → Dashboard chỉ tính theo
+     dự án người đó là TM/SE (cho công việc/dự án/ma sát) và theo workload của riêng người đó (cho
+     phần nguồn lực). Tài khoản nhân viên tự đăng nhập thì không bị thu hẹp, vẫn thấy cả phòng. */
+  const simAs = (S.canEdit && S.me && S.me!=="__all__") ? S.me : null;
+  const staffList = simAs ? M.staff.filter(s=>s.name===simAs) : M.staff;
+  const E = M.entries.filter(e=>inP.has(e.week) && (!simAs || e.person===simAs));
   const sumWl = arr => arr.reduce((a,e)=>a+(e.wl||0),0);
   const wl = sumWl(E);
-  const capWeek = M.staff.reduce((a,s)=>a+s.cap,0), cap = capWeek*nW;
+  const capWeek = staffList.reduce((a,s)=>a+s.cap,0), cap = capWeek*nW;
   // people
-  const people = M.staff.map(s => {
+  const people = staffList.map(s => {
     const es = E.filter(e=>e.person===s.name); const w = sumWl(es); const c = s.cap*nW; const u = c ? w/c : 0;
     const st = !es.length ? ["tg-gry","Chưa nhập"] : es.some(e=>e.wl==null) ? ["tg-gry","Thiếu quy mô"] : u>1 ? ["tg-red","Quá tải"] : u>=.8 ? ["tg-org","Tải cao"] : u>=.6 ? ["tg-grn","Bình thường"] : ["tg-grn","Còn khả năng"];
     return {s, w, c, u, st, n:es.length};
@@ -55,12 +60,12 @@ function viewExec(){
   const over = people.filter(p=>p.n && p.u>1).length, high = people.filter(p=>p.n && p.u>=.8 && p.u<=1).length, low = people.filter(p=>p.n && p.u<.8).length, none = people.filter(p=>!p.n).length;
   const U = cap ? wl/cap : 0;
   // tasks
-  const T = M.tasks.filter(t=>t.p.type!=="Nội bộ");
+  const T = M.tasks.filter(t=>t.p.type!=="Nội bộ" && (!simAs || projectAssigned(t.p, simAs)));
   const active = T.filter(t=>t.status==="Đang làm"||t.status==="Đang vướng");
   const isLate = t => t.warns.some(w=>w[1]==="Quá hạn"), isSoon = t => t.warns.some(w=>w[1]==="Sắp đến hạn");
   const aLate = active.filter(isLate).length, aSoon = active.filter(t=>!isLate(t)&&isSoon(t)).length, aOk = active.length-aLate-aSoon;
   // projects & risk
-  const runP = M.projects.filter(p=>p.type!=="Nội bộ" && (p.tasks||[]).length && (p._prog==null || p._prog<1));
+  const runP = M.projects.filter(p=>p.type!=="Nội bộ" && (p.tasks||[]).length && (p._prog==null || p._prog<1) && (!simAs || projectAssigned(p, simAs)));
   const risk = p => (p._late>0 || p._maxms>=4) ? ["tg-red","Cao",3] : (p._soon>0 || p._stuck>0 || p._maxms>=2) ? ["tg-org","Trung bình",2] : ["tg-grn","Thấp",1];
   const rHigh = runP.filter(p=>risk(p)[2]===3).length, rMid = runP.filter(p=>risk(p)[2]===2).length, rLow = runP.length-rHigh-rMid;
   // friction
@@ -70,7 +75,7 @@ function viewExec(){
   const causeCol = [EXC.orange, EXC.yellow, EXC.red];
 
   let h = `<div class="ex">
-  <div class="ex-top"><div class="ex-logo">NGSI</div><div class="ex-title"><b>PHÒNG KỸ THUẬT</b><span>Quản trị công việc và nguồn lực</span></div>
+  <div class="ex-top"><div class="ex-logo">NGSI</div><div class="ex-title"><b>PHÒNG KỸ THUẬT</b><span>Quản trị công việc và nguồn lực${simAs?` · đang xem riêng: ${esc(simAs)}`:""}</span></div>
     <div class="ex-ctl"><div class="ex-wk"><button data-act="exnav" data-d="-1" aria-label="Kỳ trước">‹</button><div class="lb">${esc(P.label)}</div><button data-act="exnav" data-d="1" aria-label="Kỳ sau">›</button></div>
       <div class="ex-seg" role="group" aria-label="Kỳ báo cáo">${[["week","Tuần"],["month","Tháng"],["quarter","Quý"]].map(([k,l])=>`<button data-act="exper" data-k="${k}" aria-pressed="${kind===k}">${l}</button>`).join("")}</div>
       <div class="ex-seg"><button data-act="present" aria-pressed="false">${document.body.classList.contains("present")?"Thoát trình chiếu":"Trình chiếu"}</button></div></div></div>`;
@@ -92,7 +97,7 @@ function viewExec(){
     .sort((a,b)=>(prRank[a.pr]||9)-(prRank[b.pr]||9) || String(a.deadline||"9999").localeCompare(String(b.deadline||"9999")));
   const utilColor = u => u>1?EXC.red:u>=.8?EXC.orange:EXC.teal;
   h += `<div class="ex-row ex-r2">
-    <div class="ex-card"><div class="ex-h"><h3>TÌNH TRẠNG NGUỒN LỰC NHÂN VIÊN <span class="muted" style="font-weight:500">(${M.staff.length} người)</span></h3><button class="lnk" data-act="golo">Xem chi tiết ›</button></div>
+    <div class="ex-card"><div class="ex-h"><h3>TÌNH TRẠNG NGUỒN LỰC NHÂN VIÊN <span class="muted" style="font-weight:500">(${people.length} người)</span></h3><button class="lnk" data-act="golo">Xem chi tiết ›</button></div>
       <div class="ex-scroll"><table class="ex-t"><thead><tr><th class="c">#</th><th>Nhân viên</th><th class="c">Capacity<br>(điểm)</th><th class="c">Workload<br>(điểm)</th><th>Mức sử dụng</th><th class="c">Trạng thái</th></tr></thead><tbody>
       ${people.map((p,i)=>`<tr><td class="c">${i+1}</td><td>${esc(p.s.name)}</td><td class="c">${fmt1(p.c)}</td><td class="c">${fmt1(p.w)}</td>
         <td><div class="ex-ubar"><div class="t"><i style="width:${Math.min(100,p.u*100)}%; background:${utilColor(p.u)}"></i></div><b style="color:${p.u>1?EXC.red:"inherit"}">${p.n?pct(p.u):"–"}</b></div></td>

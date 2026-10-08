@@ -9,7 +9,11 @@ function loadFor(name, week){
 }
 function viewLoad(){
   const w = S.week;
-  const rows = M.staff.map(s => {
+  /* Trưởng phòng chọn một người cụ thể ở "Tôi là" (không phải "Tất cả") → trang này chỉ còn tính riêng người đó,
+     như đang xem thay họ. Tài khoản nhân viên tự đăng nhập thì không bị thu hẹp, vẫn thấy cả phòng như trước. */
+  const simAs = (S.canEdit && S.me && S.me!=="__all__") ? S.me : null;
+  const staffList = simAs ? M.staff.filter(s=>s.name===simAs) : M.staff;
+  const rows = staffList.map(s => {
     const L = loadFor(s.name, w);
     const u = s.cap ? L.wl/s.cap : null;
     const hist = [-21,-14,-7,0].map(d => { const x=loadFor(s.name, addDays(w,d)); return x.es.length && s.cap ? x.wl/s.cap : null; });
@@ -18,11 +22,11 @@ function viewLoad(){
   });
   const entered = rows.filter(r=>r.L.es.length);
   const capE = entered.reduce((a,r)=>a+r.s.cap,0), wlE = entered.reduce((a,r)=>a+r.L.wl,0);
-  const wkE = M.entries.filter(e=>e.week===w);
+  const wkE = M.entries.filter(e=>e.week===w && (!simAs || e.person===simAs));
   const done = wkE.filter(e=>e.status==="Hoàn thành").length;
   const blocked = wkE.filter(e=>e.status==="Đang vướng" || (e.ms||0)>=3);
   const over = rows.filter(r=>r.u>1).length;
-  let h = `<div class="head"><div><h1>Tải tuần</h1><div class="sub">Workload từng người trong tuần, so với capacity · nguồn: dữ liệu nhập theo tuần</div></div>${weekNav()}</div>`;
+  let h = `<div class="head"><div><h1>Tải tuần</h1><div class="sub">Workload từng người trong tuần, so với capacity · nguồn: dữ liệu nhập theo tuần${simAs?` · đang xem riêng: ${esc(simAs)}`:""}</div></div>${weekNav()}</div>`;
   const uAll = capE ? wlE/capE : null;
   h += `<div class="band">
     <div class="stat ${uAll>1?"bad":uAll>=.8?"warn":uAll!=null?"ok":""}"><div class="v">${pct(uAll)}</div><div class="l">Mức sử dụng (người đã nhập)</div></div>
