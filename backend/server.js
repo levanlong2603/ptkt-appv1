@@ -190,10 +190,16 @@ app.put("/api/doc/:coll/:id", auth, A(async (req, res) => {
   if (!canWrite(req.user, coll, id, body, exBody, "write")) return res.status(403).json({ error: "Bạn không có quyền sửa phần này" });
   if (coll === "projects") {
     body.created_by = exBody ? (exBody.created_by ?? null) : req.user.username;
-    // Đánh giá khi hoàn thành (task.eval) chỉ trưởng phòng được ghi; nhân viên gửi gì cũng giữ nguyên giá trị cũ
+    // Đánh giá khi hoàn thành (task.eval) và Ghi chú của trưởng phòng (task.note) chỉ trưởng phòng
+    // được ghi; nhân viên gửi gì cũng giữ nguyên giá trị cũ (ẩn/khoá ô nhập ở giao diện chỉ là gợi ý,
+    // quyền thật sự phải chặn ở đây)
     if (req.user.role !== "admin" && exBody) {
       const exTasks = new Map((exBody.tasks || []).map(t => [t.id, t]));
-      for (const t of body.tasks || []) t.eval = (exTasks.get(t.id) || {}).eval ?? {};
+      for (const t of body.tasks || []) {
+        const ex = exTasks.get(t.id) || {};
+        t.eval = ex.eval ?? {};
+        t.note = ex.note ?? "";
+      }
     }
   }
   if (coll === "feedback") {

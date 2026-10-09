@@ -94,17 +94,18 @@ function openForm(cfg){
     const id = "f_"+f.key, v = vals[f.key];
     const hint = typeof f.hint==="function" ? f.hint(v, vals) : (f.hint||"");
     let ctl = "";
-    if(f.type==="text"||f.type==="number"||f.type==="password") ctl = `<input class="inp" id="${id}" type="${f.type==="number"?"number":f.type==="password"?"password":"text"}" ${f.type==="password"?'autocomplete="new-password"':""} value="${esc(v??"")}" ${f.required?"required":""}>`;
-    else if(f.type==="date") ctl = `<input class="inp" id="${id}" type="date" value="${esc(v||"")}">`;
-    else if(f.type==="textarea") ctl = `<textarea class="inp" id="${id}">${esc(v||"")}</textarea>`;
-    else if(f.type==="check") ctl = `<label style="display:flex;gap:8px;align-items:center;font-weight:500;color:var(--ink)"><input type="checkbox" id="${id}" ${v?"checked":""}> ${esc(f.label)}</label>`;
+    const dis = f.disabled ? "disabled" : "";
+    if(f.type==="text"||f.type==="number"||f.type==="password") ctl = `<input class="inp" id="${id}" type="${f.type==="number"?"number":f.type==="password"?"password":"text"}" ${f.type==="password"?'autocomplete="new-password"':""} value="${esc(v??"")}" ${f.required?"required":""} ${dis}>`;
+    else if(f.type==="date") ctl = `<input class="inp" id="${id}" type="date" value="${esc(v||"")}" ${dis}>`;
+    else if(f.type==="textarea") ctl = `<textarea class="inp" id="${id}" ${dis}>${esc(v||"")}</textarea>`;
+    else if(f.type==="check") ctl = `<label style="display:flex;gap:8px;align-items:center;font-weight:500;color:var(--ink)"><input type="checkbox" id="${id}" ${v?"checked":""} ${dis}> ${esc(f.label)}</label>`;
     else if(f.type==="select"){
       /* options: mảng [giá trị, nhãn], hoặc {group:"Tên nhóm", options:[[giá trị, nhãn], …]} để gom theo nhóm */
       const opts = optsOverride[f.key] || f.options;
       const optHTML = o => `<option value="${esc(o[0]??"")}" ${String(o[0]??"")===String(v??"")?"selected":""}>${esc(o[1])}</option>`;
       const hasPlaceholder = opts.some(o=>!o.group && (o[0]===""||o[0]==null));
       const body = opts.map(o => o.group ? `<optgroup label="${esc(o.group)}">${o.options.map(optHTML).join("")}</optgroup>` : optHTML(o)).join("");
-      ctl = `<select class="inp" id="${id}">${hasPlaceholder?"":'<option value="">— chọn —</option>'}${body}</select>`;
+      ctl = `<select class="inp" id="${id}" ${dis}>${hasPlaceholder?"":'<option value="">— chọn —</option>'}${body}</select>`;
     }
     else if(f.type==="seg") ctl = `<div class="seg-in" role="group" aria-label="${esc(f.label)}">${f.options.map(o=>`<button type="button" data-k="${f.key}" data-v="${esc(JSON.stringify(o[0]))}" aria-pressed="${JSON.stringify(o[0]??null)===JSON.stringify(v??null)}" ${f.disabled?"disabled":""}>${esc(o[1])}</button>`).join("")}</div>`;
     return `<div class="field" ${f.half?'data-half="1"':""} data-field="${f.key}">${f.type==="check"?"":`<label for="${id}">${esc(f.label)}${f.required?' <span style="color:var(--bad)">*</span>':""}</label>`}${ctl}${hint!==""?`<div class="hint" data-hint="${f.key}">${esc(hint)}</div>`:`<div class="hint" data-hint="${f.key}"></div>`}</div>`;
