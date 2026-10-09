@@ -43,12 +43,15 @@ if (JWT_SECRET.length < 32) {
  *                   XOÁ cả dự án (DELETE) thì chỉ người tạo mới được, kể cả là TM/SE.
  *                   Riêng "Đánh giá khi hoàn thành" (task.eval) chỉ trưởng phòng ghi được;
  *                   nhân viên gửi gì cũng bị máy chủ giữ nguyên giá trị cũ (xem route PUT /api/doc/projects/:id)
+ *   "own"         : ai cũng tạo mới được (PUT lên id chưa tồn tại); sửa/xoá thì chỉ người tạo
+ *                   (created_by, máy chủ ghi) hoặc trưởng phòng mới được.
  * Mọi tài khoản đã đăng nhập đều ĐỌC được tất cả.
  */
 const RULES = {
   config: "admin",          // config/staff (nhân sự), config/catalog (đầu việc chuẩn)
   projects: "own-project",  // projects/<mã dự án>  (thông tin dự án + đầu việc)
   weeks: "own-week",        // weeks/<thứ 2 của tuần>__<tên>  (dữ liệu nhập theo tuần)
+  feedback: "own",          // feedback/<id>  (góp ý, yêu cầu cải tiến)
 };
 const COLLECTIONS = new Set(Object.keys(RULES));
 const ID_RE = /^[A-Za-z0-9_\-.~:@+]{1,200}$/;
@@ -162,6 +165,10 @@ function canWrite(user, coll, id, body, existing, op = "write") {
     if (op === "write" && user.staff_name && (existing.owner === user.staff_name || existing.se === user.staff_name)) return true;
     return false;
   }
+  if (rule === "own") {
+    if (!existing) return true; // ai cũng tạo mới được
+    return existing.created_by === user.username;
+  }
   if (rule !== "own-week" || !user.staff_name) return false;
   const check = b => b && b.person === user.staff_name && id === `${b.week}__${slug(b.person)}`;
   if (existing && !check(existing)) return false;
@@ -188,6 +195,12 @@ app.put("/api/doc/:coll/:id", auth, A(async (req, res) => {
       const exTasks = new Map((exBody.tasks || []).map(t => [t.id, t]));
       for (const t of body.tasks || []) t.eval = (exTasks.get(t.id) || {}).eval ?? {};
     }
+  }
+  if (coll === "feedback") {
+    // created_by/person/createdAt luôn do máy chủ ghi, không nhận từ client, và không đổi được sau khi tạo
+    body.created_by = exBody ? exBody.created_by : req.user.username;
+    body.person = exBody ? exBody.person : (req.user.staff_name || req.user.display_name || req.user.username);
+    body.createdAt = exBody ? exBody.createdAt : new Date().toISOString();
   }
   await store.upsertDoc(p, coll, id, JSON.stringify(body), req.user.username);
   audit(req.user, "set", p); broadcast(coll);

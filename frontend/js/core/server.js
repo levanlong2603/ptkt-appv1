@@ -90,7 +90,7 @@ function hideLogin(){ const w = document.getElementById("loginWrap"); if(w) w.re
 async function logout(msg){
   stopIdleTimer();
   try{ await fetch("/api/logout", {method:"POST", credentials:"same-origin"}); }catch(e){}
-  S.user = null; S.staff=[]; S.catalog=[]; S.projects=[]; S.weeks=[]; S.loaded=false;
+  S.user = null; S.staff=[]; S.catalog=[]; S.projects=[]; S.weeks=[]; S.feedback=[]; S.loaded=false;
   document.getElementById("userBox").hidden = true; showLogin(msg);
 }
 /* ---------- tự đăng xuất khi không thao tác ---------- */

@@ -3,7 +3,7 @@
 /* ================= state ================= */
 const S = {
   db:null, user:null, canEdit:false, conn:"wait",
-  staff:[], catalog:[], projects:[], weeks:[],
+  staff:[], catalog:[], projects:[], weeks:[], feedback:[],
   view: store("view") || "exec", period:"week", exPr:"Tất cả",
   week: mondayOf(todayISO()),
   me: store("me") || "",
