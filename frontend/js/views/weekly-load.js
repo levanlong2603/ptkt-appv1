@@ -32,6 +32,12 @@ function viewLoad(){
   const done = wkE.filter(e=>e.status==="Hoàn thành").length;
   const blocked = wkE.filter(e=>e.status==="Đang vướng" || (e.ms||0)>=3);
   const over = rows.filter(r=>r.u>1).length;
+  /* Tỉ lệ hoàn thành = workload Hoàn thành / tổng workload trong tuần (Hủy không tính, giống loadFor()).
+     Tuần hiện tại: tính real-time, đổi theo mỗi lần ai đó cập nhật trạng thái. Tuần cũ: dữ liệu đã khoá
+     (nhân viên không sửa được nữa) nên tỉ lệ tự nhiên giữ nguyên như lúc tuần đó kết thúc, không cần xử lý
+     riêng. Chưa có dữ liệu thì để 0%, không lấy số của tuần trước để tránh nhầm lẫn. */
+  const ratioOf = es => { const doneWl=es.filter(e=>e.status==="Hoàn thành").reduce((a,e)=>a+(e.wl||0),0); const totalWl=es.filter(e=>e.status!=="Hủy").reduce((a,e)=>a+(e.wl||0),0); return {doneWl, totalWl, ratio: totalWl?doneWl/totalWl:0}; };
+  const meRatio = simAs ? ratioOf(wkE) : null;
   let h = `<div class="head"><div><h1>Tải tuần</h1>${simAs?`<div class="sub">Đang xem riêng: ${esc(simAs)}</div>`:""}</div>${weekNav()}</div>`;
   const uAll = capE ? wlE/capE : null;
   h += `<div class="band">
@@ -39,7 +45,7 @@ function viewLoad(){
     <div class="stat ${over?"bad":""}"><div class="v">${over}</div><div class="l">Người quá tải</div></div>
     <div class="stat ${rows.length-entered.length?"warn":""}"><div class="v">${rows.length-entered.length}</div><div class="l">Người chưa nhập tuần</div></div>
     <div class="stat"><div class="v">${fmt1(wlE)}</div><div class="l">Workload toàn phòng</div></div>
-    <div class="stat ok"><div class="v">${done}</div><div class="l">Đầu việc xong trong tuần</div></div>
+    <div class="stat ok"><div class="v">${done}${meRatio?` <span class="small muted">(${pct(meRatio.ratio)})</span>`:""}</div><div class="l">Đầu việc xong trong tuần</div></div>
     <div class="stat ${blocked.length?"bad":""}"><div class="v">${blocked.length}</div><div class="l">Đầu việc bị vướng</div></div></div>`;
   const maxScale = Math.max(1.5, ...rows.map(r=>r.u||0));
   const legend = `<div class="legend">${TYPES.map(t=>`<span>${typeDot(t)}${t}</span>`).join("")}<span><span class="tdot" style="background:transparent;border-left:2px dashed var(--ink-3)"></span>80%</span><span><span class="tdot" style="background:transparent;border-left:2px solid var(--bad)"></span>100%</span></div>`;
@@ -81,25 +87,15 @@ function viewLoad(){
     (blocked.length ? blocked.map(e=>`<div class="alert-item"><div class="small muted">${esc((M.pById.get(e.projectId)||{}).name||"")} · ${esc(e.person)}</div>
       <div class="cell-main">${esc(e.ref?e.ref.t.dv:"")}</div><div class="small" style="margin-top:4px">${e.ms!=null?`<span class="pill bad">Ma sát ${e.ms}</span> `:""}${e.nn?`<span class="pill mute">${esc(e.nn)}</span> `:""}<span class="muted">${esc(e.note||e.work||"")}</span></div></div>`).join("")
      : `<div class="muted small">Không có đầu việc nào bị vướng.</div>`) + `</div></section>`;
-  /* Tỉ lệ hoàn thành = workload Hoàn thành / tổng workload trong tuần (Hủy không tính, giống loadFor()).
-     Tuần hiện tại: tính real-time, đổi theo mỗi lần ai đó cập nhật trạng thái. Tuần cũ: dữ liệu đã khoá
-     (nhân viên không sửa được nữa) nên tỉ lệ tự nhiên giữ nguyên như lúc tuần đó kết thúc, không cần xử lý
-     riêng. Chưa có dữ liệu thì để 0%, không lấy số của tuần trước để tránh nhầm lẫn. */
-  const ratioOf = es => { const doneWl=es.filter(e=>e.status==="Hoàn thành").reduce((a,e)=>a+(e.wl||0),0); const totalWl=es.filter(e=>e.status!=="Hủy").reduce((a,e)=>a+(e.wl||0),0); return {doneWl, totalWl, ratio: totalWl?doneWl/totalWl:0}; };
-  let donePanel;
-  if(simAs){
-    const {doneWl, totalWl, ratio} = ratioOf(wkE);
-    donePanel = `<section class="panel" style="margin-top:18px"><div class="panel-h"><h2>Tỉ lệ hoàn thành công việc</h2><span class="muted small">workload Hoàn thành / tổng workload tuần</span></div>
-      <div class="panel-b"><div class="hbar"><span>Tuần ${isoWeek(w)}</span><div class="t"><i style="width:${Math.round(ratio*100)}%; background:var(--ok)"></i></div><span style="text-align:right">${pct(ratio)}</span></div>
-      <div class="small muted" style="margin-top:6px">${fmt1(doneWl)} / ${fmt1(totalWl)} giờ đã hoàn thành</div></div></section>`;
-  } else {
-    /* Xem "Tất cả": danh sách tỉ lệ hoàn thành của từng người thay vì 1 số gộp */
-    const perPerson = staffList.map(s => ({name:s.name, ...ratioOf(M.entries.filter(e=>e.person===s.name && e.week===w))}));
-    donePanel = `<section class="panel" style="margin-top:18px"><div class="panel-h"><h2>Tỉ lệ hoàn thành công việc</h2><span class="muted small">workload Hoàn thành / tổng workload tuần, theo từng người</span></div>
-      <div class="panel-b">` + (perPerson.length ? perPerson.map(r=>`<div class="hbar"><span>${esc(r.name)}</span><div class="t"><i style="width:${Math.round(r.ratio*100)}%; background:var(--ok)"></i></div><span style="text-align:right">${pct(r.ratio)}</span></div>`).join("")
-        : `<div class="muted small">Chưa có nhân sự.</div>`) + `</div></section>`;
-  }
-  return h + `<div class="grid2" style="margin-top:18px"><div>${left}</div><div>${right}</div></div>` + donePanel;
+  /* Xem riêng 1 người: tỉ lệ hoàn thành đã hiện ngay trong ô "Đầu việc xong trong tuần" (meRatio ở trên),
+     không cần bảng riêng nữa – chỉ còn 2 panel Công sức/Vướng như cũ.
+     Xem "Tất cả": vẫn cần bảng danh sách tỉ lệ hoàn thành của từng người, tách thành 2 cột. */
+  if(simAs) return h + `<div class="grid2" style="margin-top:18px"><div>${left}</div><div>${right}</div></div>`;
+  const perPerson = staffList.map(s => ({name:s.name, ...ratioOf(M.entries.filter(e=>e.person===s.name && e.week===w))}));
+  const donePanel = `<section class="panel"><div class="panel-h"><h2>Tỉ lệ hoàn thành công việc</h2><span class="muted small">workload Hoàn thành / tổng workload tuần, theo từng người</span></div>
+    <div class="panel-b">` + (perPerson.length ? perPerson.map(r=>`<div class="hbar"><span>${esc(r.name)}</span><div class="t"><i style="width:${Math.round(r.ratio*100)}%; background:var(--ok)"></i></div><span style="text-align:right">${pct(r.ratio)}</span></div>`).join("")
+      : `<div class="muted small">Chưa có nhân sự.</div>`) + `</div></section>`;
+  return h + `<div class="grid2" style="margin-top:18px"><div>${donePanel}</div><div>${left}<div style="margin-top:18px">${right}</div></div></div>`;
 }
 
 
