@@ -6,7 +6,6 @@ function derive(){
   const today = todayISO(), thisMon = mondayOf(today);
   const staff = S.staff.map(s => ({...s, cap: Math.round((+s.hours||0)*(1-(+s.pct||0))*(+s.factor||1)*10)/10}));
   const capOf = new Map(staff.map(s => [s.name, s.cap]));
-  const factorOf = new Map(staff.map(s => [s.name, +s.factor||1]));
   const projects = [...S.projects].sort((a,b)=>(a.order??999)-(b.order??999) || a.name.localeCompare(b.name,"vi"));
   const pById = new Map(projects.map(p => [p.id, p]));
   const taskMap = new Map();
@@ -16,9 +15,7 @@ function derive(){
   for(const w of S.weeks) for(const e of (w.entries||[])){
     const ref = taskMap.get(e.projectId+"|"+e.taskId);
     const pt = e.pt || (ref && ref.t.pt) || null;
-    const base = wlOf(e.qm, pt);
-    /* Chia cho hệ số năng lực của người nhập tuần: người giỏi hơn tốn ít giờ thực tế hơn cho cùng việc */
-    const wl = base!=null ? Math.round(base/(factorOf.get(w.person)||1)*10)/10 : null;
+    const wl = wlOf(e.qm, pt);
     entries.push({...e, week:w.week, person:w.person, docId:w._id, ref, wl, type: ref ? ref.p.type : (pById.get(e.projectId)||{}).type || "Nội bộ"});
   }
   // latest per task
@@ -37,11 +34,10 @@ function derive(){
       const k = p.id+"|"+t.id;
       const qm = t.qm, pt = t.pt;
       /* Workload (giờ) = số giờ đại diện của Quy mô × hệ số thời gian của Độ phức tạp (xem wlOf() ở
-         constants.js), rồi chia cho hệ số năng lực của người phụ trách (owner) — người giỏi hơn tốn ít
-         giờ thực tế hơn, người kém hơn tốn nhiều giờ hơn cho cùng một đầu việc.
+         constants.js) — không chia cho Hệ số năng lực nữa, vì hệ số đó đã nhân vào Capacity (cap ở trên)
+         rồi; chia thêm ở đây sẽ tính hệ số năng lực hai lần.
          "Độ khó dự án" (p.difficulty) chỉ là nhãn phân loại dự án, không tham gia công thức tính tải. */
-      const base = wlOf(qm, pt);
-      const wl = base!=null ? Math.round(base/(factorOf.get(t.owner)||1)*10)/10 : null;
+      const wl = wlOf(qm, pt);
       const le = latest.get(k), la = lastAny.get(k);
       const status = le ? le.status : (t.init && t.init.status) || "Chưa bắt đầu";
       const src = le ? "Tuần "+isoWeek(le.week) : "";

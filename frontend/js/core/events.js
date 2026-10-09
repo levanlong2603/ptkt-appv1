@@ -21,7 +21,7 @@ main.addEventListener("click", e => {
   else if(a==="goplan"){ S.planSel=t.dataset.id; S.typeFilter="Tất cả"; S.view="plan"; store("view","plan"); render(); }
   else if(a==="dashtask"){ const p=M.pById.get(t.dataset.pid); const tk=p&&p._tasks.find(x=>x.id===t.dataset.id); if(p&&tk) openInfo(p, tk); }
   else if(a==="addentry") entryForm(null);
-  else if(a==="editentry"){ const doc=weekDoc(S.week,S.me); const en=doc&&(doc.entries||[]).find(x=>x.id===t.dataset.id); if(en) entryForm(en); }
+  else if(a==="editentry"){ const person=t.dataset.person||S.me; const doc=weekDoc(S.week,person); const en=doc&&(doc.entries||[]).find(x=>x.id===t.dataset.id); if(en) entryForm(en, person); }
   else if(a==="copyprev") copyPrev();
   else if(a==="psel"){ S.planSel = S.planSel===t.dataset.id ? null : t.dataset.id; render(); }
   else if(a==="newp") projectForm(null);

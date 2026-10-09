@@ -181,8 +181,8 @@ function taskForm(p, t){
       {key:"collab", label:"Người phối hợp", type:"select", options:staffOpts, half:true},
       {key:"deadline", label:"Deadline theo HĐ", type:"date", half:true},
       {key:"pr", label:"Ưu tiên", type:"seg", options:["P1","P2","P3","P4"].map(x=>[x,x]), half:true},
-      {key:"qm", label:"Quy mô", type:"seg", options:[1,2,3,4,5].map(n=>[n,String(n)]), required:true, hint:v=>v?QM_HINT[v]:""},
-      {key:"pt", label:"Độ phức tạp (để trống = mặc định 1,0)", type:"seg", options:[[null,"Mặc định"],...[1,2,3,4,5].map(n=>[n,String(n)])], hint:v=>v?PT_HINT[v]:""},
+      {key:"qm", label:"Quy mô", type:"seg", options:[1,2,3,4,5].map(n=>[n,String(n)]), required:true, hint:v=>v?`${QM_HINT[v]} (≈${fmt1(QM_HOURS[v])}h)`:[1,2,3,4,5].map(n=>n+" = "+QM_HINT[n]+" (≈"+fmt1(QM_HOURS[n])+"h)").join(" · ")},
+      {key:"pt", label:"Độ phức tạp (để trống = mặc định 1,0)", type:"seg", options:[[null,"Mặc định"],...[1,2,3,4,5].map(n=>[n,String(n)])], hint:v=>v?`${PT_HINT[v]} (×${fmt1(PT_MULT[v])})`:""},
       {key:"st0", label:"Trạng thái ban đầu (chỉ dùng khi chưa có dữ liệu tuần)", type:"select", options:[["",""],...ST_ALL.map(s=>[s,s])]},
       {key:"note", label:"Ghi chú của trưởng phòng", type:"textarea"},
       /* Chỉ trưởng phòng đánh giá khi hoàn thành, không phải nhân viên (kể cả TM/SE/người tạo được sửa đầu việc) */

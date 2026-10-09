@@ -35,7 +35,8 @@ if (JWT_SECRET.length < 32) {
  * Thêm module mới cần lưu dữ liệu → thêm 1 dòng vào đây.
  *   "admin"       : chỉ trưởng phòng được ghi/xoá
  *   "member"      : mọi tài khoản đã đăng nhập được ghi/xoá
- *   "own-week"    : trưởng phòng ghi tất cả; nhân viên chỉ ghi dữ liệu tuần của chính mình
+ *   "own-week"    : trưởng phòng ghi tất cả; nhân viên chỉ ghi dữ liệu tuần của chính mình, và chỉ
+ *                   ghi được tuần hiện tại (theo lịch máy chủ) trở đi — tuần cũ đã khoá với nhân viên
  *   "own-project" : trưởng phòng ghi tất cả (kể cả tạo dự án mới). Nhân viên: sửa dự án và
  *                   đầu việc (PUT) nếu là người tạo (created_by, máy chủ ghi, không nhận từ
  *                   client) HOẶC là TM (owner)/SE của dự án (so khớp staff_name của tài khoản);
@@ -141,6 +142,14 @@ app.get("/api/collection/:coll", auth, A(async (req, res) => {
   res.json(rows.map(r => ({ id: r.doc_id, data: JSON.parse(r.body) })));
 }));
 
+/* Thứ 2 của tuần hiện tại theo giờ máy chủ, dạng YYYY-MM-DD (cùng cách tính với mondayOf(todayISO())
+   phía client ở frontend/js/core/utils.js, để khớp tuần giữa hai bên). */
+function mondayOfToday() {
+  const d = new Date();
+  const wd = (d.getDay() + 6) % 7;
+  d.setDate(d.getDate() - wd);
+  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+}
 /* op: "write" (PUT, gồm cả thêm/sửa/xoá đầu việc bên trong) | "delete" (DELETE, xoá cả dự án) */
 function canWrite(user, coll, id, body, existing, op = "write") {
   const rule = RULES[coll];
@@ -157,6 +166,11 @@ function canWrite(user, coll, id, body, existing, op = "write") {
   const check = b => b && b.person === user.staff_name && id === `${b.week}__${slug(b.person)}`;
   if (existing && !check(existing)) return false;
   if (body && !check(body)) return false;
+  /* Nhân viên chỉ sửa được dữ liệu tuần hiện tại (theo lịch máy chủ); tuần cũ đã khoá, chỉ trưởng phòng
+     (role === "admin", đã return true ở trên) mới can thiệp được, để tránh nhân viên chỉnh sửa tuần cũ
+     làm lệch tỉ lệ hoàn thành đã "chốt". */
+  const week = (body && body.week) || (existing && existing.week);
+  if (week && week < mondayOfToday()) return false;
   return true;
 }
 app.put("/api/doc/:coll/:id", auth, A(async (req, res) => {

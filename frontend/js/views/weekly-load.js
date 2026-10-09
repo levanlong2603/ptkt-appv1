@@ -60,14 +60,25 @@ function viewLoad(){
   const byP = new Map();
   for(const e of wkE){ if(e.wl==null) continue; const p=M.pById.get(e.projectId); const k=p?p.name:"(Đã xoá)"; const o=byP.get(k)||{wl:0,type:p?p.type:"Nội bộ",people:new Set()}; o.wl+=e.wl; o.people.add(e.person); byP.set(k,o); }
   const arr = [...byP.entries()].sort((a,b)=>b[1].wl-a[1].wl); const mx = Math.max(1,...arr.map(a=>a[1].wl));
+  const TOP_N = 6, shown = arr.slice(0, TOP_N), restN = arr.length - shown.length;
   let left = `<section class="panel"><div class="panel-h"><h2>Công sức tuần này dồn vào đâu</h2><span class="muted small">workload theo dự án</span></div><div class="panel-b">` +
-    (arr.length ? arr.map(([n,o])=>`<div class="hbar"><span>${esc(n)} <span class="muted small">· ${o.people.size} người</span></span><div class="t"><i style="width:${o.wl/mx*100}%; background:${TYPE_COLOR[o.type]}"></i></div><span style="text-align:right">${fmt1(o.wl)}</span></div>`).join("")
+    (arr.length ? shown.map(([n,o])=>`<div class="hbar"><span>${esc(n)} <span class="muted small">· ${o.people.size} người</span></span><div class="t"><i style="width:${o.wl/mx*100}%; background:${TYPE_COLOR[o.type]}"></i></div><span style="text-align:right">${fmt1(o.wl)}</span></div>`).join("") + (restN>0?`<div class="small muted" style="margin-top:6px">+ ${restN} dự án khác</div>`:"")
      : `<div class="muted small">Chưa có dữ liệu cho tuần này.</div>`) + `</div></section>`;
   let right = `<section class="panel"><div class="panel-h"><h2>Đầu việc bị vướng trong tuần</h2></div><div class="panel-b">` +
     (blocked.length ? blocked.map(e=>`<div class="alert-item"><div class="small muted">${esc((M.pById.get(e.projectId)||{}).name||"")} · ${esc(e.person)}</div>
       <div class="cell-main">${esc(e.ref?e.ref.t.dv:"")}</div><div class="small" style="margin-top:4px">${e.ms!=null?`<span class="pill bad">Ma sát ${e.ms}</span> `:""}${e.nn?`<span class="pill mute">${esc(e.nn)}</span> `:""}<span class="muted">${esc(e.note||e.work||"")}</span></div></div>`).join("")
      : `<div class="muted small">Không có đầu việc nào bị vướng.</div>`) + `</div></section>`;
-  return h + `<div class="grid2" style="margin-top:18px"><div>${left}</div><div>${right}</div></div>`;
+  /* Tỉ lệ hoàn thành = workload Hoàn thành / tổng workload trong tuần (Hủy không tính, giống loadFor()).
+     Tuần hiện tại: tính real-time, đổi theo mỗi lần ai đó cập nhật trạng thái. Tuần cũ: dữ liệu đã khoá
+     (nhân viên không sửa được nữa) nên tỉ lệ tự nhiên giữ nguyên như lúc tuần đó kết thúc, không cần xử lý
+     riêng. Chưa có dữ liệu thì để 0%, không lấy số của tuần trước để tránh nhầm lẫn. */
+  const doneWl = wkE.filter(e=>e.status==="Hoàn thành").reduce((a,e)=>a+(e.wl||0),0);
+  const totalWl = wkE.filter(e=>e.status!=="Hủy").reduce((a,e)=>a+(e.wl||0),0);
+  const doneRatio = totalWl ? doneWl/totalWl : 0;
+  const donePanel = `<section class="panel" style="margin-top:18px"><div class="panel-h"><h2>Tỉ lệ hoàn thành công việc</h2><span class="muted small">workload Hoàn thành / tổng workload tuần</span></div>
+    <div class="panel-b"><div class="hbar"><span>Tuần ${isoWeek(w)}</span><div class="t"><i style="width:${Math.round(doneRatio*100)}%; background:var(--ok)"></i></div><span style="text-align:right">${pct(doneRatio)}</span></div>
+    <div class="small muted" style="margin-top:6px">${fmt1(doneWl)} / ${fmt1(totalWl)} giờ đã hoàn thành</div></div></section>`;
+  return h + `<div class="grid2" style="margin-top:18px"><div>${left}</div><div>${right}</div></div>` + donePanel;
 }
 
 
