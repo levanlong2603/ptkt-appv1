@@ -126,7 +126,7 @@ function entryForm(entry){
       {key:"projectId", label:"Dự án", type:"select", options:projOpts, required:true, onChange:(v,f)=>{ f.setOptions("taskId", taskOpts(v)); }},
       {key:"taskId", label:"Đầu việc (theo kế hoạch của dự án)", type:"select", options:taskOpts(e.projectId, e.taskId), required:true},
       {key:"work", label:"Việc đã làm trong tuần", type:"textarea"},
-      {key:"qm", label:"Quy mô phần việc trong tuần", type:"seg", options:[1,2,3,4,5].map(n=>[n,String(n)]), hint:v=>v?QM_HINT[v]:"1 = 0,5–2h · 2 = 2–8h · 3 = 8–24h · 4 = trên 24h · 5 = cả tuần", required:true},
+      {key:"qm", label:"Quy mô phần việc trong tuần", type:"seg", options:[1,2,3,4,5].map(n=>[n,String(n)]), hint:v=>v?QM_HINT[v]:[1,2,3,4,5].map(n=>n+" = "+QM_HINT[n]).join(" · "), required:true},
       {key:"pt", label:"Độ phức tạp (để trống = theo kế hoạch)", type:"seg", options:[[null,"Theo kế hoạch"],...[1,2,3,4,5].map(n=>[n,String(n)])], hint:v=>v?PT_HINT[v]:""},
       {key:"status", label:"Trạng thái cuối tuần", type:"seg", options:ST_WEEK.map(s=>[s,s])},
       {key:"ms", label:"Ma sát (chỉ khi bị vướng)", type:"seg", options:[[null,"Không"],...[1,2,3,4,5].map(n=>[n,String(n)])], hint:v=>({1:"Vướng nhẹ",2:"Vướng vừa",3:"Vướng nhiều",4:"Phụ thuộc nghiêm trọng",5:"Bị đình trệ"}[v]||"")},

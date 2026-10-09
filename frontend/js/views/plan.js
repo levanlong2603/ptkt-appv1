@@ -173,7 +173,7 @@ function taskForm(p, t){
   openForm({
     title: isNew ? "Thêm đầu việc" : "Đầu việc", subtitle: p.name, values:v,
     info: t ? `<div class="kv" style="margin-bottom:16px"><dt>Trạng thái hiện tại</dt><dd>${stPill(t.status)}</dd>
-      <dt>Cập nhật mới nhất</dt><dd>${esc(t.upd||"–")}</dd><dt>Ngày cập nhật</dt><dd>${esc(t.updDate||"–")}</dd><dt>Kết quả đầu ra</dt><dd>${esc(cOf(t.dv).result||"–")}</dd><dt>Minh chứng</dt><dd>${esc(cOf(t.dv).evidence||"–")}</dd></div>` : "",
+      <dt>Cập nhật mới nhất</dt><dd>${esc(t.upd||"–")}</dd><dt>Ngày cập nhật</dt><dd>${esc(t.updDate||"–")}</dd><dt>Kết quả đầu ra</dt><dd>${esc(cOf(t.dv).result||"–")}</dd><dt>Chú thích</dt><dd>${esc(cOf(t.dv).evidence||"–")}</dd></div>` : "",
     fields:[
       {key:"dv", label:"Đầu việc (quy trình "+p.type+")", type:"select", options:dvOpts, required:true},
       {key:"detail", label:"Nội dung chi tiết", type:"textarea"},
@@ -181,8 +181,8 @@ function taskForm(p, t){
       {key:"collab", label:"Người phối hợp", type:"select", options:staffOpts, half:true},
       {key:"deadline", label:"Deadline theo HĐ", type:"date", half:true},
       {key:"pr", label:"Ưu tiên", type:"seg", options:["P1","P2","P3","P4"].map(x=>[x,x]), half:true},
-      {key:"qm", label:"Quy mô (trống = chuẩn)", type:"seg", options:[[null,"Chuẩn"],...[1,2,3,4,5].map(n=>[n,String(n)])], hint:(val,vals)=>"Chuẩn: "+(cOf(vals.dv).qm??"–")},
-      {key:"pt", label:"Độ phức tạp (trống = chuẩn)", type:"seg", options:[[null,"Chuẩn"],...[1,2,3,4,5].map(n=>[n,String(n)])], hint:(val,vals)=>"Chuẩn: "+(cOf(vals.dv).pt??"–")},
+      {key:"qm", label:"Quy mô", type:"seg", options:[1,2,3,4,5].map(n=>[n,String(n)]), required:true, hint:v=>v?QM_HINT[v]:""},
+      {key:"pt", label:"Độ phức tạp (để trống = mặc định 1,0)", type:"seg", options:[[null,"Mặc định"],...[1,2,3,4,5].map(n=>[n,String(n)])], hint:v=>v?PT_HINT[v]:""},
       {key:"st0", label:"Trạng thái ban đầu (chỉ dùng khi chưa có dữ liệu tuần)", type:"select", options:[["",""],...ST_ALL.map(s=>[s,s])]},
       {key:"note", label:"Ghi chú của trưởng phòng", type:"textarea"},
       /* Chỉ trưởng phòng đánh giá khi hoàn thành, không phải nhân viên (kể cả TM/SE/người tạo được sửa đầu việc) */

@@ -15,11 +15,10 @@ function viewSettings(){
     <div class="tbl-wrap"><table style="table-layout:fixed"><thead><tr><th style="width:24%">Họ tên</th><th style="width:13%; text-align:center">Giờ / tuần</th><th style="width:15%; text-align:center">% trừ họp, phát sinh</th><th style="width:14%; text-align:center">Kinh nghiệm (năm)</th><th style="width:16%; text-align:center">Hệ số năng lực</th><th style="width:18%; text-align:center">Capacity (điểm/tuần)</th></tr></thead><tbody>
     ${M.staff.map((s,i)=>`<tr class="${ro?"":"click"}" data-act="${ro?"":"editstaff"}" data-i="${i}" tabindex="0"><td class="cell-main">${esc(s.name)}</td><td style="text-align:center">${s.hours}</td><td style="text-align:center">${Math.round(s.pct*100)}%</td><td style="text-align:center">${s.years||"–"}</td><td style="text-align:center">${fmt1(s.factor)}</td><td style="text-align:center; font-weight:600">${fmt1(s.cap)}</td></tr>`).join("")||'<tr><td colspan="6" class="muted">Chưa có nhân sự.</td></tr>'}
     </tbody></table></div><div class="panel-b small muted">Capacity = Giờ/tuần × (1 − % họp, phát sinh) × Hệ số năng lực. Hệ số năng lực theo kinh nghiệm (gợi ý, trưởng phòng tự chọn): &lt;1 năm → 0,8 · 1–3 năm → 1,0 · 3–5 năm → 1,1 · 5–8 năm → 1,2 · &gt;8 năm → 1,3 — hệ số này còn được dùng để chia vào Workload của từng người (xem bên dưới).</div></section>`;
-  h += `<p class="small muted" style="margin:-8px 0 14px">Workload (giờ) = số giờ đại diện của Quy mô (0,5–2 · 2–8 · 8–12 · 12–24 · 24–32) × hệ số của Độ phức tạp đầu việc (Đơn giản ×0,8 · Quen thuộc ×0,9 · Cần chuyên môn ×1,1 · Cần chuyên gia ×1,3 · Chưa có tiền lệ ×1,5) — không liên quan đến "Độ khó dự án". Khi gán cho một người cụ thể, số giờ này được chia tiếp cho Hệ số năng lực của người đó (người giỏi hơn tốn ít giờ hơn, người kém hơn tốn nhiều giờ hơn) rồi mới so với Capacity (giờ/tuần) ở trên để ra % tải thực tế.</p>`;
   for(const t of TYPES){
     const list = S.catalog.map((c,i)=>({...c,i})).filter(c=>c.type===t);
     h += `<section class="panel" style="margin-bottom:18px"><div class="panel-h"><h2>${typeDot(t)}Quy trình ${t.toLowerCase()} <span class="muted small">· ${list.length} đầu việc chuẩn</span></h2>${ro?"":`<button class="btn" data-act="addcat" data-t="${t}">+ Đầu việc chuẩn</button>`}</div>
-      <div class="tbl-wrap"><table style="table-layout:fixed"><thead><tr><th style="width:30%">Đầu việc</th><th style="width:11%; text-align:center">Quy mô</th><th style="width:13%; text-align:center">Độ phức tạp</th><th style="width:11%; text-align:center">Workload</th><th style="width:35%">Kết quả đầu ra</th></tr></thead><tbody>
+      <div class="tbl-wrap"><table style="table-layout:fixed"><thead><tr><th style="width:40%">Đầu việc</th><th style="width:60%">Kết quả đầu ra</th></tr></thead><tbody>
       ${catTreeRows(list, ro, t)}
       </tbody></table></div></section>`;
   }
@@ -38,9 +37,9 @@ function catTreeRows(list, ro, type){
   let out = "";
   for(const g of sorted){
     const key = "cat|"+type+"|"+g.code, open = planOpen(key);
-    out += planGroupRow(key, 0, (g.code?g.code+". ":"")+(g.name||"Khác"), {meta:`${g.items.length} đầu việc chuẩn`}, open, "", 5);
+    out += planGroupRow(key, 0, (g.code?g.code+". ":"")+(g.name||"Khác"), {meta:`${g.items.length} đầu việc chuẩn`}, open, "", 2);
     if(!open) continue;
-    for(const c of g.items) out += `<tr class="${ro?"":"click"}" data-act="${ro?"":"editcat"}" data-i="${c.i}" tabindex="0" title="${esc(c.name)}"><td style="padding-left:36px"><div class="cell-main">${esc(planShortName(c.name))}</div></td><td style="text-align:center">${c.qm??"–"}</td><td style="text-align:center">${c.pt??"–"}</td><td style="text-align:center">${wlOf(c.qm,c.pt)??"–"}</td><td class="small">${esc(c.result||"")}</td></tr>`;
+    for(const c of g.items) out += `<tr class="${ro?"":"click"}" data-act="${ro?"":"editcat"}" data-i="${c.i}" tabindex="0" title="${esc(c.name)}"><td style="padding-left:36px"><div class="cell-main">${esc(planShortName(c.name))}</div></td><td class="small">${esc(c.result||"")}</td></tr>`;
   }
   return out;
 }
@@ -66,15 +65,13 @@ function staffForm(i){
   });
 }
 function catForm(i, type){
-  const isNew = i==null; const c = isNew ? {type, name:"", qm:null, pt:null, result:"", evidence:""} : {...S.catalog[i]};
+  const isNew = i==null; const c = isNew ? {type, name:"", result:"", evidence:""} : {...S.catalog[i]};
   openForm({title:isNew?"Thêm đầu việc chuẩn":"Sửa đầu việc chuẩn", subtitle:"Quy trình "+c.type.toLowerCase(), values:c,
     fields:[{key:"name", label:"Tên đầu việc", type:"text", required:true, hint:()=>"Giữ mã giai đoạn ở đầu tên, ví dụ “05. Thiết kế – LLD”, “T3. Hồ sơ kỹ thuật – …”."},
-      {key:"qm", label:"Quy mô chuẩn", type:"seg", options:[[null,"–"],...[1,2,3,4,5].map(n=>[n,String(n)])]},
-      {key:"pt", label:"Độ phức tạp chuẩn", type:"seg", options:[[null,"–"],...[1,2,3,4,5].map(n=>[n,String(n)])]},
-      {key:"result", label:"Kết quả đầu ra", type:"textarea"}, {key:"evidence", label:"Minh chứng", type:"text"}],
+      {key:"result", label:"Kết quả đầu ra", type:"textarea"}, {key:"evidence", label:"Chú thích", type:"text"}],
     onSave: async x => {
       if(!x.name.trim()) throw new Error("Nhập tên đầu việc.");
-      const list=[...S.catalog]; const row={type:c.type, name:x.name.trim(), qm:x.qm||null, pt:x.pt||null, result:x.result||"", evidence:x.evidence||""};
+      const list=[...S.catalog]; const row={type:c.type, name:x.name.trim(), result:x.result||"", evidence:x.evidence||""};
       if(isNew){ let at=-1; list.forEach((q,k)=>{ if(q.type===c.type) at=k; }); list.splice(at+1||list.length,0,row); } else list[i]=row;
       await write("config/catalog",{list}); toast("Đã lưu đầu việc chuẩn");
     },
