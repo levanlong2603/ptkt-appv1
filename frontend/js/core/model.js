@@ -27,6 +27,11 @@ function derive(){
   }
   const lastAny = new Map();
   for(const e of entries){ const k=e.projectId+"|"+e.taskId; const cur=lastAny.get(k); if(!cur || e.week>cur.week) lastAny.set(k,e); }
+  /* Những ai thực sự đang làm một đầu việc: gộp người được phân công sẵn (t.collab) với tất cả những
+     người đã từng nhập việc đó trong "Nhập theo tuần" — nếu 2 người cùng chọn một đầu việc để nhập tuần,
+     cả 2 đều hiện ở cột "Thực hiện", không chỉ người được phân công ban đầu. */
+  const doersByTask = new Map();
+  for(const e of entries){ const k=e.projectId+"|"+e.taskId; if(!doersByTask.has(k)) doersByTask.set(k, new Set()); doersByTask.get(k).add(e.person); }
   // tasks enriched
   const tasks = [];
   for(const p of projects){
@@ -51,6 +56,9 @@ function derive(){
       const latestDate = weekDate && editDate ? (weekDate >= editDate ? weekDate : editDate) : (weekDate || editDate);
       const updDate = latestDate ? dmy(iso(latestDate)) : "";
       const lastWeek = la ? la.week : null;
+      const doerSet = new Set(doersByTask.get(k) || []);
+      if(t.collab) doerSet.add(t.collab);
+      const doers = [...doerSet].sort((a,b)=>a.localeCompare(b,"vi"));
       const done = status==="Hoàn thành" ? (doneWk.get(k) || null) : null;
       const ontime = done && t.deadline ? (done <= t.deadline) : null;
       const warns = [];
@@ -61,11 +69,14 @@ function derive(){
         if(OPEN.has(status) && (ms||0) >= 3) warns.push(["bad","Ma sát cao"]);
         if((status==="Đang làm"||status==="Đang vướng") && (!lastWeek || lastWeek < addDays(thisMon,-14))) warns.push(["warn","Không cập nhật >2 tuần"]);
       }
-      const o = {...t, p, key:k, qmE:qm, ptE:pt, wl, status, src, ms, nn, upd, updDate, lastWeek, done, ontime, warns, phase: phaseOf(t.dv)};
+      const o = {...t, p, key:k, qmE:qm, ptE:pt, wl, status, src, ms, nn, upd, updDate, lastWeek, doers, done, ontime, warns, phase: phaseOf(t.dv)};
       tasks.push(o); return o;
     });
     const live = p._tasks.filter(t => t.status!=="Hủy");
-    const tot = live.reduce((a,t)=>a+(t.wl||0),0), dn = live.filter(t=>t.status==="Hoàn thành").reduce((a,t)=>a+(t.wl||0),0);
+    /* Đầu việc chưa chấm Quy mô (wl=null) vẫn phải có trọng số (mặc định 1) khi tính tiến độ, nếu không
+       nó "biến mất" khỏi mẫu số — khiến % tiến độ có thể ra 100% dù đầu việc đó còn dang dở (chỉ cần các
+       đầu việc có Quy mô đều đã xong). Áp dụng cùng cách tính này ở p._phases và planStat() (plan.js). */
+    const tot = live.reduce((a,t)=>a+(t.wl??1),0), dn = live.filter(t=>t.status==="Hoàn thành").reduce((a,t)=>a+(t.wl??1),0);
     p._prog = tot ? dn/tot : null;
     /* "Đã hoàn thành cả dự án" (planIsDone) không được chỉ dựa vào p._prog===1 — nếu các đầu việc còn mở
        (quá hạn/đang vướng) thiếu Quy mô (wl=null→0), chúng không cộng vào tot, nên dn/tot có thể ra đúng
@@ -81,8 +92,8 @@ function derive(){
     const phs = phasesFor(p.type);
     p._phases = phs.map(ph => {
       const ts = live.filter(t => t.phase===ph.code);
-      const tt = ts.reduce((a,t)=>a+(t.wl||0),0), d = ts.filter(t=>t.status==="Hoàn thành").reduce((a,t)=>a+(t.wl||0),0);
-      return {...ph, n: ts.length, v: ts.length ? (tt? d/tt : (ts.every(t=>t.status==="Hoàn thành")?1:0)) : null};
+      const tt = ts.reduce((a,t)=>a+(t.wl??1),0), d = ts.filter(t=>t.status==="Hoàn thành").reduce((a,t)=>a+(t.wl??1),0);
+      return {...ph, n: ts.length, v: ts.length ? d/tt : null};
     });
   }
   return {today, thisMon, staff, capOf, projects, pById, taskMap, entries, tasks};

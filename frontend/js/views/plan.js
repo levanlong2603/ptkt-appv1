@@ -53,9 +53,9 @@ function planDetail(p){
     <div class="row2" style="margin:12px 0 14px"><div><div class="small muted" style="margin-bottom:4px">Mốc hợp đồng</div><div class="note">${esc(p.milestones||"–")}</div></div>
       <div><div class="small muted" style="margin-bottom:4px">Tình hình / vướng mắc chung</div><div class="note">${esc(p.situation||"–")}</div></div></div>
     ${canManageProject(p)?`<div class="toolbar" style="margin-bottom:12px">${canDeleteProject(p)?`<button class="btn danger" data-act="delp" data-id="${esc(p.id)}">Xoá dự án</button>`:""}<button class="btn" data-act="editp" data-id="${esc(p.id)}">Sửa thông tin</button><button class="btn primary" data-act="addtask" data-id="${esc(p.id)}">+ Đầu việc</button></div>`:""}`;
-  const rows = planTreeRows(p);
-  out += `<div class="tbl-wrap panel"><table style="table-layout:fixed"><thead><tr><th style="width:26%">Đầu việc</th><th style="width:11%">Phụ trách</th><th style="width:9%">Deadline HĐ</th><th style="width:6%; text-align:center">WL</th><th style="width:8%; text-align:center">Ưu tiên</th><th style="width:12%">Trạng thái</th><th style="width:16%">Cập nhật mới nhất</th><th style="width:12%">Cảnh báo</th></tr></thead>
-    <tbody>${rows||`<tr><td colspan="8"><div class="empty">Dự án chưa có đầu việc.${canManageProject(p)?" Bấm “+ Đầu việc”.":""}</div></td></tr>`}</tbody></table></div>
+  const rows = planTreeRows(p, {cols:9});
+  out += `<div class="tbl-wrap panel"><table style="table-layout:fixed"><thead><tr><th style="width:22%">Đầu việc</th><th style="width:10%">Phụ trách</th><th style="width:10%">Thực hiện</th><th style="width:9%">Deadline HĐ</th><th style="width:6%; text-align:center">WL</th><th style="width:7%; text-align:center">Ưu tiên</th><th style="width:11%">Trạng thái</th><th style="width:14%">Cập nhật mới nhất</th><th style="width:11%">Cảnh báo</th></tr></thead>
+    <tbody>${rows||`<tr><td colspan="9"><div class="empty">Dự án chưa có đầu việc.${canManageProject(p)?" Bấm “+ Đầu việc”.":""}</div></td></tr>`}</tbody></table></div>
     <p class="small muted" style="margin:8px 0 0">Bấm vào một đầu việc để xem chi tiết${S.canEdit?", sửa hoặc đánh giá khi hoàn thành":""}.</p></div>`;
   return out;
 }
@@ -65,8 +65,9 @@ function planDetail(p){
 function planOpen(key, def=false){ const tg = S.planTog||{}; return key in tg ? tg[key] : def; }
 function planStat(ts){
   const live = ts.filter(t=>t.status!=="Hủy"), done = live.filter(t=>t.status==="Hoàn thành");
-  const tw = live.reduce((a,t)=>a+(t.wl||0),0), dw = done.reduce((a,t)=>a+(t.wl||0),0);
-  return {n:live.length, d:done.length, v: tw ? dw/tw : (live.length ? done.length/live.length : null)};
+  /* Đầu việc thiếu Quy mô vẫn có trọng số mặc định 1, không để "biến mất" khỏi mẫu số (xem model.js) */
+  const tw = live.reduce((a,t)=>a+(t.wl??1),0), dw = done.reduce((a,t)=>a+(t.wl??1),0);
+  return {n:live.length, d:done.length, v: live.length ? dw/tw : null};
 }
 /* Tên đầu việc trong cây bỏ phần "mã. hạng mục –" vì dòng cha đã hiện */
 function planShortName(dv){ return (dv||"").replace(/^[0-9A-Z]{1,2}\d?\.\s*[^–]*–\s*/, ""); }
@@ -74,7 +75,8 @@ function planTaskRow(t, i, lvl=1){
   const idle = t.status==="Chưa bắt đầu";
   return `<tr class="click${idle?" tr-idle":""}" data-act="task" data-id="${esc(t.id)}" tabindex="0" title="${esc(t.dv)}">
       <td style="padding-left:${10+lvl*32}px"><div class="cell-main">${esc(planShortName(t.dv))}</div>${t.detail&&!idle?`<div class="cell-sub">${esc(t.detail)}</div>`:""}${t.note?`<div class="cell-sub" style="color:var(--teal)">Ghi chú TrP: ${esc(t.note)}</div>`:""}</td>
-      <td>${esc(t.owner||"–")}${t.collab?`<div class="small muted">+ ${esc(t.collab)}</div>`:""}</td>
+      <td>${esc(t.owner||"–")}</td>
+      <td>${t.doers.length?t.doers.map(esc).join(", "):"–"}</td>
       <td>${t.deadline?dmy(t.deadline):"–"}</td>
       <td style="text-align:center">${t.wl??"–"}</td><td style="text-align:center">${t.pr?`<span class="pill ${t.pr==="P1"?"bad":"mute"}">${esc(t.pr)}</span>`:""}</td>
       <td>${stPill(t.status)}${t.done?`<div class="small muted">xong tuần ${isoWeek(t.done)}</div>`:""}</td>
@@ -178,8 +180,8 @@ function taskForm(p, t){
     fields:[
       {key:"dv", label:"Đầu việc (quy trình "+p.type+")", type:"select", options:dvOpts, required:true},
       {key:"detail", label:"Nội dung chi tiết", type:"textarea"},
-      {key:"owner", label:"Người phụ trách", type:"select", options:staffOpts, half:true},
-      {key:"collab", label:"Người phối hợp", type:"select", options:staffOpts, half:true},
+      {key:"owner", label:"Phụ trách (TM)", type:"select", options:staffOpts, half:true},
+      {key:"collab", label:"Thực hiện (được giao làm)", type:"select", options:staffOpts, half:true},
       {key:"deadline", label:"Deadline theo HĐ", type:"date", half:true},
       {key:"pr", label:"Ưu tiên", type:"seg", options:["P1","P2","P3","P4"].map(x=>[x,x]), half:true},
       {key:"qm", label:"Quy mô", type:"seg", options:[1,2,3,4,5].map(n=>[n,String(n)]), required:true, hint:v=>v?`${QM_HINT[v]} (≈${fmt1(QM_HOURS[v])}h)`:[1,2,3,4,5].map(n=>n+" = "+QM_HINT[n]+" (≈"+fmt1(QM_HOURS[n])+"h)").join(" · ")},

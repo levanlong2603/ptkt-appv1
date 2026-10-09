@@ -12,10 +12,10 @@ function excelBlob(rows){
 }
 function stamp(){ return todayISO().replace(/-/g,""); }
 function exportPlan(){
-  const rows = [["Dự án","Loại","Đầu việc","Nội dung chi tiết","Người phụ trách","Người phối hợp","Deadline HĐ","Quy mô","Độ phức tạp","Workload","Ưu tiên","Trạng thái","Nguồn trạng thái","Cập nhật mới nhất","Ma sát","Nguyên nhân","Tuần hoàn thành","Đúng hạn","Cảnh báo","Đạt yêu cầu","Chất lượng","Tự chủ","Nhận xét"]];
+  const rows = [["Dự án","Loại","Đầu việc","Nội dung chi tiết","Phụ trách","Thực hiện","Deadline HĐ","Quy mô","Độ phức tạp","Workload","Ưu tiên","Trạng thái","Nguồn trạng thái","Cập nhật mới nhất","Ma sát","Nguyên nhân","Tuần hoàn thành","Đúng hạn","Cảnh báo","Đạt yêu cầu","Chất lượng","Tự chủ","Nhận xét"]];
   for(const p of M.projects) for(const t of p._tasks){
     const ev = t.eval || {};
-    rows.push([p.name, p.type, t.dv, t.detail, t.owner, t.collab, t.deadline?dmy(t.deadline):"", t.qmE, t.ptE, t.wl, t.pr, t.status, t.src, t.upd, t.ms, t.nn,
+    rows.push([p.name, p.type, t.dv, t.detail, t.owner, t.doers.join(", "), t.deadline?dmy(t.deadline):"", t.qmE, t.ptE, t.wl, t.pr, t.status, t.src, t.upd, t.ms, t.nn,
       t.done?dmy(t.done):"", t.ontime===true?"Có":t.ontime===false?"Không":"", t.warns.map(w=>w[1]).join("; "), ev.dat, ev.cl, ev.tc, ev.nx]);
   }
   download(`Ke-hoach-du-an-${stamp()}.csv`, excelBlob(rows)); toast("Đã xuất kế hoạch dự án");

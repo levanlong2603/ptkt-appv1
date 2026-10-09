@@ -44,14 +44,14 @@ function viewDash(){
 function projectDetail(p){
   /* data-act="dashtask" → luôn mở xem (openInfo), không bao giờ mở form sửa, kể cả trưởng phòng: Tổng quan dự án chỉ để xem */
   const dashRow = (t,i,lvl=1) => { const idle = t.status==="Chưa bắt đầu"; return `<tr class="click${idle?" tr-idle":""}" data-act="dashtask" data-pid="${esc(p.id)}" data-id="${esc(t.id)}" tabindex="0" title="${esc(t.dv)}"><td style="padding-left:${10+lvl*32}px"><div class="cell-main">${esc(planShortName(t.dv))}</div>${t.detail&&!idle?`<div class="cell-sub">${esc(t.detail)}</div>`:""}${t.upd?`<div class="cell-sub">${esc(t.upd)}</div>`:""}${t.note?`<div class="cell-sub" style="color:var(--teal)">Ghi chú TrP: ${esc(t.note)}</div>`:""}</td>
-    <td>${esc(t.owner||"–")}</td><td>${t.deadline?dmy(t.deadline):"–"}</td><td>${stPill(t.status)}</td>
+    <td>${esc(t.owner||"–")}</td><td>${t.doers.length?t.doers.map(esc).join(", "):"–"}</td><td>${t.deadline?dmy(t.deadline):"–"}</td><td>${stPill(t.status)}</td>
     <td>${warnPills(t.warns)}</td></tr>`; };
-  const rows = planTreeRows(p, {scope:"dash|"+p.id, cols:5, row:dashRow, edit:false});
+  const rows = planTreeRows(p, {scope:"dash|"+p.id, cols:6, row:dashRow, edit:false});
   return `<div class="pdetail">
     <div class="row2" style="margin:12px 0">
       <div><div class="small muted" style="margin-bottom:4px">Mốc hợp đồng</div><div class="note">${esc(p.milestones||"–")}</div></div>
       <div><div class="small muted" style="margin-bottom:4px">Tình hình / vướng mắc chung</div><div class="note">${esc(p.situation||"–")}</div></div></div>
-    <div class="tbl-wrap panel"><table style="table-layout:fixed"><thead><tr><th style="width:40%">Đầu việc</th><th style="width:16%">Phụ trách</th><th style="width:12%">Deadline</th><th style="width:16%">Trạng thái</th><th style="width:16%">Cảnh báo</th></tr></thead><tbody>${rows||'<tr><td colspan="5" class="muted">Chưa có đầu việc.</td></tr>'}</tbody></table></div>
+    <div class="tbl-wrap panel"><table style="table-layout:fixed"><thead><tr><th style="width:34%">Đầu việc</th><th style="width:14%">Phụ trách</th><th style="width:14%">Thực hiện</th><th style="width:12%">Deadline</th><th style="width:13%">Trạng thái</th><th style="width:13%">Cảnh báo</th></tr></thead><tbody>${rows||'<tr><td colspan="6" class="muted">Chưa có đầu việc.</td></tr>'}</tbody></table></div>
     <div style="margin-top:10px"><button class="btn" data-act="goplan" data-id="${esc(p.id)}">Mở kế hoạch dự án</button></div></div>`;
 }
 
