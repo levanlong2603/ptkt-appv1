@@ -56,14 +56,27 @@ function viewLoad(){
       <div><span class="pill ${r.state[0]}">${r.state[1]}</span></div></div>`;
   }).join("") || `<div class="empty">Chưa có nhân sự. Thêm ở mục Cài đặt.</div>`;
   h += `</section>`;
-  // by project
-  const byP = new Map();
-  for(const e of wkE){ if(e.wl==null) continue; const p=M.pById.get(e.projectId); const k=p?p.name:"(Đã xoá)"; const o=byP.get(k)||{wl:0,type:p?p.type:"Nội bộ",people:new Set()}; o.wl+=e.wl; o.people.add(e.person); byP.set(k,o); }
-  const arr = [...byP.entries()].sort((a,b)=>b[1].wl-a[1].wl); const mx = Math.max(1,...arr.map(a=>a[1].wl));
-  const TOP_N = 6, shown = arr.slice(0, TOP_N), restN = arr.length - shown.length;
-  let left = `<section class="panel"><div class="panel-h"><h2>Công sức tuần này dồn vào đâu</h2><span class="muted small">workload theo dự án</span></div><div class="panel-b">` +
-    (arr.length ? shown.map(([n,o])=>`<div class="hbar"><span>${esc(n)} <span class="muted small">· ${o.people.size} người</span></span><div class="t"><i style="width:${o.wl/mx*100}%; background:${TYPE_COLOR[o.type]}"></i></div><span style="text-align:right">${fmt1(o.wl)}</span></div>`).join("") + (restN>0?`<div class="small muted" style="margin-top:6px">+ ${restN} dự án khác</div>`:"")
-     : `<div class="muted small">Chưa có dữ liệu cho tuần này.</div>`) + `</div></section>`;
+  /* Xem riêng 1 người: thường chỉ 1-2 dự án nên gộp theo dự án không có nhiều thông tin, đổi sang gộp
+     theo từng đầu việc. Xem "Tất cả": vẫn gộp theo dự án như cũ (nhiều người/nhiều dự án). */
+  const TOP_N = 6;
+  let arr, mx, label, empty, rowHtml, restLabel;
+  if(simAs){
+    const byT = new Map();
+    for(const e of wkE){ if(e.wl==null) continue; const k=e.projectId+"|"+e.taskId; const o=byT.get(k)||{wl:0, type:e.type, status:e.status, name:e.ref?planShortName(e.ref.t.dv):"(đầu việc đã xoá)", proj:(M.pById.get(e.projectId)||{}).name||"(dự án đã xoá)"}; o.wl+=e.wl; byT.set(k,o); }
+    arr = [...byT.values()].sort((a,b)=>b.wl-a.wl); mx = Math.max(1,...arr.map(o=>o.wl));
+    label = "workload theo đầu việc"; empty = "Chưa có dữ liệu cho tuần này."; restLabel = "đầu việc khác";
+    rowHtml = o=>`<div class="hbar"><span>${esc(o.name)} <span class="muted small">· ${esc(o.proj)}</span> ${o.status?stPill(o.status):""}</span><div class="t"><i style="width:${o.wl/mx*100}%; background:${TYPE_COLOR[o.type]}"></i></div><span style="text-align:right">${fmt1(o.wl)}</span></div>`;
+  } else {
+    const byP = new Map();
+    for(const e of wkE){ if(e.wl==null) continue; const p=M.pById.get(e.projectId); const k=p?p.name:"(Đã xoá)"; const o=byP.get(k)||{wl:0,type:p?p.type:"Nội bộ",people:new Set(),name:k}; o.wl+=e.wl; o.people.add(e.person); byP.set(k,o); }
+    arr = [...byP.values()].sort((a,b)=>b.wl-a.wl); mx = Math.max(1,...arr.map(o=>o.wl));
+    label = "workload theo dự án"; empty = "Chưa có dữ liệu cho tuần này."; restLabel = "dự án khác";
+    rowHtml = o=>`<div class="hbar"><span>${esc(o.name)} <span class="muted small">· ${o.people.size} người</span></span><div class="t"><i style="width:${o.wl/mx*100}%; background:${TYPE_COLOR[o.type]}"></i></div><span style="text-align:right">${fmt1(o.wl)}</span></div>`;
+  }
+  const shown = arr.slice(0, TOP_N), restN = arr.length - shown.length;
+  let left = `<section class="panel"><div class="panel-h"><h2>Công sức tuần này dồn vào đâu</h2><span class="muted small">${label}</span></div><div class="panel-b">` +
+    (arr.length ? shown.map(rowHtml).join("") + (restN>0?`<div class="small muted" style="margin-top:6px">+ ${restN} ${restLabel}</div>`:"")
+     : `<div class="muted small">${empty}</div>`) + `</div></section>`;
   let right = `<section class="panel"><div class="panel-h"><h2>Đầu việc bị vướng trong tuần</h2></div><div class="panel-b">` +
     (blocked.length ? blocked.map(e=>`<div class="alert-item"><div class="small muted">${esc((M.pById.get(e.projectId)||{}).name||"")} · ${esc(e.person)}</div>
       <div class="cell-main">${esc(e.ref?e.ref.t.dv:"")}</div><div class="small" style="margin-top:4px">${e.ms!=null?`<span class="pill bad">Ma sát ${e.ms}</span> `:""}${e.nn?`<span class="pill mute">${esc(e.nn)}</span> `:""}<span class="muted">${esc(e.note||e.work||"")}</span></div></div>`).join("")
@@ -72,12 +85,20 @@ function viewLoad(){
      Tuần hiện tại: tính real-time, đổi theo mỗi lần ai đó cập nhật trạng thái. Tuần cũ: dữ liệu đã khoá
      (nhân viên không sửa được nữa) nên tỉ lệ tự nhiên giữ nguyên như lúc tuần đó kết thúc, không cần xử lý
      riêng. Chưa có dữ liệu thì để 0%, không lấy số của tuần trước để tránh nhầm lẫn. */
-  const doneWl = wkE.filter(e=>e.status==="Hoàn thành").reduce((a,e)=>a+(e.wl||0),0);
-  const totalWl = wkE.filter(e=>e.status!=="Hủy").reduce((a,e)=>a+(e.wl||0),0);
-  const doneRatio = totalWl ? doneWl/totalWl : 0;
-  const donePanel = `<section class="panel" style="margin-top:18px"><div class="panel-h"><h2>Tỉ lệ hoàn thành công việc</h2><span class="muted small">workload Hoàn thành / tổng workload tuần</span></div>
-    <div class="panel-b"><div class="hbar"><span>Tuần ${isoWeek(w)}</span><div class="t"><i style="width:${Math.round(doneRatio*100)}%; background:var(--ok)"></i></div><span style="text-align:right">${pct(doneRatio)}</span></div>
-    <div class="small muted" style="margin-top:6px">${fmt1(doneWl)} / ${fmt1(totalWl)} giờ đã hoàn thành</div></div></section>`;
+  const ratioOf = es => { const doneWl=es.filter(e=>e.status==="Hoàn thành").reduce((a,e)=>a+(e.wl||0),0); const totalWl=es.filter(e=>e.status!=="Hủy").reduce((a,e)=>a+(e.wl||0),0); return {doneWl, totalWl, ratio: totalWl?doneWl/totalWl:0}; };
+  let donePanel;
+  if(simAs){
+    const {doneWl, totalWl, ratio} = ratioOf(wkE);
+    donePanel = `<section class="panel" style="margin-top:18px"><div class="panel-h"><h2>Tỉ lệ hoàn thành công việc</h2><span class="muted small">workload Hoàn thành / tổng workload tuần</span></div>
+      <div class="panel-b"><div class="hbar"><span>Tuần ${isoWeek(w)}</span><div class="t"><i style="width:${Math.round(ratio*100)}%; background:var(--ok)"></i></div><span style="text-align:right">${pct(ratio)}</span></div>
+      <div class="small muted" style="margin-top:6px">${fmt1(doneWl)} / ${fmt1(totalWl)} giờ đã hoàn thành</div></div></section>`;
+  } else {
+    /* Xem "Tất cả": danh sách tỉ lệ hoàn thành của từng người thay vì 1 số gộp */
+    const perPerson = staffList.map(s => ({name:s.name, ...ratioOf(M.entries.filter(e=>e.person===s.name && e.week===w))}));
+    donePanel = `<section class="panel" style="margin-top:18px"><div class="panel-h"><h2>Tỉ lệ hoàn thành công việc</h2><span class="muted small">workload Hoàn thành / tổng workload tuần, theo từng người</span></div>
+      <div class="panel-b">` + (perPerson.length ? perPerson.map(r=>`<div class="hbar"><span>${esc(r.name)}</span><div class="t"><i style="width:${Math.round(r.ratio*100)}%; background:var(--ok)"></i></div><span style="text-align:right">${pct(r.ratio)}</span></div>`).join("")
+        : `<div class="muted small">Chưa có nhân sự.</div>`) + `</div></section>`;
+  }
   return h + `<div class="grid2" style="margin-top:18px"><div>${left}</div><div>${right}</div></div>` + donePanel;
 }
 
