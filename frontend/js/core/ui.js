@@ -2,8 +2,9 @@
 /* Khung giao diện: menu, vẽ màn hình, thành phần dùng chung, form trượt (drawer) */
 /* ================= shell ================= */
 function renderNav(){
+  const navBadge = id => { const fn = NAV_BADGE[id]; const n = fn ? fn() : 0; return n ? `<span class="nav-badge">${n>99?"99+":n}</span>` : ""; };
   document.getElementById("nav").innerHTML = VIEWS.map(v => v.sep ? '<div class="sep"></div>' :
-    `<button data-view="${v.id}" ${S.view===v.id?'aria-current="page"':''} title="${esc(v.label)}">${ICONS[v.icon]}<span>${esc(v.label)}</span></button>`).join("");
+    `<button data-view="${v.id}" ${S.view===v.id?'aria-current="page"':''} title="${esc(v.label)}">${ICONS[v.icon]}<span>${esc(v.label)}</span>${navBadge(v.id)}</button>`).join("");
   const ub = document.getElementById("userBox");
   if(S.user){ ub.hidden = false; ub.innerHTML = `<b>${esc(S.user.display_name)}</b><span>${S.user.role==="admin"?"Trưởng phòng":"Nhân viên"}</span><div class="acts"><button data-uact="pw">Đổi mật khẩu</button><button data-uact="out">Đăng xuất</button></div>`; }
   const sel = document.getElementById("meSel");

@@ -19,6 +19,7 @@ main,.page,.stack,.grid2>*,.split>*,.prow,.prow>*,.lrow,.lrow>*,.me-sum>*,.toolb
 .nav button:focus-visible{outline:2px solid #6FD3CF}
 .nav svg{width:18px; height:18px; flex:none; opacity:.9}
 .nav .sep{height:1px; background:rgba(255,255,255,.08); margin:10px 6px}
+.nav-badge{margin-left:auto; background:var(--bad); color:#fff; font-size:10.5px; font-weight:700; line-height:1; border-radius:999px; padding:3px 6px; flex:none}
 .side-foot{margin-top:auto; padding:14px 10px 0; border-top:1px solid rgba(255,255,255,.08); font-size:12.5px}
 .side-foot label{display:block; margin-bottom:6px}
 .side-foot select{width:100%; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.14); border-radius:7px; padding:7px 8px; color:#fff}
@@ -161,7 +162,9 @@ textarea.inp{min-height:74px; resize:vertical}
   .side{position:sticky; top:0; z-index:5; height:auto; flex-direction:row; align-items:center; padding:8px 10px; gap:8px; overflow-x:auto}
   .brand,.side-foot .conn,.nav .sep{display:none}
   .nav{flex-direction:row}
-  .nav button span{display:none}
+  .nav button span:not(.nav-badge){display:none}
+  .nav button{position:relative}
+  .nav-badge{position:absolute; top:2px; right:2px; margin:0; padding:2px 5px}
   .side-foot{margin:0 0 0 auto; border:0; padding:0; min-width:130px}
   .side-foot label{display:none}
   main{height:auto}

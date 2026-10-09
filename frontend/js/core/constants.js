@@ -64,6 +64,8 @@ const VIEWS = [
 const VIEW_RENDER = {};
 /** tên hành động (thuộc tính data-act trên nút) → hàm xử lý (element, event) */
 const ACTIONS = {};
+/** id màn hình → hàm trả về số thông báo hiện ở menu (0/undefined = không hiện chấm) */
+const NAV_BADGE = {};
 /** các hàm chạy sau khi đăng nhập, nhận db để đăng ký nghe dữ liệu */
 const ON_SESSION = [];
 /**

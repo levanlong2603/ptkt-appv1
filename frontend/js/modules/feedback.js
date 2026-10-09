@@ -8,7 +8,12 @@ ON_SESSION.push(db => db.collection("feedback").onSnapshot(snap => {
   S.feedback = snap.docs.map(d => ({...d.data(), id: d.id})).sort((a,b) => String(b.createdAt||"").localeCompare(String(a.createdAt||"")));
   schedule();
 }));
+/* Chấm thông báo ở menu "Góp ý": đếm số góp ý có từ sau lần cuối mở trang này (lưu mốc thời gian
+   riêng trên trình duyệt, giống cách "Tôi là"/"view" đang lưu – không đồng bộ giữa các thiết bị). */
+NAV_BADGE.feedback = () => { const seen = store("fbSeen")||""; return S.feedback.filter(f=>(f.createdAt||"")>seen).length; };
 function viewFeedback(){
+  const seen = store("fbSeen")||"";
+  if(S.feedback.some(f=>(f.createdAt||"")>seen)){ store("fbSeen", new Date().toISOString()); schedule(); }
   let h = `<div class="head"><div><h1>Góp ý</h1><div class="sub">Nhận xét và yêu cầu cải tiến cho ứng dụng</div></div>
     <button class="btn primary" data-act="addfeedback">+ Gửi góp ý</button></div>`;
   if(!S.feedback.length) return h + `<section class="panel"><div class="empty"><b>Chưa có góp ý nào</b>Bấm "+ Gửi góp ý" để gửi nhận xét hoặc đề xuất cải tiến đầu tiên.</div></section>`;
