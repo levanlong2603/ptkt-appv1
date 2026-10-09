@@ -9,8 +9,7 @@ function viewHelp(){
     ["Đổi mật khẩu", "Bấm “Đổi mật khẩu” ở góc dưới thanh bên."],
     ["Tự đăng xuất", `Nếu không thao tác gì trong ${IDLE_TIMEOUT_MIN} phút, hệ thống tự đăng xuất. Bấm chuột, gõ phím hoặc cuộn trang để tính lại thời gian.`]]) : "") + (S.local ? sec("Bản chạy trên máy", [
     ["Lưu ở đâu", "Dữ liệu lưu trong trình duyệt của máy đang mở file. Đóng file, mở lại vẫn còn (nếu dùng cùng trình duyệt và không xoá lịch sử)."],
-    ["Chuyển / gộp dữ liệu", "Cài đặt → “Xuất sao lưu (.json)”, gửi file cho người khác, họ chọn “Nhập sao lưu…”. Nhập sao lưu sẽ thay toàn bộ dữ liệu trên máy đó."],
-    ["Xuất Excel", "Cài đặt → “Xuất Excel: kế hoạch dự án” hoặc “Xuất Excel: nhập theo tuần”."]]) : "") +
+    ["Chuyển / gộp dữ liệu", "Cài đặt → “Xuất sao lưu (.json)”, gửi file cho người khác, họ chọn “Nhập sao lưu…”. Nhập sao lưu sẽ thay toàn bộ dữ liệu trên máy đó."]]) : "") +
   sec("Nhân viên · mỗi thứ 2, khoảng 10 phút", [
     ["1. Chọn tên", "Chọn tên ở mục “Tôi là” dưới thanh bên (trình duyệt sẽ nhớ)."],
     ["2. Nhập theo tuần", "Mở “Nhập theo tuần”, chọn đúng tuần. Bấm “+ Thêm việc” cho mỗi đầu việc đã làm, hoặc “Chép việc dở dang từ tuần trước”."],

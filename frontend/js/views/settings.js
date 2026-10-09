@@ -6,10 +6,8 @@ function viewSettings(){
   let h = `<div class="head"><div><h1>Cài đặt</h1></div></div>`;
   h += usersPanel();
   h += `<section class="panel" style="margin-bottom:18px"><div class="panel-h"><h2>Dữ liệu</h2><span class="muted small">lưu trên máy chủ của phòng</span></div>
-    <div class="panel-b"><div class="toolbar" style="margin-bottom:10px">
-      <button class="btn" data-act="exp-plan">Xuất Excel: kế hoạch dự án</button>
-      <button class="btn" data-act="exp-week">Xuất Excel: nhập theo tuần</button>
-      ${S.canEdit?`<button class="btn primary" data-act="exp-json">Tải file sao lưu (.json)</button><button class="btn" data-act="imp-json">Khôi phục từ file sao lưu…</button><input type="file" accept=".json,application/json" id="impFile" hidden>`:""}</div>
+    <div class="panel-b">${S.canEdit?`<div class="toolbar" style="margin-bottom:10px">
+      <button class="btn primary" data-act="exp-json">Tải file sao lưu (.json)</button><button class="btn" data-act="imp-json">Khôi phục từ file sao lưu…</button><input type="file" accept=".json,application/json" id="impFile" hidden></div>`:""}
       <div class="small muted">Máy chủ tự sao lưu hằng ngày. ${S.canEdit?"Khôi phục từ file sao lưu sẽ THAY TOÀN BỘ dữ liệu hiện tại cho cả phòng.":""}</div></div></section>`;
   h += `<section class="panel" style="margin-bottom:18px"><div class="panel-h"><h2>Nhân sự & capacity</h2>${ro?"":'<button class="btn primary" data-act="addstaff">+ Nhân sự</button>'}</div>
     <div class="tbl-wrap"><table style="table-layout:fixed"><thead><tr><th style="width:24%">Họ tên</th><th style="width:13%; text-align:center">Giờ / tuần</th><th style="width:15%; text-align:center">% trừ họp, phát sinh</th><th style="width:14%; text-align:center">Kinh nghiệm (năm)</th><th style="width:16%; text-align:center">Hệ số năng lực</th><th style="width:18%; text-align:center">Capacity (điểm/tuần)</th></tr></thead><tbody>

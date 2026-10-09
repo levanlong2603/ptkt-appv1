@@ -39,8 +39,6 @@ main.addEventListener("click", e => {
   else if(a==="editcat") catForm(+t.dataset.i);
   else if(a==="adduser") userForm(null);
   else if(a==="edituser"){ const u=(S.users||[]).find(x=>String(x.id)===t.dataset.id); if(u) userForm(u); }
-  else if(a==="exp-plan") exportPlan();
-  else if(a==="exp-week") exportWeeks();
   else if(a==="exp-json") exportBackup();
   else if(a==="imp-json") document.getElementById("impFile").click();
 });
