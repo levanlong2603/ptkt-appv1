@@ -49,7 +49,7 @@ function inputAllRow(e){
   const proj = (M.pById.get(e.projectId)||{}).name || "(dự án đã xoá)";
   return `<tr class="click" data-act="editentry" data-id="${esc(e.id)}" data-person="${esc(e.person)}" tabindex="0" title="${e.ref?esc(e.ref.t.dv):""}">
     <td style="padding-left:32px"><div class="small muted">${esc(proj)}</div><div class="cell-main">${esc(name)}</div></td>
-    <td>${e.work?esc(e.work):'<span class="muted">–</span>'}</td>
+    <td style="white-space:pre-wrap">${e.work?esc(e.work):'<span class="muted">–</span>'}</td>
     <td style="text-align:center">${e.qm?e.qm:"–"}</td><td style="text-align:center">${e.wl!=null?e.wl:"–"}</td>
     <td>${e.status?stPill(e.status):"–"}</td>
     <td>${e.ms!=null&&e.ms!==""?`<span class="pill ${e.ms>=3?"bad":e.ms>=1?"warn":"mute"}">${e.ms}</span> `:""}${esc(e.nn||"")}${e.note?` · ${esc(e.note)}`:""}</td></tr>`;
@@ -61,7 +61,7 @@ function inputRow(e, lvl=1, locked=false){
   const name = e.ref ? planShortName(e.ref.t.dv) : "(đầu việc đã xoá)";
   return `<tr ${locked?"":'class="click" data-act="editentry" data-id="'+esc(e.id)+'" tabindex="0"'} title="${e.ref?esc(e.ref.t.dv):""}">
     <td style="padding-left:${10+lvl*22}px; border-left:3px solid ${INPUT_LVL_BORDER[lvl]||INPUT_LVL_BORDER[2]}"><div class="cell-main">${esc(name)}</div></td>
-    <td>${e.work?esc(e.work):'<span class="muted">–</span>'}</td>
+    <td style="white-space:pre-wrap">${e.work?esc(e.work):'<span class="muted">–</span>'}</td>
     <td style="text-align:center">${e.qm?e.qm:'<span class="pill bad">Chấm quy mô</span>'}</td><td style="text-align:center">${e.wl!=null?e.wl:"–"}</td>
     <td>${e.status?stPill(e.status):'<span class="pill warn">Chọn trạng thái</span>'}</td>
     <td>${e.ms!=null&&e.ms!==""?`<span class="pill ${e.ms>=3?"bad":e.ms>=1?"warn":"mute"}">${e.ms}</span>`:""} ${esc(e.nn||"")}</td>
