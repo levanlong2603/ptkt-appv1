@@ -73,8 +73,10 @@ function viewExec(){
   const runP = M.projects.filter(p=>p.type!=="Nội bộ" && (p.tasks||[]).length && (p._prog==null || p._prog<1) && (!simAs || projectAssigned(p, simAs)));
   const risk = p => (p._late>0 || p._maxms>=4) ? ["tg-red","Cao",3] : (p._soon>0 || p._stuck>0 || p._maxms>=2) ? ["tg-org","Trung bình",2] : ["tg-grn","Thấp",1];
   const rHigh = runP.filter(p=>risk(p)[2]===3).length, rMid = runP.filter(p=>risk(p)[2]===2).length, rLow = runP.length-rHigh-rMid;
-  // friction
-  const fr = T.filter(t=>OPEN.has(t.status) && (t.ms||0)>=1).sort((a,b)=>(b.ms||0)-(a.ms||0) || String(a.deadline||"9").localeCompare(String(b.deadline||"9")));
+  // friction – chỉ tính từ đầu việc đang thực sự có người làm (Đang làm/Đang vướng), không tính
+  // "Chưa bắt đầu"/"Tạm dừng" dù trước đó từng được chấm ma sát (việc chưa làm hoặc đang tạm dừng
+  // thì không còn đang "vướng" theo nghĩa cần can thiệp ngay).
+  const fr = active.filter(t=>(t.ms||0)>=1).sort((a,b)=>(b.ms||0)-(a.ms||0) || String(a.deadline||"9").localeCompare(String(b.deadline||"9")));
   const byCause = {}; fr.forEach(t=>{ const k=t.nn||"Chưa rõ nguyên nhân"; byCause[k]=(byCause[k]||0)+1; });
   const causeTop = Object.entries(byCause).sort((a,b)=>b[1]-a[1]).slice(0,3);
   const causeCol = [EXC.orange, EXC.yellow, EXC.red];
@@ -116,39 +118,36 @@ function viewExec(){
         <td class="c">${(t.ms||0)>=1?`<span class="ex-tag ${t.ms>=3?"tg-red":"tg-org"}">${esc(t.nn||"Ma sát")} (${t.ms})</span>`:"–"}</td>
         <td class="c"><span class="ex-tag ${{"Đang làm":"tg-grn","Đang vướng":"tg-red","Tạm dừng":"tg-org"}[t.status]||"tg-gry"}">${t.status==="Tạm dừng"?"Đang chờ":esc(t.status)}</span></td></tr>`).join("") || `<tr><td colspan="11" class="ex-empty">Không có công việc phù hợp.</td></tr>`}
       </tbody></table></div><div class="ex-legend">Ma sát: 0 không vướng · 1 vướng nhẹ · 2 vướng vừa · 3 vướng nhiều · 4 phụ thuộc nghiêm trọng · 5 bị đình trệ</div></div></div>`;
-  // Row 3
+  // Row 3 – "Ma sát đang theo dõi" đã bỏ (trùng với cột Ma sát ở bảng công việc Row 2), thay bằng
+  // "Tiến độ dự án trọng điểm" (trước ở Row 4) để đỡ trùng lặp thông tin.
   const byP = new Map(); for(const e of E){ if(!e.wl) continue; const p=M.pById.get(e.projectId); const k=p?p.name:"Khác"; byP.set(k,(byP.get(k)||0)+e.wl); }
   let parr = [...byP.entries()].sort((a,b)=>b[1]-a[1]); if(parr.length>7){ const rest=parr.slice(6).reduce((a,x)=>a+x[1],0); parr=[...parr.slice(0,6),["Khác",rest]]; }
   const barCols = [EXC.red, EXC.orange, EXC.blue, EXC.teal, EXC.purple, EXC.pink, EXC.grey];
   const mx = Math.max(1,...parr.map(x=>x[1]));
+  const keyP = [...runP].sort((a,b)=>risk(b)[2]-risk(a)[2] || (a._prog||0)-(b._prog||0));
   h += `<div class="ex-row ex-r3">
     <div class="ex-card"><div class="ex-h"><h3>PHÂN BỔ WORKLOAD THEO DỰ ÁN</h3></div>
       ${parr.length?parr.map(([n,v],i)=>`<div class="ex-hb"><span title="${esc(n)}">${esc(n)}</span><div class="t"><i style="width:${v/mx*100}%; background:${barCols[i%barCols.length]}"></i></div><b>${fmt1(v)} <span class="muted" style="font-weight:400">(${wl?Math.round(v/wl*100):0}%)</span></b></div>`).join(""):`<div class="ex-empty">Chưa có dữ liệu nhập ${P.short} này.</div>`}</div>
-    <div class="ex-card"><div class="ex-h"><h3>MA SÁT ĐANG THEO DÕI</h3></div>
-      <div class="ex-scroll" style="max-height:210px"><table class="ex-t"><thead><tr><th class="c">#</th><th>Công việc</th><th>Nguyên nhân</th><th class="c">Mức</th><th class="c">Hạn</th></tr></thead><tbody>
-      ${fr.map((t,i)=>`<tr><td class="c">${i+1}</td><td class="w"><b>${esc(t.p.name)}</b><div class="muted" style="font-size:11.5px">${esc(t.dv.replace(/^[0-9A-Z]{1,2}\d?\.\s*[^–]*–\s*/,""))}</div></td><td>${esc(t.nn||"–")}</td>
-        <td class="c"><span class="ex-tag ${t.ms>=3?"tg-red":t.ms>=2?"tg-org":"tg-yel"}">${t.ms}</span></td><td class="c">${t.deadline?dm(t.deadline):"–"}</td></tr>`).join("")||`<tr><td colspan="5" class="ex-empty">Không có việc nào đang vướng.</td></tr>`}</tbody></table></div></div></div>`;
-  // Row 4
-  const keyP = [...runP].sort((a,b)=>risk(b)[2]-risk(a)[2] || (a._prog||0)-(b._prog||0));
-  const soonList = T.filter(t=>OPEN.has(t.status) && t.deadline && t.deadline>=M.today && days(M.today,t.deadline)<=14).sort((a,b)=>a.deadline.localeCompare(b.deadline));
-  const act = [];
-  for(const t of fr.filter(t=>t.ms>=3)){ const a = {"Hãng":"Liên hệ hãng","Khách hàng":"Trao đổi khách hàng","Hàng hóa / thiết bị":"Đôn đốc hàng hóa","Chờ quyết định":"Ra quyết định","Cộng sự":"Điều phối nội bộ","Hệ thống":"Xử lý hệ thống","Thay đổi yêu cầu":"Chốt yêu cầu"}[t.nn]||"Xem đầu việc";
-    act.push({txt:`<b>${esc(t.p.name)}</b> – ${esc(t.dv.replace(/^[0-9A-Z]{1,2}\d?\.\s*[^–]*–\s*/,""))}${t.nn?" – "+esc(t.nn):""} (ma sát ${t.ms})`, btn:a, go:"p:"+t.p.id}); }
-  for(const t of T.filter(t=>isLate(t) && t.pr==="P1" && !(t.ms>=3))) act.push({txt:`<b>${esc(t.p.name)}</b> – ${esc(t.dv.replace(/^[0-9A-Z]{1,2}\d?\.\s*[^–]*–\s*/,""))} – quá hạn ${dm(t.deadline)}`, btn:"Xem lại kế hoạch", go:"p:"+t.p.id});
-  for(const p of people.filter(p=>p.n && p.u>1)) act.push({txt:`<b>${esc(p.s.name)}</b> – <span style="color:${EXC.red}; font-weight:700">Quá tải ${pct(p.u)}</span>`, btn:"Điều phối công việc", go:"load"});
-  h += `<div class="ex-row ex-r4">
     <div class="ex-card"><div class="ex-h"><h3>TIẾN ĐỘ DỰ ÁN TRỌNG ĐIỂM</h3><button class="lnk" data-act="godash">Xem tất cả ›</button></div>
       <div class="ex-scroll" style="max-height:260px"><table class="ex-t"><thead><tr><th>Dự án</th><th>Tiến độ</th><th class="c">Mốc tiếp theo</th><th class="c">Nguy cơ trễ</th><th>Ghi chú</th></tr></thead><tbody>
       ${keyP.map(p=>{ const r=risk(p); const note = p._late?`${p._late} đầu việc quá hạn`:p._stuck?`${p._stuck} đầu việc đang vướng`:p._soon?`${p._soon} đầu việc sắp đến hạn`:"Đúng kế hoạch";
         return `<tr><td class="w"><b>${esc(p.name)}</b><div class="muted" style="font-size:11.5px">${esc(p.type)} · ${esc(p.owner||"–")}</div></td>
         <td><div class="ex-ubar"><div class="t"><i style="width:${Math.round((p._prog||0)*100)}%; background:${EXC.blue}"></i></div><b>${pct(p._prog)}</b></div></td>
-        <td class="c">${p._next?dmy(p._next):"–"}</td><td class="c"><span class="ex-tag ${r[0]}">${r[1]}</span></td><td class="w" style="min-width:110px">${note}</td></tr>`; }).join("")||`<tr><td colspan="5" class="ex-empty">Không có dự án đang chạy.</td></tr>`}</tbody></table></div></div>
+        <td class="c">${p._next?dmy(p._next):"–"}</td><td class="c"><span class="ex-tag ${r[0]}">${r[1]}</span></td><td class="w" style="min-width:110px">${note}</td></tr>`; }).join("")||`<tr><td colspan="5" class="ex-empty">Không có dự án đang chạy.</td></tr>`}</tbody></table></div></div></div>`;
+  // Row 4
+  const soonList = T.filter(t=>OPEN.has(t.status) && t.deadline && t.deadline>=M.today && days(M.today,t.deadline)<=14).sort((a,b)=>a.deadline.localeCompare(b.deadline));
+  const act = [];
+  for(const t of fr.filter(t=>t.ms>=3)){ const a = {"Hãng":"Liên hệ hãng","Khách hàng":"Trao đổi khách hàng","Hàng hóa / thiết bị":"Đôn đốc hàng hóa","Chờ quyết định":"Ra quyết định","Cộng sự":"Điều phối nội bộ","Hệ thống":"Xử lý hệ thống","Thay đổi yêu cầu":"Chốt yêu cầu"}[t.nn]||"Xem đầu việc";
+    act.push({txt:`<b>${esc(t.p.name)}</b> – ${esc(t.dv.replace(/^[0-9A-Z]{1,2}\d?\.\s*[^–]*–\s*/,""))}${t.nn?" – "+esc(t.nn):""} (ma sát ${t.ms})`, btn:a}); }
+  for(const t of T.filter(t=>isLate(t) && t.pr==="P1" && !(t.ms>=3))) act.push({txt:`<b>${esc(t.p.name)}</b> – ${esc(t.dv.replace(/^[0-9A-Z]{1,2}\d?\.\s*[^–]*–\s*/,""))} – quá hạn ${dm(t.deadline)}`, btn:"Xem lại kế hoạch"});
+  for(const p of people.filter(p=>p.n && p.u>1)) act.push({txt:`<b>${esc(p.s.name)}</b> – <span style="color:${EXC.red}; font-weight:700">Quá tải ${pct(p.u)}</span>`, btn:"Điều phối công việc"});
+  h += `<div class="ex-row ex-r4">
     <div class="ex-card"><div class="ex-h"><h3>LỊCH HẾT HẠN TRONG 2 TUẦN</h3><span class="muted small">${soonList.length} việc</span></div>
       <div class="ex-scroll" style="max-height:260px"><table class="ex-t"><tbody>
       ${soonList.map(t=>`<tr><td style="color:${days(M.today,t.deadline)<=3?EXC.red:"inherit"}; font-weight:600; white-space:nowrap">${dm(t.deadline)}</td><td class="w">${esc(t.dv.replace(/^[0-9A-Z]{1,2}\d?\.\s*[^–]*–\s*/,""))}<div class="muted" style="font-size:11.5px">${esc(t.p.name)}</div></td>
         <td class="c">${t.pr?`<span class="ex-tag tg-${t.pr.toLowerCase()}">${esc(t.pr)}</span>`:""}</td><td>${esc(t.owner||"–")}</td></tr>`).join("")||`<tr><td class="ex-empty">Không có đầu việc nào đến hạn trong 14 ngày tới.</td></tr>`}</tbody></table></div></div>
     <div class="ex-card ex-act"><div class="ex-h"><h3>⚠ VIỆC CẦN TRP CAN THIỆP NGAY</h3><span class="muted small">${act.length} việc</span></div>
-      <div class="ex-scroll" style="max-height:260px">${act.map(a=>`<div class="ex-ai"><div>${a.txt}</div><button data-act="exgo" data-go="${esc(a.go)}">${esc(a.btn)}</button></div>`).join("")||`<div class="ex-empty">Không có việc cần can thiệp ngay.</div>`}</div></div></div>`;
+      <div class="ex-scroll" style="max-height:260px">${act.map(a=>`<div class="ex-ai"><div>${a.txt}</div><span class="ex-tag tg-gry">${esc(a.btn)}</span></div>`).join("")||`<div class="ex-empty">Không có việc cần can thiệp ngay.</div>`}</div></div></div>`;
   h += `<div class="small muted">Workload, capacity, mức sử dụng và phân bổ workload tính theo ${P.short} đã chọn (dữ liệu nhập theo tuần). Công việc, dự án, ma sát, hạn chót tính theo tình trạng hiện tại (${dmy(M.today)}).</div></div>`;
   return h;
 }

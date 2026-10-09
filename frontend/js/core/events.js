@@ -11,7 +11,6 @@ main.addEventListener("click", e => {
   if(a==="expr"){ S.exPr = t.dataset.p; render(); return; }
   if(a==="golo"){ S.view="load"; store("view","load"); render(); return; }
   if(a==="godash"){ S.view="dash"; store("view","dash"); render(); return; }
-  if(a==="exgo"){ const g=t.dataset.go; if(g==="load"){ S.view="load"; } else { S.view="plan"; S.planSel=g.slice(2); S.typeFilter="Tất cả"; } store("view",S.view); document.body.classList.remove("present"); if(document.fullscreenElement) document.exitFullscreen().catch(()=>{}); render(); return; }
   if(a==="present"){ const on = !document.body.classList.contains("present"); document.body.classList.toggle("present", on);
     try{ if(on && document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(()=>{}); else if(!on && document.fullscreenElement) document.exitFullscreen().catch(()=>{}); }catch(e){}
     render(); return; }

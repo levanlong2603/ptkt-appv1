@@ -29,8 +29,8 @@
 .ex-delta{font-size:14px; font-weight:700; margin-top:4px}
 .ex-row{display:grid; gap:12px; margin-bottom:12px}
 .ex-r2{grid-template-columns:minmax(0,1fr) minmax(0,1.75fr)}
-.ex-r3{grid-template-columns:1.4fr 1fr}
-.ex-r4{grid-template-columns:1.25fr 1fr 1.1fr}
+.ex-r3{grid-template-columns:1fr 1.4fr}
+.ex-r4{grid-template-columns:1fr 1.1fr}
 .ex-h{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; flex-wrap:wrap}
 .ex-h h3{font-size:14px; font-weight:800; letter-spacing:.01em; margin:0}
 .ex-h .lnk{all:unset; cursor:pointer; color:var(--ex-blue); font-size:12.5px; font-weight:600}
