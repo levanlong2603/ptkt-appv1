@@ -18,7 +18,7 @@ function viewHelp(){
     ["4. Trạng thái cuối tuần", "Đang làm / Đang vướng / Tạm dừng / Hoàn thành / Hủy. Nếu vướng: chọn ma sát, nguyên nhân, ghi cần ai hỗ trợ. Trạng thái tự cập nhật về kế hoạch dự án."],
     ["Việc ngoài dự án", "Hỗ trợ, việc phát sinh, đào tạo nội bộ: chọn dự án “Việc chung của phòng”."]]) +
   sec("Trưởng phòng", [
-    ["Dự án mới", "Chỉ trưởng phòng: “Kế hoạch dự án” → “+ Dự án mới”, chọn loại Triển khai / Thầu / Tư vấn và bật “Tạo sẵn toàn bộ đầu việc theo quy trình”."],
+    ["Dự án mới", "Chỉ trưởng phòng: “Kế hoạch dự án” → “+ Dự án mới”, chọn loại Triển khai / Thầu và bật “Tạo sẵn toàn bộ đầu việc theo quy trình”."],
     ["Kế hoạch dự án – ai thấy gì", "Danh sách dự án lọc theo “Tôi là” ở góc dưới thanh bên: chọn một người thì chỉ thấy dự án người đó là TM (phụ trách) hoặc SE. Trưởng phòng chọn “— Tất cả —” để thấy hết. Sửa được dự án (kể cả thêm/sửa/xoá đầu việc) nếu là người tạo, TM, SE, hoặc trưởng phòng; chỉ người tạo hoặc trưởng phòng xoá được cả dự án. Muốn xem toàn bộ dự án của phòng mà không đổi “Tôi là” (chỉ xem, không sửa), vào “Tổng quan dự án”."],
     ["Lập kế hoạch", "Bấm từng đầu việc để điền người phụ trách, deadline theo HĐ, ưu tiên. Quy mô và độ phức tạp để “Chuẩn” nếu không có gì khác thường."],
     ["Mỗi tuần", "Xem “Tải tuần” (ai quá tải, ai còn khả năng, việc bị vướng) và “Tổng quan dự án” (quá hạn, sắp đến hạn, tiến độ theo giai đoạn)."],

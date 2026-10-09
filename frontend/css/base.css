@@ -103,17 +103,15 @@ td.num,th.num{text-align:right}
 .legend{display:flex; flex-wrap:wrap; gap:4px 14px; font-size:12px; color:var(--ink-3)}
 .legend b{color:var(--ink-2); font-weight:600; margin-right:3px}
 /* load bars */
-.lrow{display:grid; grid-template-columns:170px minmax(160px,1fr) 64px 96px 92px 118px; gap:14px; align-items:center; padding:11px 18px; border-top:1px solid var(--line-2)}
+.lrow{display:grid; grid-template-columns:200px minmax(140px,1fr) 70px 140px 110px 150px; gap:18px; align-items:center; padding:14px 22px; border-top:1px solid var(--line-2)}
 .lrow:first-of-type{border-top:0}
-.lbar{position:relative; height:16px; background:var(--line-2); border-radius:4px; overflow:visible}
+.lrow-h{padding:8px 22px; border-top:0; border-bottom:1px solid var(--line-2); text-transform:uppercase; letter-spacing:.03em; font-size:11px}
+.lbar{position:relative; height:20px; background:var(--line-2); border-radius:5px; overflow:visible}
 .lbar .fill{position:absolute; top:0; bottom:0; left:0; display:flex; border-radius:4px; overflow:hidden}
 .lbar .fill span{height:100%}
 .lbar .tick{position:absolute; top:-4px; bottom:-4px; width:0; border-left:1.5px dashed var(--ink-3); opacity:.6}
 .lbar .tick.t100{border-left:2px solid var(--bad); opacity:.75}
 .upct{font-size:18px; font-weight:700; text-align:right}
-.spark{display:flex; align-items:flex-end; gap:3px; height:26px}
-.spark span{width:14px; border-radius:2px 2px 0 0; background:var(--grey); opacity:.55}
-.spark span.cur{opacity:1}
 .hbar{display:grid; grid-template-columns:minmax(120px,1fr) 1.2fr 42px; gap:10px; align-items:center; padding:6px 0; font-size:13px}
 .hbar .t{height:10px; background:var(--line-2); border-radius:3px; overflow:hidden}
 .hbar .t i{display:block; height:100%}

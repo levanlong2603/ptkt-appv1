@@ -1,15 +1,14 @@
 "use strict";
 /* Hằng số: loại dự án, trạng thái, nguyên nhân ma sát, biểu tượng, menu + bảng đăng ký mở rộng */
 /* ================= constants ================= */
-const TYPES = ["Triển khai", "Thầu", "Tư vấn", "Nội bộ"];
-const TYPE_COLOR = {"Triển khai":"var(--teal)","Thầu":"var(--indigo)","Tư vấn":"var(--ochre)","Nội bộ":"var(--grey)"};
+const TYPES = ["Triển khai", "Thầu", "Nội bộ"];
+const TYPE_COLOR = {"Triển khai":"var(--teal)","Thầu":"var(--indigo)","Nội bộ":"var(--grey)"};
 /* Bộ lọc dự án dùng chung cho Kế hoạch dự án & Tổng quan dự án (S.typeFilter) – tách Triển khai thành Đang triển khai / Hoàn thành */
 const PLAN_FILTERS = [
   {key:"Tất cả", label:"Tất cả"},
   {key:"Đang triển khai", label:"Đang triển khai", type:"Triển khai", done:false},
   {key:"Hoàn thành", label:"Hoàn thành", type:"Triển khai", done:true},
-  {key:"Thầu", label:"Thầu", type:"Thầu"},
-  {key:"Tư vấn", label:"Tư vấn", type:"Tư vấn"}
+  {key:"Thầu", label:"Thầu", type:"Thầu"}
 ];
 function planIsDone(p){ return p._prog === 1; }
 /* TM (Phụ trách) hoặc SE của dự án – dùng để giới hạn những dự án nhân viên được thấy */
