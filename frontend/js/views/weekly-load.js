@@ -50,15 +50,15 @@ function viewLoad(){
   const maxScale = Math.max(1.5, ...rows.map(r=>r.u||0));
   const legend = `<div class="legend">${TYPES.map(t=>`<span>${typeDot(t)}${t}</span>`).join("")}<span><span class="tdot" style="background:transparent;border-left:2px dashed var(--ink-3)"></span>80%</span><span><span class="tdot" style="background:transparent;border-left:2px solid var(--bad)"></span>100%</span></div>`;
   h += `<section class="panel"><div class="panel-h"><h2>Workload từng người</h2>${legend}</div>`;
-  h += `<div class="lrow lrow-h small muted"><div>Nhân sự</div><div>Tải tuần</div><div style="text-align:right">%</div><div class="hide-m">Workload / Capacity</div><div class="hide-m" style="text-align:right">Hoàn thành</div><div>Trạng thái</div></div>`;
+  h += `<div class="lrow lrow-h small muted"><div>Nhân sự</div><div>Tải tuần</div><div class="hide-m">Workload / Capacity</div><div class="hide-m" style="text-align:center">Hoàn thành</div><div>Trạng thái</div></div>`;
   h += rows.map(r => {
     const segs = TYPES.map(t => r.L.byType[t] ? `<span style="width:${(r.L.byType[t]/r.s.cap)/maxScale*100}%; background:${TYPE_COLOR[t]}" title="${t}: ${fmt1(r.L.byType[t])}"></span>` : "").join("");
     return `<div class="lrow"><div><div class="cell-main">${esc(r.s.name)}</div><div class="small muted">${r.L.es.length} đầu việc</div></div>
       <div class="lbar" title="${pct(r.u)}"><div class="fill" style="width:${Math.min(100,(r.u||0)/maxScale*100)}%">${segs}</div>
-        <i class="tick" style="left:${.8/maxScale*100}%"></i><i class="tick t100" style="left:${1/maxScale*100}%"></i></div>
-      <div class="upct" style="color:${r.u>1?"var(--bad)":r.u>=.8?"var(--warn)":"inherit"}">${r.L.es.length?pct(r.u):"–"}</div>
+        <i class="tick" style="left:${.8/maxScale*100}%"></i><i class="tick t100" style="left:${1/maxScale*100}%"></i>
+        <span class="lbar-pct" style="color:${r.u>1?"var(--bad)":r.u>=.8?"var(--warn)":"var(--ink)"}">${r.L.es.length?pct(r.u):"–"}</span></div>
       <div class="small muted hide-m">${fmt1(r.L.wl)} / ${fmt1(r.s.cap)} điểm</div>
-      <div class="small muted hide-m" style="text-align:right">${r.L.es.length?pct(r.done.ratio):"–"}</div>
+      <div class="upct hide-m" style="text-align:center; color:${!r.L.es.length?"inherit":r.done.ratio>=1?"var(--ok)":r.done.ratio>0?"var(--teal)":"inherit"}">${r.L.es.length?pct(r.done.ratio):"–"}</div>
       <div><span class="pill ${r.state[0]}">${r.state[1]}</span></div></div>`;
   }).join("") || `<div class="empty">Chưa có nhân sự. Thêm ở mục Cài đặt.</div>`;
   h += `</section>`;

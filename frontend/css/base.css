@@ -103,7 +103,7 @@ td.num,th.num{text-align:right}
 .legend{display:flex; flex-wrap:wrap; gap:4px 14px; font-size:12px; color:var(--ink-3)}
 .legend b{color:var(--ink-2); font-weight:600; margin-right:3px}
 /* load bars */
-.lrow{display:grid; grid-template-columns:200px minmax(140px,1fr) 70px 140px 110px 150px; gap:18px; align-items:center; padding:14px 22px; border-top:1px solid var(--line-2)}
+.lrow{display:grid; grid-template-columns:200px minmax(140px,1fr) 140px 110px 150px; gap:18px; align-items:center; padding:14px 22px; border-top:1px solid var(--line-2)}
 .lrow:first-of-type{border-top:0}
 .lrow-h{padding:8px 22px; border-top:0; border-bottom:1px solid var(--line-2); text-transform:uppercase; letter-spacing:.03em; font-size:11px}
 .lbar{position:relative; height:20px; background:var(--line-2); border-radius:5px; overflow:visible}
@@ -111,6 +111,7 @@ td.num,th.num{text-align:right}
 .lbar .fill span{height:100%}
 .lbar .tick{position:absolute; top:-4px; bottom:-4px; width:0; border-left:1.5px dashed var(--ink-3); opacity:.6}
 .lbar .tick.t100{border-left:2px solid var(--bad); opacity:.75}
+.lbar-pct{position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:12px; font-weight:700; text-shadow:0 1px 2px rgba(0,0,0,.6); pointer-events:none}
 .upct{font-size:18px; font-weight:700; text-align:right}
 .hbar{display:grid; grid-template-columns:minmax(120px,1fr) 1.2fr 42px; gap:10px; align-items:center; padding:6px 0; font-size:13px}
 .hbar .t{height:10px; background:var(--line-2); border-radius:3px; overflow:hidden}
@@ -150,7 +151,7 @@ textarea.inp{min-height:74px; resize:vertical}
 .toolbar{display:flex; gap:8px; flex-wrap:wrap; align-items:center}
 .me-sum{display:flex; gap:22px; align-items:center; flex-wrap:wrap}
 .mobile-nav{display:none}
-@media (max-width: 1100px){ .grid2{grid-template-columns:minmax(0,1fr)} .lrow{grid-template-columns:130px 1fr 56px 86px} .lrow .hide-m{display:none} }
+@media (max-width: 1100px){ .grid2{grid-template-columns:minmax(0,1fr)} .lrow{grid-template-columns:130px 1fr 86px} .lrow .hide-m{display:none} }
 @media (max-width: 860px){
   .app{grid-template-columns:minmax(0,1fr); grid-template-rows:auto 1fr}
   .row2{grid-template-columns:minmax(0,1fr)}
