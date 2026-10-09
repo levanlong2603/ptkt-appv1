@@ -27,11 +27,17 @@ function derive(){
   }
   const lastAny = new Map();
   for(const e of entries){ const k=e.projectId+"|"+e.taskId; const cur=lastAny.get(k); if(!cur || e.week>cur.week) lastAny.set(k,e); }
-  /* Những ai thực sự đang làm một đầu việc: gộp người được phân công sẵn (t.collab) với tất cả những
-     người đã từng nhập việc đó trong "Nhập theo tuần" — nếu 2 người cùng chọn một đầu việc để nhập tuần,
-     cả 2 đều hiện ở cột "Thực hiện", không chỉ người được phân công ban đầu. */
+  /* Những ai thực sự đang làm một đầu việc: gộp người được phân công sẵn (t.collab) với những người đã
+     nhập việc đó trong "Nhập theo tuần" ở TUẦN GẦN NHẤT có dữ liệu (không tính mọi tuần từ trước tới giờ –
+     nếu không, một người chỉ cần từng nhập 1 lần duy nhất trong quá khứ sẽ dính mãi vào cột này dù không
+     còn liên quan). Nếu 2 người cùng nhập đầu việc đó trong cùng tuần gần nhất, cả 2 đều hiện ra. */
+  const entriesByTask = new Map();
+  for(const e of entries){ const k=e.projectId+"|"+e.taskId; if(!entriesByTask.has(k)) entriesByTask.set(k, []); entriesByTask.get(k).push(e); }
   const doersByTask = new Map();
-  for(const e of entries){ const k=e.projectId+"|"+e.taskId; if(!doersByTask.has(k)) doersByTask.set(k, new Set()); doersByTask.get(k).add(e.person); }
+  for(const [k, es] of entriesByTask){
+    const lastWk = es.reduce((a,e)=>!a||e.week>a?e.week:a, null);
+    doersByTask.set(k, new Set(es.filter(e=>e.week===lastWk).map(e=>e.person)));
+  }
   // tasks enriched
   const tasks = [];
   for(const p of projects){
