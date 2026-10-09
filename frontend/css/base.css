@@ -93,7 +93,10 @@ td.num,th.num{text-align:right}
 /* phase strip — signature (mỗi ô = 1 hạng mục, màu/số theo cảnh báo, không phải % tiến độ) */
 .strip{display:grid; grid-auto-flow:column; grid-auto-columns:minmax(0,1fr); gap:3px; align-items:stretch}
 .seg{position:relative; height:22px; border-radius:3px; background:var(--line-2); border:1px solid var(--line);
-  display:flex; align-items:center; justify-content:center; gap:3px; font-size:10.5px; font-weight:600; color:var(--ink-3)}
+  display:flex; align-items:center; justify-content:center; gap:3px; font-size:10.5px; font-weight:600; color:var(--ink-3);
+  font-family:inherit; padding:0; cursor:pointer; width:100%}
+.seg:hover{filter:brightness(1.15)}
+.seg:focus-visible{outline:2px solid var(--focus); outline-offset:1px}
 .seg.none{background:transparent; border-style:dashed; opacity:.55}
 .seg.ok{background:var(--ok-soft); color:var(--ok); border-color:transparent}
 .seg.warn{background:var(--warn-soft); color:var(--warn); border-color:transparent}

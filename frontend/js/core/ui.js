@@ -33,21 +33,38 @@ function render(){
 
 /* ================= shared pieces ================= */
 /* Dải hạng mục: thay vì thanh tiến độ, mỗi ô hiện số cảnh báo (quá hạn/vướng/sắp hạn) của hạng mục đó,
-   khớp với cột "Cảnh báo" trong bảng đầu việc, để nhìn dải là biết ngay hạng mục nào cần theo dõi. */
-function strip(p){
+   khớp với cột "Cảnh báo" trong bảng đầu việc, để nhìn dải là biết ngay hạng mục nào cần theo dõi.
+   Mỗi ô là một nút: bấm vào sẽ mở dự án (nếu đang đóng) và mở đúng hạng mục đó trong bảng đầu việc bên
+   dưới, đồng thời đóng các hạng mục khác lại (accordion) – scope/selVar phải khớp với tham số truyền cho
+   planTreeRows() và biến state dùng để mở/đóng dự án ở trang gọi strip() (xem ACTIONS["stripgo"]). */
+function strip(p, scope="plan", selVar="planSel"){
   if(!p._phases.length) return '<span class="muted small">–</span>';
   return `<div class="strip" role="img" aria-label="Cảnh báo theo giai đoạn">` + p._phases.map(ph => {
     const ts = p._tasks.filter(t=>t.phase===ph.code);
     const late = ts.filter(t=>t.warns.some(w=>w[1]==="Quá hạn")).length;
     const soon = ts.filter(t=>t.warns.some(w=>w[1]==="Sắp đến hạn")).length;
     const stuck = ts.filter(t=>OPEN.has(t.status) && (t.status==="Đang vướng" || (t.ms||0)>=1)).length;
-    const n = late+stuck+soon;
+    /* Số hiện ở ô = tổng số pill Cảnh báo thực tế trong bảng đầu việc (t.warns), không phải đếm theo
+       3 điều kiện riêng late/stuck/soon – vì 1 đầu việc có thể khớp nhiều điều kiện cùng lúc (vd vừa
+       Quá hạn vừa "Đang vướng" nhưng ma sát <3, chưa đủ thành pill riêng) khiến số bị đếm trùng, lệch
+       với số pill người dùng thực sự thấy trong bảng. */
+    const n = ts.reduce((a,t)=>a+t.warns.length,0);
     const cls = !ts.length ? "none" : late ? "bad" : (stuck||soon) ? "warn" : "ok";
     const parts = [late&&`${late} quá hạn`, stuck&&`${stuck} vướng`, soon&&`${soon} sắp hạn`].filter(Boolean);
     const tip = `${ph.code}. ${ph.name}: ${!ts.length?"không có đầu việc":parts.length?parts.join(", "):"không có cảnh báo"}`;
-    return `<div class="seg ${cls}" title="${esc(tip)}"><b>${esc(ph.code)}</b>${n?`<span class="segn">${n}</span>`:""}</div>`;
+    return `<button type="button" class="seg ${cls}" data-act="stripgo" data-pid="${esc(p.id)}" data-scope="${esc(scope)}" data-code="${esc(ph.code)}" data-selvar="${esc(selVar)}" title="${esc(tip)}"><b>${esc(ph.code)}</b>${n?`<span class="segn">${n}</span>`:""}</button>`;
   }).join("") + `</div>`;
 }
+/* Bấm 1 ô trong strip() → mở dự án đó (nếu đang đóng) và mở đúng hạng mục trong bảng đầu việc, đóng các
+   hạng mục khác lại (accordion) trong cùng dự án. */
+ACTIONS["stripgo"] = el => {
+  const { pid, scope, code, selvar } = el.dataset;
+  S[selvar] = pid;
+  S.planTog = S.planTog || {};
+  for(const k of Object.keys(S.planTog)) if(k.startsWith(scope+"|grp:")) delete S.planTog[k];
+  S.planTog[scope+"|grp:"+code] = true;
+  render();
+};
 function stPill(st){
   const c = {"Hoàn thành":"ok","Đang làm":"info","Đang vướng":"bad","Tạm dừng":"mute","Hủy":"mute","Chưa bắt đầu":"mute"}[st]||"mute";
   return `<span class="pill ${c}">${esc(st||"–")}</span>`;
