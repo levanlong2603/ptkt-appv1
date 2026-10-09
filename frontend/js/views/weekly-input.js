@@ -110,7 +110,14 @@ function entryForm(entry, person){
   /* Nhân viên chỉ chọn được dự án mình là TM/SE, hoặc có đầu việc được giao/phối hợp; trưởng phòng không giới hạn.
      Ẩn dự án đã hoàn thành 100%, trừ khi đó là dự án của dòng đang sửa (giữ lại để không mất dữ liệu) */
   const assigned = p => S.canEdit || projectAssigned(p, who) || (p.tasks||[]).some(t=>t.owner===who || t.collab===who);
-  const projOpts = M.projects.filter(p=>(p.tasks||[]).length && (assigned(p) || p.id===e.projectId) && (!planIsDone(p) || p.id===e.projectId)).map(p=>[p.id, p.name+(planIsDone(p)?" (đã hoàn thành)":"")]);
+  /* Gom theo loại dự án (Triển khai/Thầu/Nội bộ) bằng optgroup, để phân biệt rõ Thầu với dự án triển khai
+     thay vì liệt kê lẫn lộn một danh sách phẳng. */
+  const projOpts = (() => {
+    const list = M.projects.filter(p=>(p.tasks||[]).length && (assigned(p) || p.id===e.projectId) && (!planIsDone(p) || p.id===e.projectId));
+    const byType = new Map();
+    for(const p of list){ if(!byType.has(p.type)) byType.set(p.type, []); byType.get(p.type).push([p.id, p.name+(planIsDone(p)?" (đã hoàn thành)":"")]); }
+    return TYPES.filter(t=>byType.has(t)).map(t=>({group:t, options:byType.get(t)}));
+  })();
   /* Xem được tất cả đầu việc của dự án (kể cả đã xong/huỷ), gom theo hạng mục */
   const taskOpts = (pid, keepId) => {
     const p = M.pById.get(pid); if(!p) return [];

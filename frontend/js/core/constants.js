@@ -10,7 +10,7 @@ const PLAN_FILTERS = [
   {key:"Hoàn thành", label:"Hoàn thành", type:"Triển khai", done:true},
   {key:"Thầu", label:"Thầu", type:"Thầu"}
 ];
-function planIsDone(p){ return p._prog === 1; }
+function planIsDone(p){ return !!p._allDone; }
 /* TM (Phụ trách) hoặc SE của dự án – dùng để giới hạn những dự án nhân viên được thấy */
 function projectAssigned(p, name){ return !!name && (p.owner===name || p.se===name); }
 function planMatchFilter(p, key){

@@ -67,6 +67,10 @@ function derive(){
     const live = p._tasks.filter(t => t.status!=="Hủy");
     const tot = live.reduce((a,t)=>a+(t.wl||0),0), dn = live.filter(t=>t.status==="Hoàn thành").reduce((a,t)=>a+(t.wl||0),0);
     p._prog = tot ? dn/tot : null;
+    /* "Đã hoàn thành cả dự án" (planIsDone) không được chỉ dựa vào p._prog===1 — nếu các đầu việc còn mở
+       (quá hạn/đang vướng) thiếu Quy mô (wl=null→0), chúng không cộng vào tot, nên dn/tot có thể ra đúng
+       1 dù dự án vẫn còn việc chưa xong. Dùng cờ riêng, đếm theo trạng thái từng đầu việc, không theo wl. */
+    p._allDone = live.length>0 && live.every(t=>t.status==="Hoàn thành");
     const nexts = p._tasks.filter(t=>OPEN.has(t.status) && t.deadline && t.deadline>=today).map(t=>t.deadline).sort();
     p._next = nexts[0] || null;
     p._late = p._tasks.filter(t=>t.warns.some(w=>w[1]==="Quá hạn")).length;
