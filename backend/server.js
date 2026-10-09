@@ -52,6 +52,7 @@ const RULES = {
   projects: "own-project",  // projects/<mã dự án>  (thông tin dự án + đầu việc)
   weeks: "own-week",        // weeks/<thứ 2 của tuần>__<tên>  (dữ liệu nhập theo tuần)
   feedback: "own",          // feedback/<id>  (góp ý, yêu cầu cải tiến)
+  kpiNote: "admin",         // kpiNote/<kỳ>__<tên nhân sự>  (nhận xét của trưởng phòng ở trang KPI & Năng lực)
 };
 const COLLECTIONS = new Set(Object.keys(RULES));
 const ID_RE = /^[A-Za-z0-9_\-.~:@+]{1,200}$/;

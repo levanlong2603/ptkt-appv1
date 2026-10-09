@@ -13,17 +13,19 @@ function loadFor(name, week){
   }
   return {es, wl, byType, missing};
 }
+/* Tỉ lệ hoàn thành = workload Hoàn thành / tổng workload (Hủy không tính, giống loadFor()). Đặt ở phạm vi
+   toàn cục (không chỉ trong viewLoad()) vì modules/reports.js cũng cần dùng lại. */
+function ratioOf(es){
+  const doneWl = es.filter(e=>e.status==="Hoàn thành").reduce((a,e)=>a+(e.wl||0),0);
+  const totalWl = es.filter(e=>e.status!=="Hủy").reduce((a,e)=>a+(e.wl||0),0);
+  return {doneWl, totalWl, ratio: totalWl?doneWl/totalWl:0};
+}
 function viewLoad(){
   const w = S.week;
   /* Trưởng phòng chọn một người cụ thể ở "Tôi là" (không phải "Tất cả") → trang này chỉ còn tính riêng người đó,
      như đang xem thay họ. Tài khoản nhân viên tự đăng nhập thì không bị thu hẹp, vẫn thấy cả phòng như trước. */
   const simAs = (S.canEdit && S.me && S.me!=="__all__") ? S.me : null;
   const staffList = simAs ? M.staff.filter(s=>s.name===simAs) : M.staff;
-  /* Tỉ lệ hoàn thành = workload Hoàn thành / tổng workload trong tuần (Hủy không tính, giống loadFor()).
-     Tuần hiện tại: tính real-time, đổi theo mỗi lần ai đó cập nhật trạng thái. Tuần cũ: dữ liệu đã khoá
-     (nhân viên không sửa được nữa) nên tỉ lệ tự nhiên giữ nguyên như lúc tuần đó kết thúc, không cần xử lý
-     riêng. Chưa có dữ liệu thì để 0%, không lấy số của tuần trước để tránh nhầm lẫn. */
-  const ratioOf = es => { const doneWl=es.filter(e=>e.status==="Hoàn thành").reduce((a,e)=>a+(e.wl||0),0); const totalWl=es.filter(e=>e.status!=="Hủy").reduce((a,e)=>a+(e.wl||0),0); return {doneWl, totalWl, ratio: totalWl?doneWl/totalWl:0}; };
   const rows = staffList.map(s => {
     const L = loadFor(s.name, w);
     const u = s.cap ? L.wl/s.cap : null;
