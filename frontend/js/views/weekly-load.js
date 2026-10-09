@@ -52,7 +52,10 @@ function viewLoad(){
   h += `<section class="panel"><div class="panel-h"><h2>Workload từng người</h2>${legend}</div>`;
   h += `<div class="lrow lrow-h small muted"><div>Nhân sự</div><div>Tải tuần</div><div class="hide-m">Workload / Capacity</div><div class="hide-m" style="text-align:center">Hoàn thành</div><div>Trạng thái</div></div>`;
   h += rows.map(r => {
-    const segs = TYPES.map(t => r.L.byType[t] ? `<span style="width:${(r.L.byType[t]/r.s.cap)/maxScale*100}%; background:${TYPE_COLOR[t]}" title="${t}: ${fmt1(r.L.byType[t])}"></span>` : "").join("");
+    /* % của mỗi đoạn màu tính theo tỉ trọng trong tổng workload người này (không chia lại maxScale) – vì
+       đoạn màu nằm bên trong .fill, mà .fill đã co theo maxScale rồi; chia thêm lần nữa sẽ làm thanh co
+       kép, ngắn hơn hẳn vị trí mốc 80%/100% thực tế. */
+    const segs = TYPES.map(t => r.L.byType[t] ? `<span style="width:${r.L.wl?(r.L.byType[t]/r.L.wl)*100:0}%; background:${TYPE_COLOR[t]}" title="${t}: ${fmt1(r.L.byType[t])}"></span>` : "").join("");
     return `<div class="lrow"><div><div class="cell-main">${esc(r.s.name)}</div><div class="small muted">${r.L.es.length} đầu việc</div></div>
       <div class="lbar" title="${pct(r.u)}"><div class="fill" style="width:${Math.min(100,(r.u||0)/maxScale*100)}%">${segs}</div>
         <i class="tick" style="left:${.8/maxScale*100}%"></i><i class="tick t100" style="left:${1/maxScale*100}%"></i>
