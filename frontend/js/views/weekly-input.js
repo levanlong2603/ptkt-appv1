@@ -38,12 +38,14 @@ function viewInputAll(w){
   let rows = "";
   for(const person of people){
     const pes = byPerson.get(person), wl = pes.reduce((a,e)=>a+(e.wl||0),0);
-    rows += inputGroupRow(0, person, `${pes.length} đầu việc · ${fmt1(wl)} điểm`, 6);
+    rows += inputGroupRow(0, person, `${pes.length} đầu việc · ${fmt1(wl)} điểm`, 7);
     for(const e of pes) rows += inputAllRow(e);
   }
-  return `<section class="panel tbl-wrap"><table style="table-layout:fixed"><thead><tr><th style="width:30%">Đầu việc</th><th style="width:18%">Việc đã làm</th><th style="width:8%; text-align:center">Giờ</th><th style="width:10%; text-align:center">Workload</th><th style="width:14%">Trạng thái cuối tuần</th><th style="width:20%">Ma sát / vướng mắc</th></tr></thead><tbody>${rows}</tbody></table></section>
+  return `<section class="panel tbl-wrap"><table style="table-layout:fixed"><thead><tr><th style="width:26%">Đầu việc</th><th style="width:16%">Việc đã làm</th><th style="width:7%; text-align:center">Giờ</th><th style="width:9%; text-align:center">Workload</th><th style="width:13%">Trạng thái cuối tuần</th><th style="width:12%">Ma sát</th><th style="width:17%">Vướng / cần hỗ trợ</th></tr></thead><tbody>${rows}</tbody></table></section>
     <p class="small muted">Bấm vào một dòng để sửa hoặc xoá.</p>`;
 }
+/* Cột "Ma sát" (mức độ + nguyên nhân) và "Vướng / cần hỗ trợ" (ghi chú) tách riêng 2 ô, không ghép chung
+   bằng dấu " · " như trước – nguyên nhân đi cùng ma sát, không đi cùng ghi chú vướng mắc nữa. */
 function inputAllRow(e){
   const name = e.ref ? planShortName(e.ref.t.dv) : "(đầu việc đã xoá)";
   const proj = (M.pById.get(e.projectId)||{}).name || "(dự án đã xoá)";
@@ -52,7 +54,8 @@ function inputAllRow(e){
     <td style="white-space:pre-wrap">${e.work?esc(e.work):'<span class="muted">–</span>'}</td>
     <td style="text-align:center">${e.hours??e.qm??"–"}</td><td style="text-align:center">${e.wl!=null?e.wl:"–"}</td>
     <td>${e.status?stPill(e.status):"–"}</td>
-    <td>${e.ms!=null&&e.ms!==""?`<span class="pill ${e.ms>=3?"bad":e.ms>=1?"warn":"mute"}">${e.ms}</span> `:""}${esc(e.nn||"")}${e.note?` · ${esc(e.note)}`:""}</td></tr>`;
+    <td>${e.ms!=null&&e.ms!==""?`<span class="pill ${e.ms>=3?"bad":e.ms>=1?"warn":"mute"}">${e.ms}</span> `:""}${esc(e.nn||"")}</td>
+    <td class="small">${esc(e.note||"")}</td></tr>`;
 }
 /* Nhóm các dòng đã nhập theo Dự án → hạng mục (giống cây ở Kế hoạch dự án), gấp/mở được */
 /* Màu viền trái theo cấp: đậm dần khi lên cấp cha, để nhìn ra ngay phân cấp mà không cần gấp/mở */
@@ -166,8 +169,11 @@ function entryForm(entry, person){
           return vals.hours ? `${base} — ${fmt1(vals.hours)}h × ${fmt1(mult)} = ${fmt1(Math.round(vals.hours*mult*10)/10)}h tính vào tải tuần.` : base;
         }},
       {key:"status", label:"Trạng thái cuối tuần", type:"seg", options:ST_WEEK.map(s=>[s,s])},
-      {key:"ms", label:"Ma sát (chỉ khi bị vướng)", type:"seg", options:[[null,"Không"],...[1,2,3,4,5].map(n=>[n,String(n)])], hint:v=>({1:"Vướng nhẹ",2:"Vướng vừa",3:"Vướng nhiều",4:"Phụ thuộc nghiêm trọng",5:"Bị đình trệ"}[v]||"")},
-      {key:"nn", label:"Nguyên nhân", type:"select", options:[["",""],...CAUSES.map(c=>[c,c])]},
+      /* Ma sát = chọn cả mức độ lẫn nguyên nhân cùng lúc (2 ô cạnh nhau), tách hẳn khỏi "Vướng mắc / cần
+         hỗ trợ" bên dưới – trước đây Nguyên nhân đứng riêng 1 dòng, dễ hiểu nhầm là đi cùng ghi chú vướng
+         mắc. Nguyên nhân vẫn là trường "nn" như cũ, chỉ đổi cách trình bày. */
+      {key:"ms", label:"Ma sát (chỉ khi bị vướng)", type:"seg", options:[[null,"Không"],...[1,2,3,4,5].map(n=>[n,String(n)])], half:true, hint:v=>({1:"Vướng nhẹ",2:"Vướng vừa",3:"Vướng nhiều",4:"Phụ thuộc nghiêm trọng",5:"Bị đình trệ"}[v]||"")},
+      {key:"nn", label:"Nguyên nhân", type:"select", options:[["",""],...CAUSES.map(c=>[c,c])], half:true},
       {key:"note", label:"Vướng mắc / cần ai hỗ trợ", type:"textarea"}
     ],
     saveLabel: isNew ? "Thêm việc" : "Lưu thay đổi",

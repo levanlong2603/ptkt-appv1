@@ -48,7 +48,8 @@ function rpBuildWeek(){
       phaseCode: t ? (t.phase||"") : "", phase: phaseName,
       name: t ? planShortName(t.dv) : "(đầu việc đã xoá)",
       detail: e.work || "", deadline: t ? t.deadline : null, status: e.status || "",
-      issue: [e.nn, e.note].filter(Boolean).join(" · ")
+      /* Vướng mắc chỉ lấy ghi chú (e.note) – Nguyên nhân (e.nn) giờ đi cùng Ma sát, không ghép chung nữa. */
+      issue: e.note || ""
     };
   }).sort((a,b) => a.person.localeCompare(b.person,"vi") || a.projectName.localeCompare(b.projectName,"vi") || a.phaseCode.localeCompare(b.phaseCode,"vi"));
   const cols1 = showPerson
@@ -119,7 +120,8 @@ function rpBuildProject(){
   const rows = [...tasks].sort((a,b)=>(phaseOrder.get(a.phase)??999)-(phaseOrder.get(b.phase)??999)).map(t => ({
     phase: phaseName.get(t.phase) || t.phase || "Khác", name:planShortName(t.dv),
     detail: t.detail || t.upd || "", deadline:t.deadline, status:t.status,
-    issue: [t.nn, t.note].filter(Boolean).join(" · ")
+    /* Vướng mắc chỉ lấy ghi chú (t.note) – Nguyên nhân (t.nn) giờ đi cùng Ma sát, không ghép chung nữa. */
+    issue: t.note || ""
   }));
   return {empty:false, p, kind, anchor, P, stats, rows, risk};
 }
@@ -189,7 +191,7 @@ function rpBuildOverview(){
   const biggestRisk = p => {
     const open = p._tasks.filter(t=>OPEN.has(t.status));
     const noted = open.filter(t=>t.note).sort((a,b)=>(b.ms||0)-(a.ms||0))[0];
-    if(noted) return `[${noted.id}] ${noted.nn?noted.nn+": ":""}${noted.note}`;
+    if(noted) return `[${noted.id}] ${noted.note}`;
     const lateP1 = open.filter(t=>t.pr==="P1" && t.warns.some(w=>w[1]==="Quá hạn")).sort((a,b)=>String(a.deadline||"9").localeCompare(String(b.deadline||"9")))[0];
     if(lateP1) return `[${lateP1.id}] ${planShortName(lateP1.dv)} – quá hạn ${dm(lateP1.deadline)}, ưu tiên P1`;
     return "";
