@@ -149,7 +149,7 @@ function entryForm(entry, person){
       {key:"taskId", label:"Đầu việc (theo kế hoạch của dự án)", type:"select", options:taskOpts(e.projectId, e.taskId), required:true},
       {key:"work", label:"Việc đã làm trong tuần", type:"textarea"},
       {key:"hours", label:`Số giờ đã làm trong tuần (còn lại ${fmt1(remainH)}h / ${fmt1(stH.cap)}h)`, type:"number", min:1, max:Math.min(32,remainH||32), step:0.5, required:true,
-        hint:v=>!v?`Capacity tuần này ${fmt1(stH.cap)}h, đã dùng ${fmt1(otherWl)}h ở việc khác, còn lại ${fmt1(remainH)}h.`:v>remainH?`Vượt quá ${fmt1(v-remainH)}h so với giờ còn lại trong tuần (${fmt1(remainH)}h) – xem lại hoặc giảm bớt giờ ở việc khác.`:`Còn lại ${fmt1(remainH-v)}h sau việc này.`},
+        hint:"Chỉ tính giờ bạn trực tiếp làm cho đúng đầu việc này trong tuần, có thể nhập lẻ 0,5 giờ."},
       {key:"pt", label:"Độ phức tạp (để trống = theo kế hoạch)", type:"seg", options:[[null,"Theo kế hoạch"],...[1,2,3,4,5].map(n=>[n,String(n)])], hint:v=>v?`${PT_HINT[v]} (×${fmt1(PT_MULT[v])})`:""},
       {key:"status", label:"Trạng thái cuối tuần", type:"seg", options:ST_WEEK.map(s=>[s,s])},
       {key:"ms", label:"Ma sát (chỉ khi bị vướng)", type:"seg", options:[[null,"Không"],...[1,2,3,4,5].map(n=>[n,String(n)])], hint:v=>({1:"Vướng nhẹ",2:"Vướng vừa",3:"Vướng nhiều",4:"Phụ thuộc nghiêm trọng",5:"Bị đình trệ"}[v]||"")},
