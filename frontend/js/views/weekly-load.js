@@ -49,8 +49,7 @@ function viewLoad(){
     <div class="stat"><div class="v">${fmt1(wlE)}</div><div class="l">Workload toàn phòng</div></div>
     <div class="stat ok"><div class="v">${done}${meRatio?` <span class="small muted">(${pct(meRatio.ratio)})</span>`:""}</div><div class="l">Đầu việc xong trong tuần</div></div>
     <div class="stat ${blocked.length?"bad":""}"><div class="v">${blocked.length}</div><div class="l">Đầu việc bị vướng</div></div></div>`;
-  const maxScale = Math.max(1.5, ...rows.map(r=>r.u||0));
-  const legend = `<div class="legend">${TYPES.map(t=>`<span>${typeDot(t)}${t}</span>`).join("")}<span><span class="tdot" style="background:transparent;border-left:2px dashed var(--ink-3)"></span>80%</span><span><span class="tdot" style="background:transparent;border-left:2px solid var(--bad)"></span>100%</span></div>`;
+  const legend = `<div class="legend">${TYPES.map(t=>`<span>${typeDot(t)}${t}</span>`).join("")}<span><span class="tdot" style="background:transparent;border-left:2px dashed var(--ink-3)"></span>80%</span></div>`;
   h += `<section class="panel"><div class="panel-h"><h2>Workload từng người</h2>${legend}</div>`;
   h += `<div class="lrow lrow-h small muted"><div>Nhân sự</div><div>Tải tuần</div><div class="hide-m">Workload / Capacity</div><div class="hide-m" style="text-align:center">Hoàn thành</div><div>Trạng thái</div></div>`;
   h += rows.map(r => {
@@ -59,8 +58,8 @@ function viewLoad(){
        kép, ngắn hơn hẳn vị trí mốc 80%/100% thực tế. */
     const segs = TYPES.map(t => r.L.byType[t] ? `<span style="width:${r.L.wl?(r.L.byType[t]/r.L.wl)*100:0}%; background:${TYPE_COLOR[t]}" title="${t}: ${fmt1(r.L.byType[t])}"></span>` : "").join("");
     return `<div class="lrow"><div><div class="cell-main">${esc(r.s.name)}</div><div class="small muted">${r.L.es.length} đầu việc</div></div>
-      <div class="lbar" title="${pct(r.u)}"><div class="fill" style="width:${Math.min(100,(r.u||0)/maxScale*100)}%">${segs}</div>
-        <i class="tick" style="left:${.8/maxScale*100}%"></i><i class="tick t100" style="left:${1/maxScale*100}%"></i>
+      <div class="lbar" title="${pct(r.u)}"><div class="fill" style="width:${Math.min(100,(r.u||0)*100)}%">${segs}</div>
+        <i class="tick" style="left:80%"></i>
         <span class="lbar-pct" style="color:${r.u>1?"var(--bad)":r.u>=.8?"var(--warn)":"var(--ink)"}">${r.L.es.length?pct(r.u):"–"}</span></div>
       <div class="small muted hide-m">${fmt1(r.L.wl)} / ${fmt1(r.s.cap)} điểm</div>
       <div class="upct hide-m" style="text-align:center; color:${!r.L.es.length?"inherit":r.done.ratio>=1?"var(--ok)":r.done.ratio>0?"var(--teal)":"inherit"}">${r.L.es.length?pct(r.done.ratio):"–"}</div>
