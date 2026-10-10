@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>NGSI · Phòng Kỹ thuật – Quản trị công việc và nguồn lực</title>
+<title>Technical Department</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="icon" href="img/logo.png">
+<link rel="icon" href="img/logo-chevrons.png">
 <link rel="stylesheet" href="css/theme.css">
 <link rel="stylesheet" href="css/base.css">
 <link rel="stylesheet" href="css/dashboard.css">
@@ -17,9 +17,31 @@
 
 </head>
 <body>
+<header class="topbar">
+  <div class="topbar-l">
+    <img class="topbar-wordmark" src="img/NextGen.png" alt="NEXT GEN · Service Integration">
+    <div class="topbar-div"></div>
+    <div class="topbar-app">Technical Department</div>
+  </div>
+  <div class="topbar-r">
+    <div class="tb-wrap">
+      <button class="tb-btn" id="tbApps" type="button" aria-haspopup="true" aria-expanded="false" title="Ứng dụng"></button>
+      <div class="tb-dropdown" id="tbAppsMenu" hidden></div>
+    </div>
+    <div class="tb-wrap">
+      <button class="tb-btn" id="tbBell" type="button" aria-haspopup="true" aria-expanded="false" title="Thông báo"><span class="tb-badge" id="tbBellN" hidden></span></button>
+      <div class="tb-dropdown" id="tbBellMenu" hidden></div>
+    </div>
+    <div class="tb-wrap">
+      <button class="tb-account" id="tbAccount" type="button" aria-haspopup="true" aria-expanded="false">
+        <div class="avatar" id="tbAvatar"></div><span id="tbName"></span><i class="tb-chev"></i>
+      </button>
+      <div class="tb-dropdown tb-dropdown-r" id="tbAccountMenu" hidden></div>
+    </div>
+  </div>
+</header>
 <div class="app">
   <aside class="side">
-    <div class="brand"><img class="brand-logo" src="img/logo.png" alt="Logo"><div class="brand-txt"><b>Phòng Kỹ thuật</b><span>Theo dõi công việc &amp; nguồn lực</span></div></div>
     <nav class="nav" id="nav" aria-label="Điều hướng"></nav>
     <div class="side-foot">
       <label for="meSel">Tôi là</label>

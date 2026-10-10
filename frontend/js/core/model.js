@@ -104,6 +104,10 @@ function derive(){
   }
   return {today, thisMon, staff, capOf, projects, pById, taskMap, entries, tasks};
 }
+/* Số đầu việc quá hạn toàn phòng (không tính dự án Nội bộ) – dùng chung cho Dashboard và chuông thông báo ở header */
+function lateTaskCount(){
+  return M.tasks.filter(t=>t.p.type!=="Nội bộ" && t.warns.some(w=>w[1]==="Quá hạn")).length;
+}
 function phasesFor(type){
   const seen = new Map();
   for(const c of S.catalog){

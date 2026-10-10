@@ -23,7 +23,7 @@ function viewPlan(){
   }
   const chips = `<div class="chips" role="group" aria-label="Lọc dự án">${PLAN_FILTERS.map(f=>`<button class="chip-btn" data-act="tf" data-t="${esc(f.key)}" aria-pressed="${filt===f.key}">${esc(f.label)}</button>`).join("")}</div>`;
   let h = `<div class="head"><div><h1>Kế hoạch dự án</h1></div>
-    <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap">${chips}
+    <div class="head-ctl">${chips}
       <input class="inp" type="search" placeholder="Tìm dự án" style="width:180px" data-act="pq" value="${esc(S.planQuery)}" aria-label="Tìm dự án">
       ${S.canEdit?'<button class="btn primary" data-act="newp">+ Dự án mới</button>':""}</div></div>`;
   let body = "";

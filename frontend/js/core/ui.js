@@ -1,14 +1,21 @@
 "use strict";
-/* Khung giao diện: menu, vẽ màn hình, thành phần dùng chung, form trượt (drawer) */
+/* Khung giao diện: header, menu, vẽ màn hình, thành phần dùng chung, form trượt (drawer) */
 /* ================= shell ================= */
+function avatarInitials(name){ return (name||"").trim().split(/\s+/).slice(-2).map(w=>w[0]).join("").toUpperCase(); }
 function renderNav(){
   const navBadge = id => { const fn = NAV_BADGE[id]; const n = fn ? fn() : 0; return n ? `<span class="nav-badge">${n>99?"99+":n}</span>` : ""; };
-  document.getElementById("nav").innerHTML = VIEWS.map(v => v.sep ? '<div class="sep"></div>' :
-    `<button data-view="${v.id}" ${S.view===v.id?'aria-current="page"':''} title="${esc(v.label)}">${ICONS[v.icon]}<span>${esc(v.label)}</span>${navBadge(v.id)}</button>`).join("");
+  const btn = v => `<button data-view="${v.id}" ${S.view===v.id?'aria-current="page"':''} title="${esc(v.label)}">${ICONS[v.icon]}<span>${esc(v.label)}</span>${navBadge(v.id)}</button>`;
+  /* Gom theo nhóm có tiêu đề nhỏ (vd "DASHBOARD & QUẢN LÝ" / "CÀI ĐẶT"): nhóm đầu tiên trước dấu {sep:true}
+     đầu tiên trong VIEWS, nhóm sau là phần còn lại. Chỉ đổi cách hiển thị, không đổi danh sách/route màn hình. */
+  const sepI = VIEWS.findIndex(v=>v.sep);
+  const group1 = sepI<0 ? VIEWS : VIEWS.slice(0,sepI), group2 = sepI<0 ? [] : VIEWS.slice(sepI+1);
+  document.getElementById("nav").innerHTML =
+    `<div class="nav-grp">Dashboard &amp; Quản lý</div>${group1.map(btn).join("")}` +
+    (group2.length ? `<div class="nav-grp">Cài đặt</div>${group2.map(btn).join("")}` : "");
   const ub = document.getElementById("userBox");
   if(S.user){ ub.hidden = false;
-    const initials = S.user.display_name.trim().split(/\s+/).slice(-2).map(w=>w[0]).join("").toUpperCase();
-    ub.innerHTML = `<div class="userbox-row"><div class="avatar">${esc(initials)}</div><div class="userbox-info"><b>${esc(S.user.display_name)}</b><span>${S.user.role==="admin"?"Trưởng phòng":"Nhân viên"}</span></div></div><div class="acts"><button data-uact="pw">Đổi mật khẩu</button><button data-uact="out">Đăng xuất</button></div>`; }
+    const initials = avatarInitials(S.user.display_name);
+    ub.innerHTML = `<div class="userbox-row"><div class="avatar">${esc(initials)}</div><div class="userbox-info"><b>${esc(S.user.display_name)}</b><span>${S.user.role==="admin"?"Trưởng phòng":"Nhân viên"}</span></div></div><div class="acts"><button data-uact="out">${ICONS.logout}Đăng xuất</button></div>`; }
   const sel = document.getElementById("meSel");
   const isAdmin = !!(S.user && S.user.role==="admin");
   sel.disabled = !!(S.user && !isAdmin);
@@ -22,9 +29,63 @@ function renderNav(){
 document.getElementById("nav").addEventListener("click", e => { const b=e.target.closest("button[data-view]"); if(!b) return; S.view=b.dataset.view; store("view",S.view); render(); document.getElementById("main").scrollTop=0; });
 document.getElementById("meSel").addEventListener("change", e => { S.me=e.target.value; store("me",S.me); render(); });
 
+/* ================= header (topbar) ================= */
+/* Icon chỉ cần chèn 1 lần lúc khởi động (không phải mỗi lần render) vì không đổi theo dữ liệu */
+document.getElementById("tbApps").insertAdjacentHTML("afterbegin", ICONS.grid);
+document.getElementById("tbBell").insertAdjacentHTML("afterbegin", ICONS.bell);
+document.querySelector("#tbAccount .tb-chev").outerHTML = ICONS.chevronDown.replace("<svg ", '<svg class="tb-chev" ');
+
+function tbCloseAll(except){
+  for(const id of ["tbAppsMenu","tbBellMenu","tbAccountMenu"]){
+    if(id===except) continue;
+    const m = document.getElementById(id); m.hidden = true;
+    document.getElementById(id.replace("Menu","")).setAttribute("aria-expanded","false");
+  }
+}
+function tbToggle(btnId, menuId){
+  const btn = document.getElementById(btnId), menu = document.getElementById(menuId);
+  const opening = menu.hidden;
+  tbCloseAll(opening?menuId:null);
+  menu.hidden = !opening; btn.setAttribute("aria-expanded", String(opening));
+}
+document.getElementById("tbApps").addEventListener("click", e => { e.stopPropagation(); tbToggle("tbApps","tbAppsMenu"); });
+document.getElementById("tbBell").addEventListener("click", e => { e.stopPropagation(); tbToggle("tbBell","tbBellMenu"); });
+document.getElementById("tbAccount").addEventListener("click", e => { e.stopPropagation(); tbToggle("tbAccount","tbAccountMenu"); });
+document.getElementById("tbAccountMenu").addEventListener("click", e => {
+  const b = e.target.closest("[data-uact]"); if(!b) return;
+  tbCloseAll(); if(b.dataset.uact==="pw") passwordForm(); else logout();
+});
+document.getElementById("tbBellMenu").addEventListener("click", e => {
+  const b = e.target.closest("[data-tbgo]"); if(!b) return;
+  tbCloseAll(); S.view = b.dataset.tbgo; store("view", S.view); render();
+});
+document.addEventListener("click", () => tbCloseAll());
+document.addEventListener("keydown", e => { if(e.key==="Escape") tbCloseAll(); });
+
+function renderHeader(){
+  if(S.user){
+    document.getElementById("tbAvatar").textContent = avatarInitials(S.user.display_name);
+    document.getElementById("tbName").textContent = S.user.display_name;
+  }
+  document.getElementById("tbAppsMenu").innerHTML = `<div class="tb-empty">Chưa có ứng dụng khác</div>`;
+  document.getElementById("tbAccountMenu").innerHTML = S.user ? `
+    <button class="tb-item" data-uact="pw">Đổi mật khẩu</button>
+    <button class="tb-item" data-uact="out">Đăng xuất</button>` : "";
+  const lateN = (S.loaded && M) ? lateTaskCount() : 0;
+  const fbFn = NAV_BADGE.feedback; const fbN = fbFn ? fbFn() : 0;
+  const total = lateN + fbN;
+  const bellN = document.getElementById("tbBellN");
+  bellN.hidden = !total; bellN.textContent = total>99?"99+":total;
+  const rows = [];
+  if(lateN) rows.push(`<button class="tb-item" type="button" data-tbgo="exec"><b>${lateN} đầu việc quá hạn</b><span class="muted">Xem Dashboard</span></button>`);
+  if(fbN) rows.push(`<button class="tb-item" type="button" data-tbgo="feedback"><b>${fbN} góp ý chưa xem</b><span class="muted">Xem Góp ý</span></button>`);
+  document.getElementById("tbBellMenu").innerHTML = rows.length ? rows.join("") : `<div class="tb-empty">Không có thông báo mới</div>`;
+}
+
 function render(){
   M = derive();
   renderNav();
+  renderHeader();
   const main = document.getElementById("main");
   let html = "";
   const banner = S.conn==="off" ? `<div class="banner">Không kết nối được máy chủ. Kiểm tra mạng hoặc báo quản trị hệ thống.</div>` : "";
