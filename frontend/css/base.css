@@ -9,9 +9,11 @@ button,input,select,textarea{font:inherit; color:inherit}
 main,.page,.stack,.grid2>*,.split>*,.prow,.prow>*,.lrow,.lrow>*,.me-sum>*,.toolbar>*{min-width:0}
 /* ---------- sidebar ---------- */
 .side{background:var(--side); color:var(--side-ink); display:flex; flex-direction:column; padding:22px 14px 16px; position:sticky; top:0; height:100%; overflow:auto}
-.brand{padding:0 10px 22px; border-bottom:1px solid rgba(255,255,255,.08); margin-bottom:14px}
-.brand b{display:block; color:#fff; font-size:17px; font-weight:700; letter-spacing:-.01em}
-.brand span{font-size:12.5px}
+.brand{display:flex; align-items:center; gap:10px; padding:0 10px 22px; border-bottom:1px solid rgba(255,255,255,.08); margin-bottom:14px}
+.brand-logo{width:32px; height:32px; flex:none; object-fit:contain}
+.brand-txt{min-width:0}
+.brand b{display:block; color:#fff; font-size:16px; font-weight:700; letter-spacing:-.01em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.brand span{font-size:11.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block}
 .nav{display:flex; flex-direction:column; gap:2px}
 .nav button{all:unset; cursor:pointer; display:flex; align-items:center; gap:10px; padding:9px 10px; border-radius:8px; font-size:14px; color:var(--side-ink)}
 .nav button:hover{background:rgba(255,255,255,.06); color:#fff}
@@ -30,7 +32,7 @@ main,.page,.stack,.grid2>*,.split>*,.prow,.prow>*,.lrow,.lrow>*,.me-sum>*,.toolb
 /* ---------- main ---------- */
 main{overflow-y:auto; overflow-x:hidden; height:100%}
 .page{width:100%; max-width:1760px; margin:0 auto; padding:26px 32px 60px}
-.head{display:flex; align-items:flex-end; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-bottom:20px}
+.head{display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-bottom:20px}
 h1{font-size:24px; line-height:1.2; font-weight:700; letter-spacing:-.015em; margin:0}
 .sub{color:var(--ink-3); margin-top:4px; font-size:13px}
 h2{font-size:16px; font-weight:650; margin:0; letter-spacing:-.005em}
@@ -201,8 +203,12 @@ textarea.inp{min-height:74px; resize:vertical}
 .login .err{color:var(--bad); font-size:13px; min-height:18px; margin-bottom:8px}
 .login .btn{width:100%; justify-content:center; padding:10px}
 .userbox{margin-top:12px; padding-top:12px; border-top:1px solid rgba(255,255,255,.08)}
-.userbox b{display:block; color:#fff; font-size:13.5px}
-.userbox .acts{display:flex; gap:10px; margin-top:6px}
+.userbox-row{display:flex; align-items:center; gap:9px}
+.avatar{width:32px; height:32px; border-radius:50%; background:var(--teal); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:12px; flex:none}
+.userbox-info{min-width:0}
+.userbox-info b{display:block; color:#fff; font-size:13.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.userbox-info span{font-size:11.5px; color:var(--side-ink)}
+.userbox .acts{display:flex; gap:10px; margin-top:8px}
 .userbox button{all:unset; cursor:pointer; color:#9FD9D6; font-size:12.5px}
 .userbox button:hover{text-decoration:underline}
 @media (max-width:860px){ .userbox{display:none} }

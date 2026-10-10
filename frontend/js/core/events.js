@@ -8,6 +8,7 @@ main.addEventListener("click", e => {
   if(ACTIONS[a]){ ACTIONS[a](t, e); return; }
   if(a==="exnav"){ S.week = shiftAnchor(S.week, S.period||"week", +t.dataset.d); render(); return; }
   if(a==="exper"){ S.period = t.dataset.k; render(); return; }
+  if(a==="exrefresh"){ render(); toast("Đã làm mới"); return; }
   if(a==="expr"){ S.exPr = t.dataset.p; render(); return; }
   if(a==="golo"){ S.view="load"; store("view","load"); render(); return; }
   if(a==="godash"){ S.view="dash"; store("view","dash"); render(); return; }
@@ -61,4 +62,8 @@ document.addEventListener("fullscreenchange", () => { if(!document.fullscreenEle
 document.addEventListener("keydown", e => { if(e.key==="Escape" && document.body.classList.contains("present") && !document.querySelector(".drawer")){ document.body.classList.remove("present"); render(); } });
 main.addEventListener("keydown", e => { if((e.key==="Enter"||e.key===" ") && e.target.matches("[data-act][tabindex]")){ e.preventDefault(); e.target.click(); } });
 main.addEventListener("change", e => { if(e.target.id==="impFile" && e.target.files[0]){ importBackup(e.target.files[0]); e.target.value=""; return; } if(e.target.dataset.act==="pickme"){ S.me=e.target.value; store("me",S.me); render(); } });
-main.addEventListener("input", e => { if(e.target.dataset.act==="pq"){ S.planQuery=e.target.value; const pos=e.target.selectionStart; render(); const el=main.querySelector('[data-act="pq"]'); if(el){ el.focus(); el.setSelectionRange(pos,pos); } } });
+main.addEventListener("input", e => {
+  const a = e.target.dataset.act;
+  if(a==="pq"){ S.planQuery=e.target.value; const pos=e.target.selectionStart; render(); const el=main.querySelector('[data-act="pq"]'); if(el){ el.focus(); el.setSelectionRange(pos,pos); } }
+  else if(a==="exq"){ S.exQ=e.target.value; const pos=e.target.selectionStart; render(); const el=main.querySelector('[data-act="exq"]'); if(el){ el.focus(); el.setSelectionRange(pos,pos); } }
+});

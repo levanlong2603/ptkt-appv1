@@ -6,7 +6,9 @@ function renderNav(){
   document.getElementById("nav").innerHTML = VIEWS.map(v => v.sep ? '<div class="sep"></div>' :
     `<button data-view="${v.id}" ${S.view===v.id?'aria-current="page"':''} title="${esc(v.label)}">${ICONS[v.icon]}<span>${esc(v.label)}</span>${navBadge(v.id)}</button>`).join("");
   const ub = document.getElementById("userBox");
-  if(S.user){ ub.hidden = false; ub.innerHTML = `<b>${esc(S.user.display_name)}</b><span>${S.user.role==="admin"?"Trưởng phòng":"Nhân viên"}</span><div class="acts"><button data-uact="pw">Đổi mật khẩu</button><button data-uact="out">Đăng xuất</button></div>`; }
+  if(S.user){ ub.hidden = false;
+    const initials = S.user.display_name.trim().split(/\s+/).slice(-2).map(w=>w[0]).join("").toUpperCase();
+    ub.innerHTML = `<div class="userbox-row"><div class="avatar">${esc(initials)}</div><div class="userbox-info"><b>${esc(S.user.display_name)}</b><span>${S.user.role==="admin"?"Trưởng phòng":"Nhân viên"}</span></div></div><div class="acts"><button data-uact="pw">Đổi mật khẩu</button><button data-uact="out">Đăng xuất</button></div>`; }
   const sel = document.getElementById("meSel");
   const isAdmin = !!(S.user && S.user.role==="admin");
   sel.disabled = !!(S.user && !isAdmin);
