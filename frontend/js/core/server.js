@@ -68,21 +68,35 @@ function showLogin(msg){
   let w = document.getElementById("loginWrap");
   if(!w){ w = document.createElement("div"); w.id = "loginWrap"; w.className = "login-wrap"; document.body.appendChild(w); }
   w.innerHTML = `<form class="login" id="loginForm" autocomplete="on">
-    <div class="logo">NGSI</div><h1>Phòng Kỹ thuật</h1><p>Quản trị công việc và nguồn lực</p>
+    <div class="login-head"><img class="login-wordmark" src="img/NextGen.png" alt="NEXT GEN · Service Integration"><div class="login-div"></div><div class="login-head-tx">Technical Department</div></div>
+    <div class="login-sep"></div>
+    <div class="login-intro"><h1>Phòng Kỹ thuật</h1><p>Quản trị công việc và nguồn lực</p></div>
     <div class="field"><label for="lgU">Tên đăng nhập</label><input class="inp" id="lgU" name="username" autocomplete="username" required></div>
-    <div class="field"><label for="lgP">Mật khẩu</label><input class="inp" id="lgP" name="password" type="password" autocomplete="current-password" required></div>
+    <div class="field"><label for="lgP">Mật khẩu</label>
+      <div class="login-pwwrap"><input class="inp" id="lgP" name="password" type="password" autocomplete="current-password" required>
+        <button type="button" class="login-pwtoggle" id="lgPwToggle" aria-label="Hiện mật khẩu" aria-pressed="false">${ICONS.eye}</button></div></div>
     <div class="err" id="lgE" role="alert">${esc(msg||"")}</div>
-    <button class="btn primary" type="submit">Đăng nhập</button></form>`;
+    <button class="btn primary" type="submit">Đăng nhập</button>
+    <div class="login-hint">Quên mật khẩu? Liên hệ trưởng phòng để được hỗ trợ.</div></form>
+    <div class="login-foot">NGSI INTERNAL WORKSPACE</div>`;
   const f = document.getElementById("loginForm");
+  const pwToggle = document.getElementById("lgPwToggle"), pwInput = document.getElementById("lgP");
+  pwToggle.addEventListener("click", () => {
+    const show = pwInput.type==="password";
+    pwInput.type = show ? "text" : "password";
+    pwToggle.innerHTML = show ? ICONS.eyeOff : ICONS.eye;
+    pwToggle.setAttribute("aria-label", show ? "Ẩn mật khẩu" : "Hiện mật khẩu");
+    pwToggle.setAttribute("aria-pressed", show ? "true" : "false");
+  });
   f.addEventListener("submit", async e => {
-    e.preventDefault(); const btn = f.querySelector("button"); btn.disabled = true;
+    e.preventDefault(); const btn = f.querySelector('button[type="submit"]'); btn.disabled = true; const label = btn.textContent; btn.textContent = "Đang đăng nhập…";
     try{
       const r = await fetch("/api/login", {method:"POST", credentials:"same-origin", headers:{"Content-Type":"application/json"},
         body: JSON.stringify({username: f.username.value.trim(), password: f.password.value})});
       const j = await r.json().catch(()=>({}));
       if(!r.ok) throw new Error(j.error || "Đăng nhập không thành công");
       startSession(j);
-    }catch(err){ document.getElementById("lgE").textContent = err.message || "Không kết nối được máy chủ"; btn.disabled = false; }
+    }catch(err){ document.getElementById("lgE").textContent = err.message || "Không kết nối được máy chủ"; btn.disabled = false; btn.textContent = label; }
   });
   setTimeout(() => document.getElementById("lgU").focus(), 30);
 }
