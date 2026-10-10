@@ -237,12 +237,19 @@ async function rpExportExcel(report){
       cell.alignment = {vertical:"middle", horizontal:"center", wrapText:true};
     }
     for(const r of sh.rows) ws.addRow(r);
-    /* Kẻ ô đủ 4 cạnh cho mọi ô (đầu cột + dữ liệu), đúng kiểu lưới Excel giấy của phòng. */
+    /* Kẻ ô đủ 4 cạnh + bật Wrap Text cho mọi ô dữ liệu (đầu cột đã bật riêng ở trên), đúng kiểu lưới Excel
+       giấy của phòng – không bật thì Excel chỉ hiện chữ tràn ra ngoài/ cắt mất khi đóng cột, không tự
+       xuống dòng dù dòng đã cao sẵn do ô gộp bên cạnh. */
     const thin = {style:"thin", color:{argb:RP_XL_BORDER}};
-    for(let ri=1; ri<=1+sh.rows.length; ri++){
+    for(let ri=2; ri<=1+sh.rows.length; ri++){
       const row = ws.getRow(ri);
-      for(let ci=1; ci<=sh.cols.length; ci++) row.getCell(ci).border = {top:thin, left:thin, bottom:thin, right:thin};
+      for(let ci=1; ci<=sh.cols.length; ci++){
+        const cell = row.getCell(ci);
+        cell.border = {top:thin, left:thin, bottom:thin, right:thin};
+        cell.alignment = {vertical:"top", wrapText:true};
+      }
     }
+    for(let ci=1; ci<=sh.cols.length; ci++) ws.getRow(1).getCell(ci).border = {top:thin, left:thin, bottom:thin, right:thin};
     /* Gộp ô (merge) các cột phân cấp (Người thực hiện/Dự án/Hạng mục…) giống hệt bảng xem trước trên màn
        hình (rowspan ở rpWeekRowsHtml/rpProjectHtml) – không lặp lại giá trị ở từng dòng con khi xuất. */
     if(sh.merges && sh.rawRows){
