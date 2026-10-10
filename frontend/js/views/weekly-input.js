@@ -150,7 +150,14 @@ function entryForm(entry, person){
       {key:"work", label:"Việc đã làm trong tuần", type:"textarea"},
       {key:"hours", label:`Số giờ đã làm trong tuần (còn lại ${fmt1(remainH)}h / ${fmt1(stH.cap)}h)`, type:"number", min:1, max:Math.min(32,remainH||32), step:0.5, required:true,
         hint:"Chỉ tính giờ bạn trực tiếp làm cho đúng đầu việc này trong tuần, có thể nhập lẻ 0,5 giờ."},
-      {key:"pt", label:"Độ phức tạp (để trống = theo kế hoạch)", type:"seg", options:[[null,"Theo kế hoạch"],...[1,2,3,4,5].map(n=>[n,String(n)])], hint:v=>v?`${PT_HINT[v]} (×${fmt1(PT_MULT[v])})`:""},
+      {key:"pt", label:"Độ phức tạp (để trống = theo kế hoạch)", type:"seg", options:[[null,"Theo kế hoạch"],...[1,2,3,4,5].map(n=>[n,String(n)])],
+        /* Hiện rõ số giờ sau khi nhân hệ số Độ phức tạp, để thấy ngay số tính vào tải tuần không phải số giờ thô đã gõ ở trên. */
+        hint:(v,vals)=>{
+          const proj = M.pById.get(vals.projectId); const tk = proj && proj._tasks.find(x=>x.id===vals.taskId);
+          const pt = v || (tk && tk.pt) || null, mult = pt ? PT_MULT[pt] : 1;
+          const base = v ? `${PT_HINT[v]} (×${fmt1(mult)})` : (tk && tk.pt ? `Theo kế hoạch: ${PT_HINT[tk.pt]} (×${fmt1(mult)})` : "Theo kế hoạch: đầu việc chưa đặt Độ phức tạp, dùng hệ số trung tính ×1");
+          return vals.hours ? `${base} — ${fmt1(vals.hours)}h × ${fmt1(mult)} = ${fmt1(Math.round(vals.hours*mult*10)/10)}h tính vào tải tuần.` : base;
+        }},
       {key:"status", label:"Trạng thái cuối tuần", type:"seg", options:ST_WEEK.map(s=>[s,s])},
       {key:"ms", label:"Ma sát (chỉ khi bị vướng)", type:"seg", options:[[null,"Không"],...[1,2,3,4,5].map(n=>[n,String(n)])], hint:v=>({1:"Vướng nhẹ",2:"Vướng vừa",3:"Vướng nhiều",4:"Phụ thuộc nghiêm trọng",5:"Bị đình trệ"}[v]||"")},
       {key:"nn", label:"Nguyên nhân", type:"select", options:[["",""],...CAUSES.map(c=>[c,c])]},

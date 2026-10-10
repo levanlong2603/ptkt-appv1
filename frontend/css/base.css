@@ -156,7 +156,7 @@ td.num,th.num{text-align:right}
 .lrow:first-of-type{border-top:0}
 .lrow-h{padding:8px 22px; border-top:0; border-bottom:1px solid var(--line-2); text-transform:uppercase; letter-spacing:.03em; font-size:11px}
 .lbar{position:relative; height:20px; background:var(--line-2); border-radius:5px; overflow:visible}
-.lbar .fill{position:absolute; top:0; bottom:0; left:0; display:flex; border-radius:4px; overflow:hidden}
+.lbar .fill{position:absolute; top:0; bottom:0; left:0; display:flex; border-radius:5px; overflow:hidden; box-shadow:inset 0 0 0 1px rgba(20,44,70,.12)}
 .lbar .fill span{height:100%}
 .lbar .tick{position:absolute; top:-4px; bottom:-4px; width:0; border-left:1.5px dashed var(--ink-3); opacity:.6}
 .lbar-pct{position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:12px; font-weight:700; text-shadow:0 1px 2px rgba(0,0,0,.6); pointer-events:none}
