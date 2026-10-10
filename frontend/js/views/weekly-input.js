@@ -95,7 +95,11 @@ function inputTreeRows(es, locked=false){
       byPhase.get(code).items.push(e);
     }
     const phases = [...byPhase.values()].sort((a,b)=>(order.get(a.code)??999)-(order.get(b.code)??999) || a.code.localeCompare(b.code));
+    /* Thứ tự đầu việc trong từng hạng mục: theo đúng vị trí đã khai báo ở Kế hoạch dự án (p._tasks),
+       không theo thứ tự người dùng nhập/thêm việc trong tuần. */
+    const taskOrder = p ? new Map(p._tasks.map((t,i)=>[t.id,i])) : new Map();
     for(const ph of phases){
+      ph.items.sort((a,b)=>(taskOrder.get(a.taskId)??999)-(taskOrder.get(b.taskId)??999));
       if(!ph.code){ for(const e of ph.items) out += inputRow(e, 1, locked); continue; } // không rõ hạng mục: hiện thẳng dưới dự án, không bọc "Khác"
       out += inputGroupRow(1, ph.code+". "+(ph.name||"Khác"), `${ph.items.length} đầu việc`);
       for(const e of ph.items) out += inputRow(e, 2, locked);
