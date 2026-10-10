@@ -5,6 +5,26 @@
 .rp-tabs button:hover{color:var(--ink)}
 .rp-sec-h{background:var(--header-bg); color:#fff; font-weight:700; font-size:13px; padding:9px 14px; border-radius:8px 8px 0 0}
 .rp-sec .tbl-wrap{border:1px solid var(--line); border-top:0; border-radius:0 0 8px 8px}
+/* .rp-sec-xl ("Tình hình các dự án" ở Báo cáo tổng hợp dự án): không có thanh tiêu đề tối phía trên như
+   các .rp-sec khác (đã bỏ theo yêu cầu), nên bảng cần viền đủ 4 cạnh + bo đủ 4 góc thay vì chỉ bo dưới.
+   Đầu cột đồng bộ màu xanh lá nhạt giống bảng "Danh sách đầu việc" ở Báo cáo dự án (.rp-sec-grn bên dưới),
+   không còn tô vàng riêng nữa. */
+.rp-sec-xl .tbl-wrap{border-top:1px solid var(--line); border-radius:8px; overflow:hidden}
+/* white-space:normal + text-align:center để ghi đè mặc định (th{white-space:nowrap; text-align:left} ở
+   base.css) – cột hẹp mà nhãn dài (vd "Người phụ trách") cần xuống dòng thay vì tràn/đẩy lệch cột khác */
+.rp-sec-xl thead th{background:#D7E8C7; color:#1A1A1A; font-weight:700; border-bottom:1px solid #B9D6A0; text-align:center; white-space:normal; vertical-align:middle}
+.rp-sec-xl tbody td:first-child{text-align:center}
+/* Kẻ ô đủ 4 cạnh kiểu lưới Excel (mặc định .tbl-wrap chỉ có viền ngang dưới mỗi dòng, không có viền dọc) */
+.rp-sec-xl th,.rp-sec-xl td{border-right:1px solid var(--line-2)}
+.rp-sec-xl th:last-child,.rp-sec-xl td:last-child{border-right:0}
+/* .rp-sec-grn ("Danh sách đầu việc" ở Báo cáo dự án): cùng kiểu không thanh tiêu đề + viền lưới như
+   .rp-sec-xl ở trên, chỉ khác màu đầu cột (xanh lá nhạt kiểu mẫu Excel của phòng thay vì vàng) */
+.rp-sec-grn .tbl-wrap{border-top:1px solid var(--line); border-radius:8px; overflow:hidden}
+.rp-sec-grn thead th{background:#D7E8C7; color:#1A1A1A; font-weight:700; border-bottom:1px solid #B9D6A0; text-align:center; white-space:normal; vertical-align:middle}
+.rp-sec-grn th,.rp-sec-grn td{border-right:1px solid var(--line-2)}
+.rp-sec-grn th:last-child,.rp-sec-grn td:last-child{border-right:0}
+/* Toàn trang Báo cáo: cột số liệu căn giữa (không căn phải như mặc định .num ở base.css) */
+.rp-sec td.num,.rp-sec th.num{text-align:center}
 .rp-export{position:relative; display:inline-flex}
 .rp-export .tb-dropdown{top:calc(100% + 6px)}
 .rp-weekbox{display:inline-flex; align-items:center; gap:4px; border:1px solid var(--line); border-radius:8px; padding:7px 10px; background:var(--surface); min-width:210px}

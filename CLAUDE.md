@@ -21,11 +21,17 @@ Lõi (`frontend/js/views/`): Dashboard (`exec-dashboard.js`), Tổng quan dự �
 Tải tuần (`weekly-load.js`), Nhập theo tuần (`weekly-input.js`), Kế hoạch dự án (`plan.js`), Cài đặt
 (`settings.js`), Hướng dẫn (`help.js`). Module mở rộng (`frontend/js/modules/`, nạp sau lõi): Góp ý
 (`feedback.js`, collection `feedback`), Báo cáo (`reports.js`, xuất Excel/PDF, không lưu dữ liệu riêng –
-chỉ đọc lại `M`/`S`; 3 tab ngang hàng: "Báo cáo tuần" – theo dữ liệu Nhập theo tuần/Tải tuần (lọc Dự
-án/Nhân sự/Tuần); "Báo cáo dự án" – 1 dự án cụ thể theo kỳ tuần/tháng, dải KPI + bảng "Danh sách đầu việc"
-(không có phần nhân sự); "Báo cáo tổng hợp" – toàn phòng theo kỳ tuần/tháng, dải KPI + bảng "Tình hình các
-dự án" + "Tải công việc nhân sự". Quá hạn/Sắp hạn/Rủi ro ở 2 tab theo kỳ luôn tính theo tình trạng hiện
-tại lúc xuất, không truy hồi lại đúng thời điểm cuối kỳ vì không lưu ảnh chụp tiến độ lịch sử – chỉ "Xong
+chỉ đọc lại `M`/`S`; 3 tab ngang hàng: "Báo cáo tuần" – theo dữ liệu Nhập theo tuần/Tải tuần (lọc Loại dự
+án/Nhân sự/Tuần), bảng chi tiết gộp ô (rowspan, class `.rp-sec-grn`) theo cấp Người thực hiện (chỉ khi xem
+"Tất cả nhân sự") → Dự án → Hạng mục → Đầu việc, cột "Chi tiết thực hiện" lấy từ việc đã làm trong tuần
+(`e.work`); "Báo cáo dự án" – 1 dự án cụ thể theo kỳ tuần/tháng, dải KPI + bảng "Danh sách đầu việc" gộp ô
+theo Hạng mục, cột "Chi tiết thực hiện" lấy "Nội dung chi tiết" tĩnh của đầu việc (`t.detail`) – khác tab
+Báo cáo tuần (không có phần nhân sự); "Báo cáo tổng hợp dự án" – toàn bộ dự án đang chạy theo kỳ tuần/
+tháng, dải KPI + đúng 1 bảng "Tình hình các dự án" theo đúng mẫu Excel giấy của phòng (STT/Tên dự án/Người
+phụ trách/SE/Mốc HĐ/Tiến độ hiện tại/Vướng mắc/Đề xuất, đầu cột tô vàng, class `.rp-sec-xl`), không có
+bảng tải nhân sự riêng. Cả 2 bảng gộp ô (`.rp-sec-grn`/`.rp-sec-xl`) đều không có thanh tiêu đề tối phía
+trên như kiểu `.rp-sec-h` cũ. Quá hạn/Sắp hạn/Rủi ro ở 2 tab theo kỳ luôn tính theo tình trạng hiện tại
+lúc xuất, không truy hồi lại đúng thời điểm cuối kỳ vì không lưu ảnh chụp tiến độ lịch sử – chỉ "Xong
 trong kỳ" lọc thật theo kỳ đã chọn), KPI & Năng lực (`kpi.js`, Giai đoạn 1 – xem chú thích đầu file để
 biết phạm vi/giới hạn). Thứ tự nạp trong `index.html` quyết định thứ tự hiện trên menu trái.
 
@@ -57,8 +63,10 @@ biết phạm vi/giới hạn). Thứ tự nạp trong `index.html` quyết đ�
   `VIEWS.splice(VIEWS.findIndex(v=>v.id==="...")+1, 0, {...})`).
 - Thư viện ngoài nặng (xuất Excel/PDF…): **không** thêm `<script>` tĩnh trong `<head>` (làm chậm mọi trang) –
   tải "lười" bằng cách chèn `<script>` CDN động chỉ khi người dùng thực sự cần (xem `rpLoadScript()` /
-  `rpEnsureExcel()` trong `reports.js`). Vẫn không có bước build; chỉ thêm CDN (jsDelivr) cho thư viện cần
-  file nhị phân thật (ExcelJS cho `.xlsx`, pdfmake cho `.pdf` – pdfmake có sẵn font Roboto hỗ trợ tiếng Việt).
+  `rpEnsureExcel()`/`rpEnsurePdf()` trong `reports.js`). Vẫn không có bước build; chỉ thêm CDN (jsDelivr)
+  cho thư viện cần file nhị phân thật: ExcelJS cho `.xlsx` (dựng bảng thật, gộp ô bằng `ws.mergeCells`);
+  PDF dùng html2canvas + jsPDF – chụp đúng khối DOM `#rp-print` đang hiển thị thành ảnh rồi dán vào từng
+  trang A4 (`rpExportPdf()`), đảm bảo PDF luôn giống hệt bảng xem trước trên web, không tự dựng lại bảng.
 
 ## Quy ước bắt buộc
 - Luôn `esc()` mọi dữ liệu người dùng trước khi chèn vào HTML.
@@ -68,6 +76,10 @@ biết phạm vi/giới hạn). Thứ tự nạp trong `index.html` quyết đ�
 - Nhân sự (`S.staff`, `config/staff`) có các trường tuỳ chọn cộng dồn qua nhiều lần mở rộng: `years` (kinh
   nghiệm, chỉ gợi ý), `factor` (hệ số năng lực, 5 mức cố định), `title` (chức danh, dùng cho KPI & Năng
   lực Giai đoạn 2) – tài liệu cũ thiếu trường nào thì coi như rỗng/0, không cần script chuyển đổi.
+- Dự án (`projects/<id>`) có 2 trường tường thuật hiện ở Kế hoạch dự án/Tổng quan dự án: `milestones` (Mốc
+  hợp đồng), `situation` (Tình hình/vướng mắc chung); và 2 trường thêm sau, nhập chung 1 form `projectForm`
+  (plan.js) nhưng **chỉ hiện ở Báo cáo → Báo cáo tổng hợp dự án**, không hiện lại ở thẻ dự án: `progress`
+  (Tiến độ hiện tại), `proposal` (Đề xuất) – cố ý tách theo yêu cầu người dùng, đừng gộp lại khi sửa.
 - Quyền phải kiểm tra ở **máy chủ** (`RULES`/`canWrite`), không chỉ ẩn nút.
 - Không đổi định dạng tài liệu đang có (`projects`, `weeks`, `config`) mà không viết bước chuyển đổi dữ liệu.
 - Không commit `.env`, `data/`, `node_modules/`.
