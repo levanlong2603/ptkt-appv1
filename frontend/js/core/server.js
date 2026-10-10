@@ -95,12 +95,17 @@ async function logout(msg){
 }
 /* ---------- tự đăng xuất khi không thao tác ---------- */
 const IDLE_TIMEOUT_MIN = 15;
-let idleTimer = null, idleLastReset = 0;
+let idleTimer = null, idleLastReset = 0, idleLastPing = 0;
 function resetIdleTimer(){
   if(!S.user) return;
   const now = Date.now(); if(idleTimer && now - idleLastReset < 5000) return; // tối đa đặt lại mỗi 5 giây, đỡ tốn
   idleLastReset = now; clearTimeout(idleTimer);
   idleTimer = setTimeout(() => logout(`Đã tự đăng xuất do không thao tác trong ${IDLE_TIMEOUT_MIN} phút.`), IDLE_TIMEOUT_MIN*60*1000);
+  /* Báo cho máy chủ biết vẫn đang hoạt động thật (xem auth() trong backend/server.js) – máy chủ tự đăng
+     xuất phiên nếu không có thao tác thật trong IDLE_TIMEOUT_MIN phút, kể cả khi đóng hẳn trình duyệt rồi
+     mở lại sau đó (không chỉ dựa vào bộ đếm JS này, vì JS ngừng chạy khi đóng tab). Gọi thưa hơn (mỗi phút)
+     để đỡ tốn mạng. */
+  if(now - idleLastPing > 60000){ idleLastPing = now; fetch("/api/activity", {method:"POST", credentials:"same-origin"}).catch(()=>{}); }
 }
 function stopIdleTimer(){ clearTimeout(idleTimer); idleTimer = null; }
 ["mousemove","keydown","mousedown","touchstart","wheel","scroll"].forEach(ev => document.addEventListener(ev, resetIdleTimer, {passive:true}));

@@ -90,6 +90,14 @@ app.use((req, res, next) => {
   next();
 });
 
+/* Tự đăng xuất do không hoạt động: cookie phiên sống tới SESSION_DAYS ngày (để không phải đăng nhập lại
+   mỗi lần mở trình duyệt), nhưng nếu không có thao tác thật (frontend gọi POST /api/activity, xem
+   resetIdleTimer() trong frontend/js/core/server.js) trong IDLE_TIMEOUT_MIN phút thì coi như hết phiên dù
+   cookie vẫn còn hạn – kể cả khi đã đóng hẳn trình duyệt rồi mở lại sau đó. Chỉ lưu tạm trên bộ nhớ (không
+   cần bền vững qua việc khởi động lại máy chủ): nếu máy chủ restart, coi như mọi người vừa hoạt động lại
+   (an toàn hơn là tự đăng xuất hết mọi người mỗi lần triển khai bản mới). */
+const IDLE_TIMEOUT_MIN = 15;
+const lastSeen = new Map(); // uid -> mốc thời gian (ms) hoạt động thật gần nhất
 const auth = A(async (req, res, next) => {
   const token = req.cookies[COOKIE];
   if (!token) return res.status(401).json({ error: "Chưa đăng nhập" });
@@ -97,12 +105,18 @@ const auth = A(async (req, res, next) => {
   try { p = jwt.verify(token, JWT_SECRET); } catch (e) { return res.status(401).json({ error: "Phiên đăng nhập hết hiệu lực" }); }
   const u = await store.getUserById(p.uid);
   if (!u || !u.active || u.token_version !== p.tv) return res.status(401).json({ error: "Phiên đăng nhập hết hiệu lực" });
+  const seen = lastSeen.get(u.id);
+  if (seen != null && Date.now() - seen > IDLE_TIMEOUT_MIN * 60e3) {
+    lastSeen.delete(u.id);
+    return res.status(401).json({ error: "Đã tự đăng xuất do không hoạt động" });
+  }
   req.user = u; next();
 });
 const adminOnly = (req, res, next) => req.user.role === "admin" ? next() : res.status(403).json({ error: "Chỉ trưởng phòng được thực hiện" });
 function setSession(res, u) {
   const token = jwt.sign({ uid: u.id, tv: u.token_version }, JWT_SECRET, { expiresIn: `${SESSION_DAYS}d` });
   res.cookie(COOKIE, token, { httpOnly: true, sameSite: "lax", secure: COOKIE_SECURE, maxAge: SESSION_DAYS * 864e5, path: "/" });
+  lastSeen.set(u.id, Date.now());
 }
 
 /* --- đăng nhập (có giới hạn số lần sai) --- */
@@ -127,6 +141,9 @@ app.get("/api/health", A(async (req, res) => {
   catch (e) { res.status(503).json({ ok: false, db: store.name, error: "Không kết nối được cơ sở dữ liệu" }); }
 }));
 app.get("/api/me", auth, (req, res) => res.json(publicUser(req.user)));
+/* Frontend gọi khi người dùng thật sự thao tác (chuột/phím/cuộn) – xem resetIdleTimer() – để gia hạn mốc
+   hoạt động, tránh bị auth() ở trên tự đăng xuất do không hoạt động dù cookie còn hạn. */
+app.post("/api/activity", auth, (req, res) => { lastSeen.set(req.user.id, Date.now()); res.status(204).end(); });
 app.post("/api/me/password", auth, A(async (req, res) => {
   const { current, next } = req.body || {};
   if (!bcrypt.compareSync(String(current || ""), req.user.pass_hash)) return res.status(400).json({ error: "Mật khẩu hiện tại không đúng" });
