@@ -23,7 +23,7 @@ function viewInput(){
     <button class="btn primary" data-act="addentry">+ Thêm việc</button>`}</div></div></section>`;
   if(locked) h += `<p class="small muted" style="margin:-8px 0 14px">Tuần ${isoWeek(w)} đã qua, chỉ trưởng phòng mới sửa được dữ liệu tuần này.</p>`;
   if(!L.es.length) return h + `<section class="panel"><div class="empty"><b>Chưa có việc nào trong tuần ${isoWeek(w)}</b>${locked?"":"Thêm việc bạn làm trong tuần, hoặc chép các việc dở dang từ tuần trước."}</div></section>`;
-  return h + `<section class="panel tbl-wrap"><table style="table-layout:fixed"><thead><tr><th style="width:20%">Đầu việc</th><th style="width:20%">Việc đã làm</th><th style="width:8%; text-align:center">Quy mô</th><th style="width:10%; text-align:center">Workload</th><th style="width:14%">Trạng thái cuối tuần</th><th style="width:12%">Ma sát</th><th style="width:16%">Vướng / cần hỗ trợ</th></tr></thead><tbody>${inputTreeRows(L.es, locked)}</tbody></table></section>
+  return h + `<section class="panel tbl-wrap"><table style="table-layout:fixed"><thead><tr><th style="width:20%">Đầu việc</th><th style="width:20%">Việc đã làm</th><th style="width:8%; text-align:center">Giờ</th><th style="width:10%; text-align:center">Workload</th><th style="width:14%">Trạng thái cuối tuần</th><th style="width:12%">Ma sát</th><th style="width:16%">Vướng / cần hỗ trợ</th></tr></thead><tbody>${inputTreeRows(L.es, locked)}</tbody></table></section>
     ${locked?"":'<p class="small muted">Bấm vào một dòng để sửa hoặc xoá.</p>'}`;
 }
 /* "Tất cả" (chỉ trưởng phòng): liệt kê gộp việc đã nhập của mọi người trong tuần, gom theo người.
@@ -41,7 +41,7 @@ function viewInputAll(w){
     rows += inputGroupRow(0, person, `${pes.length} đầu việc · ${fmt1(wl)} điểm`, 6);
     for(const e of pes) rows += inputAllRow(e);
   }
-  return `<section class="panel tbl-wrap"><table style="table-layout:fixed"><thead><tr><th style="width:30%">Đầu việc</th><th style="width:18%">Việc đã làm</th><th style="width:8%; text-align:center">Quy mô</th><th style="width:10%; text-align:center">Workload</th><th style="width:14%">Trạng thái cuối tuần</th><th style="width:20%">Ma sát / vướng mắc</th></tr></thead><tbody>${rows}</tbody></table></section>
+  return `<section class="panel tbl-wrap"><table style="table-layout:fixed"><thead><tr><th style="width:30%">Đầu việc</th><th style="width:18%">Việc đã làm</th><th style="width:8%; text-align:center">Giờ</th><th style="width:10%; text-align:center">Workload</th><th style="width:14%">Trạng thái cuối tuần</th><th style="width:20%">Ma sát / vướng mắc</th></tr></thead><tbody>${rows}</tbody></table></section>
     <p class="small muted">Bấm vào một dòng để sửa hoặc xoá.</p>`;
 }
 function inputAllRow(e){
@@ -62,7 +62,7 @@ function inputRow(e, lvl=1, locked=false){
   return `<tr ${locked?"":'class="click" data-act="editentry" data-id="'+esc(e.id)+'" tabindex="0"'} title="${e.ref?esc(e.ref.t.dv):""}">
     <td style="padding-left:${10+lvl*22}px; border-left:3px solid ${INPUT_LVL_BORDER[lvl]||INPUT_LVL_BORDER[2]}"><div class="cell-main">${esc(name)}</div></td>
     <td style="white-space:pre-wrap">${e.work?esc(e.work):'<span class="muted">–</span>'}</td>
-    <td style="text-align:center">${e.hours??e.qm??'<span class="pill bad">Chọn Quy mô</span>'}</td><td style="text-align:center">${e.wl!=null?e.wl:"–"}</td>
+    <td style="text-align:center">${e.hours??e.qm??'<span class="pill bad">Chọn giờ</span>'}</td><td style="text-align:center">${e.wl!=null?e.wl:"–"}</td>
     <td>${e.status?stPill(e.status):'<span class="pill warn">Chọn trạng thái</span>'}</td>
     <td>${e.ms!=null&&e.ms!==""?`<span class="pill ${e.ms>=3?"bad":e.ms>=1?"warn":"mute"}">${e.ms}</span>`:""} ${esc(e.nn||"")}</td>
     <td class="small">${esc(e.note||"")}</td></tr>`;
@@ -110,7 +110,7 @@ function inputTreeRows(es, locked=false){
 function entryForm(entry, person){
   const isNew = !entry;
   const who = person || (entry && entry.person) || S.me;
-  const e = entry ? {...entry} : {id:uid("e"), projectId:"", taskId:"", work:"", qm:null, pt:null, status:"", ms:null, nn:"", note:""};
+  const e = entry ? {...entry} : {id:uid("e"), projectId:"", taskId:"", work:"", qm:null, hours:null, pt:null, status:"", ms:null, nn:"", note:""};
   /* "Còn lại" hiển thị cho người nhập = capacity − tổng workload cả tuần (giống hệt số "Workload tuần"
      hiện ở đầu trang), để luôn khớp với con số họ vừa thấy, kể cả khi đang sửa một việc đã có sẵn.
      Khi KIỂM TRA lúc Lưu thì vẫn phải trừ riêng phần của chính việc đang sửa ra khỏi tổng trước (budgetH),
@@ -152,19 +152,18 @@ function entryForm(entry, person){
       {key:"projectId", label:"Dự án", type:"select", options:projOpts, required:true, onChange:(v,f)=>{ f.setOptions("taskId", taskOpts(v)); }},
       {key:"taskId", label:"Đầu việc (theo kế hoạch của dự án)", type:"select", options:taskOpts(e.projectId, e.taskId), required:true},
       {key:"work", label:"Việc đã làm trong tuần", type:"textarea"},
-      {key:"qm", label:"Quy mô (thời gian đã làm)", type:"seg", options:[1,2,3,4,5].map(n=>[n,String(n)]), required:true,
-        hint:(v,vals)=>{
-          if(!v) return "Chọn mức gần đúng nhất với thời gian bạn đã làm cho đúng đầu việc này trong tuần.";
-          const mult = vals.pt ? PT_MULT[vals.pt] : 1;
-          return `${QM_HINT[v]} × hệ số Độ phức tạp (×${fmt1(mult)}) = ${fmt1(wlOf(v,vals.pt))}h tính vào tải tuần.`;
-        }},
+      {key:"qm", label:"Quy mô (ước lượng, chỉ để tham khảo)", type:"seg", options:[1,2,3,4,5].map(n=>[n,String(n)]), required:true, half:true,
+        /* Chỉ để ước lượng/tham khảo – không tham gia công thức tính tải nữa (xem hours bên dưới). */
+        hint:v=>v?QM_HINT[v]:"Chọn mức ước lượng gần đúng nhất, chỉ để tham khảo."},
+      {key:"hours", label:"Thời gian thực hiện (giờ thật)", type:"number", min:0.5, max:32, step:0.5, required:true, half:true,
+        hint:"Số giờ thật bạn đã làm cho đúng đầu việc này trong tuần, có thể nhập lẻ 0,5 giờ."},
       {key:"pt", label:"Độ phức tạp (để trống = hệ số trung tính ×1)", type:"seg", options:[[null,"Mặc định"],...[1,2,3,4,5].map(n=>[n,String(n)])],
-        /* Nhân vào Quy mô để ra tải (wlOf(), giống hệt công thức ở p._tasks) – đồng thời vẫn đồng bộ về
-           Độ phức tạp của đầu việc trong Kế hoạch dự án khi lưu (xem onSave bên dưới). */
+        /* Nhân vào Thời gian thực hiện để ra tải – đồng thời vẫn đồng bộ Độ phức tạp vừa chọn về đúng đầu
+           việc trong Kế hoạch dự án khi lưu (xem onSave bên dưới), để dùng chung cho ước lượng kế hoạch. */
         hint:(v,vals)=>{
           const mult = v ? PT_MULT[v] : 1;
           const base = v ? `${PT_HINT[v]} (×${fmt1(mult)})` : "Mặc định, không điều chỉnh (×1)";
-          return vals.qm ? `${base} — ${QM_HINT[vals.qm]} × ${fmt1(mult)} = ${fmt1(wlOf(vals.qm,v))}h tính vào tải tuần.` : base;
+          return vals.hours ? `${base} — ${fmt1(vals.hours)}h × ${fmt1(mult)} = ${fmt1(Math.round(vals.hours*mult*10)/10)}h tính vào tải tuần.` : base;
         }},
       {key:"status", label:"Trạng thái cuối tuần", type:"seg", options:ST_WEEK.map(s=>[s,s])},
       {key:"ms", label:"Ma sát (chỉ khi bị vướng)", type:"seg", options:[[null,"Không"],...[1,2,3,4,5].map(n=>[n,String(n)])], hint:v=>({1:"Vướng nhẹ",2:"Vướng vừa",3:"Vướng nhiều",4:"Phụ thuộc nghiêm trọng",5:"Bị đình trệ"}[v]||"")},
@@ -173,14 +172,15 @@ function entryForm(entry, person){
     ],
     saveLabel: isNew ? "Thêm việc" : "Lưu thay đổi",
     onSave: async v => {
-      if(!v.qm) throw new Error("Chọn Quy mô (thời gian đã làm).");
-      /* Tải tính vào hệ thống = Quy mô × hệ số Độ phức tạp (wlOf(), khớp với model.js/derive()). */
-      const thisWl = wlOf(v.qm, v.pt);
-      if(thisWl>budgetH) throw new Error(`Việc này tính tải ${fmt1(thisWl)}h (Quy mô × Độ phức tạp), vượt quá phần còn lại dành cho việc này trong tuần (còn ${fmt1(budgetH)}h, sau khi đã trừ các việc khác). Chọn mức Quy mô/Độ phức tạp thấp hơn hoặc giảm bớt việc khác trước.`);
+      if(!v.qm) throw new Error("Chọn Quy mô (ước lượng).");
+      if(!(v.hours>=0.5 && v.hours<=32)) throw new Error("Thời gian thực hiện phải từ 0,5 đến 32 giờ.");
+      /* Tải tính vào hệ thống = Thời gian thực hiện (giờ thật) × hệ số Độ phức tạp, khớp với model.js/derive(). */
+      const thisWl = Math.round(v.hours*(v.pt?PT_MULT[v.pt]:1)*10)/10;
+      if(thisWl>budgetH) throw new Error(`Việc này tính tải ${fmt1(thisWl)}h (giờ × Độ phức tạp), vượt quá phần còn lại dành cho việc này trong tuần (còn ${fmt1(budgetH)}h, sau khi đã trừ các việc khác). Giảm giờ, giảm Độ phức tạp, hoặc giảm bớt việc khác trước.`);
       const doc = weekDoc(S.week, who); const list = doc ? [...(doc.entries||[])] : [];
       if(list.some(x=>x.id!==v.id && x.projectId===v.projectId && x.taskId===v.taskId))
         throw new Error("Đầu việc này đã có trong tuần. Bấm vào dòng đó trong bảng để sửa thay vì thêm mới.");
-      const i = list.findIndex(x=>x.id===v.id); const clean = {id:v.id, projectId:v.projectId, taskId:v.taskId, work:v.work||"", qm:v.qm, hours:null, pt:v.pt||null, status:v.status||"", ms:v.ms??null, nn:v.nn||"", note:v.note||""};
+      const i = list.findIndex(x=>x.id===v.id); const clean = {id:v.id, projectId:v.projectId, taskId:v.taskId, work:v.work||"", qm:v.qm, hours:v.hours, pt:v.pt||null, status:v.status||"", ms:v.ms??null, nn:v.nn||"", note:v.note||""};
       if(i>=0) list[i]=clean; else list.push(clean);
       await saveWeek(S.week, who, list); toast(isNew?"Đã thêm việc":"Đã lưu thay đổi");
       /* Nhân viên tự đánh giá Độ phức tạp ngay trong tuần → đồng bộ về đúng đầu việc ở Kế hoạch dự án,

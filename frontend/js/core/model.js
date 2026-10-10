@@ -14,12 +14,12 @@ function derive(){
   const entries = [];
   for(const w of S.weeks) for(const e of (w.entries||[])){
     const ref = taskMap.get(e.projectId+"|"+e.taskId);
-    /* Workload của một lượt nhập tuần = QM_HOURS[Quy mô] × PT_MULT[Độ phức tạp] (hàm wlOf(), giống hệt
-       cách tính wl theo kế hoạch ở p._tasks bên dưới) – thời gian làm (Quy mô) nhân với Độ phức tạp của
-       đúng đầu việc đó trong tuần này. Thiếu Độ phức tạp → hệ số mặc định 1,0 (không chặn), đã có sẵn
-       trong wlOf(). e.hours (giờ gõ tự do, bản "nhập giờ trực tiếp" trước đây) chỉ còn đọc lại các lượt
-       nhập cũ, dùng thẳng không nhân gì (đã chốt số thật từ lúc nhập). */
-    const wl = e.hours!=null ? e.hours : wlOf(e.qm, e.pt);
+    /* Workload của một lượt nhập tuần = e.hours (số giờ thực tế đã làm, người nhập tự gõ trong ô "Thời
+       gian thực hiện") × PT_MULT[Độ phức tạp] – Quy mô (e.qm) ở màn Nhập theo tuần giờ chỉ để tham
+       khảo/ước lượng, KHÔNG tham gia công thức này nữa (tránh tính trùng với giờ thật đã gõ). Thiếu Độ
+       phức tạp → hệ số mặc định 1,0 (không chặn). Các lượt nhập cũ chỉ có e.qm (từ trước khi có ô giờ
+       thật) vẫn đọc lại qua wlOf(e.qm, e.pt) để không đổi dữ liệu lịch sử. */
+    const wl = e.hours!=null ? Math.round(e.hours*(e.pt?PT_MULT[e.pt]:1)*10)/10 : wlOf(e.qm, e.pt);
     entries.push({...e, week:w.week, person:w.person, docId:w._id, ref, wl, type: ref ? ref.p.type : (pById.get(e.projectId)||{}).type || "Nội bộ"});
   }
   // latest per task

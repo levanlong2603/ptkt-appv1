@@ -25,12 +25,14 @@ chỉ đọc lại `M`/`S`), KPI & Năng lực (`kpi.js`, Giai đoạn 1 – xem
 hạn). Thứ tự nạp trong `index.html` quyết định thứ tự hiện trên menu trái.
 
 ## Công thức Workload / Capacity (`frontend/js/core/constants.js`, `model.js`)
-- `Workload (giờ) = QM_HOURS[Quy mô] × PT_MULT[Độ phức tạp]` (hàm `wlOf()`) — dùng chung cho cả đầu việc
-  theo kế hoạch (`p._tasks`, Kế hoạch dự án) lẫn một lượt nhập trong tuần (Nhập theo tuần, `e.qm`/`e.pt`,
-  cũng đồng bộ ngược `pt` vừa chọn về `t.pt` của đầu việc trong Kế hoạch dự án khi lưu). Thiếu Quy mô →
-  `null` (bắt buộc); thiếu Độ phức tạp → hệ số mặc định 1,0 (không chặn).
-  `e.hours` (giờ gõ tự do, bản "nhập giờ trực tiếp" cũ, đã bỏ khỏi form) chỉ còn đọc lại dữ liệu lịch sử,
-  dùng thẳng không nhân gì.
+- **Đầu việc theo kế hoạch** (`p._tasks`, Kế hoạch dự án): `Workload (giờ) = QM_HOURS[Quy mô] ×
+  PT_MULT[Độ phức tạp]` (hàm `wlOf()`); thiếu Quy mô → `null` (bắt buộc); thiếu Độ phức tạp → hệ số mặc
+  định 1,0 (không chặn). Đây là ước lượng/kế hoạch.
+- **Một lượt nhập trong tuần** (Nhập theo tuần): `Workload (giờ) = e.hours (ô "Thời gian thực hiện", giờ
+  thật người nhập tự gõ) × PT_MULT[e.pt]`. `e.qm` (ô "Quy mô") ở màn này chỉ còn là ước lượng/tham khảo,
+  **không** tham gia công thức. Chọn Độ phức tạp trong tuần vẫn đồng bộ ngược về `t.pt` của đầu việc trong
+  Kế hoạch dự án khi lưu (dùng chung cho ước lượng kế hoạch ở trên). Các lượt nhập cũ chỉ có `e.qm` (từ
+  trước khi có ô giờ thật) đọc lại qua `wlOf(e.qm, e.pt)` để không đổi dữ liệu lịch sử.
 - `Capacity (giờ/tuần) = Giờ/tuần × (1 − % họp, phát sinh) × Hệ số năng lực` (`model.js`, `derive()`).
   Hệ số năng lực **chỉ nhân ở Capacity**, Workload không chia lại cho hệ số (tránh tính trùng).
 - Tiến độ dự án (`p._prog`, `p._phases`, `planStat()`) dùng trọng số `t.wl ?? 1` (không phải `t.wl || 0`)
