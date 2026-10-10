@@ -111,11 +111,15 @@ function entryForm(entry, person){
   const isNew = !entry;
   const who = person || (entry && entry.person) || S.me;
   const e = entry ? {...entry} : {id:uid("e"), projectId:"", taskId:"", work:"", hours:null, pt:null, status:"", ms:null, nn:"", note:""};
-  /* Giờ còn lại trong tuần = capacity của người nhập (st.cap, đã trừ % họp/phát sinh và nhân hệ số năng
-     lực – xem model.js) trừ tổng số giờ các việc KHÁC đã nhập trong tuần này (không tính việc đang sửa). */
+  /* "Còn lại" hiển thị cho người nhập = capacity − tổng workload cả tuần (giống hệt số "Workload tuần"
+     hiện ở đầu trang), để luôn khớp với con số họ vừa thấy, kể cả khi đang sửa một việc đã có sẵn.
+     Khi KIỂM TRA lúc Lưu thì vẫn phải trừ riêng phần của chính việc đang sửa ra khỏi tổng trước (budgetH),
+     nếu không thì mở sửa một việc đã lưu từ trước (không đổi gì) cũng sẽ bị báo vượt tải oan. */
   const stH = M.staff.find(s=>s.name===who) || {cap:0};
+  const totalWl = M.entries.filter(x=>x.person===who && x.week===S.week && x.status!=="Hủy" && x.wl!=null).reduce((a,x)=>a+x.wl,0);
   const otherWl = M.entries.filter(x=>x.person===who && x.week===S.week && x.id!==e.id && x.status!=="Hủy" && x.wl!=null).reduce((a,x)=>a+x.wl,0);
-  const remainH = Math.max(0, Math.round((stH.cap-otherWl)*10)/10);
+  const remainH = Math.max(0, Math.round((stH.cap-totalWl)*10)/10);
+  const budgetH = Math.max(0, Math.round((stH.cap-otherWl)*10)/10);
   /* Nhân viên chỉ chọn được dự án mình là TM/SE, hoặc có đầu việc được giao/phối hợp; trưởng phòng không giới hạn.
      Ẩn dự án đã hoàn thành 100%, trừ khi đó là dự án của dòng đang sửa (giữ lại để không mất dữ liệu) */
   const assigned = p => S.canEdit || projectAssigned(p, who) || (p.tasks||[]).some(t=>t.owner===who || t.collab===who);
@@ -148,8 +152,9 @@ function entryForm(entry, person){
       {key:"projectId", label:"Dự án", type:"select", options:projOpts, required:true, onChange:(v,f)=>{ f.setOptions("taskId", taskOpts(v)); }},
       {key:"taskId", label:"Đầu việc (theo kế hoạch của dự án)", type:"select", options:taskOpts(e.projectId, e.taskId), required:true},
       {key:"work", label:"Việc đã làm trong tuần", type:"textarea"},
-      {key:"hours", label:`Số giờ đã làm trong tuần (còn lại ${fmt1(remainH)}h / ${fmt1(stH.cap)}h)`, type:"number", min:1, max:Math.min(32,remainH||32), step:0.5, required:true,
+      {key:"hours", label:"Số giờ đã làm trong tuần", type:"number", min:1, max:Math.min(32,budgetH||32), step:0.5, required:true, half:true,
         hint:"Chỉ tính giờ bạn trực tiếp làm cho đúng đầu việc này trong tuần, có thể nhập lẻ 0,5 giờ."},
+      {label:"Còn lại trong tuần", type:"badge", half:true, text:`${fmt1(remainH)}h / ${fmt1(stH.cap)}h`, tone: remainH<=0?"bad":remainH<stH.cap*0.2?"warn":"info"},
       {key:"pt", label:"Độ phức tạp (để trống = theo kế hoạch)", type:"seg", options:[[null,"Theo kế hoạch"],...[1,2,3,4,5].map(n=>[n,String(n)])],
         /* Hiện rõ số giờ sau khi nhân hệ số Độ phức tạp, để thấy ngay số tính vào tải tuần không phải số giờ thô đã gõ ở trên. */
         hint:(v,vals)=>{
@@ -171,7 +176,7 @@ function entryForm(entry, person){
       const proj = M.pById.get(v.projectId); const tk = proj && proj._tasks.find(x=>x.id===v.taskId);
       const pt = v.pt || (tk && tk.pt) || null;
       const thisWl = Math.round(v.hours*(pt ? PT_MULT[pt] : 1)*10)/10;
-      if(thisWl>remainH) throw new Error(`Việc này tính tải ${fmt1(thisWl)}h (giờ × hệ số Độ phức tạp), vượt quá giờ còn lại trong tuần (còn ${fmt1(remainH)}h). Giảm giờ, giảm Độ phức tạp, hoặc giảm bớt việc khác trước.`);
+      if(thisWl>budgetH) throw new Error(`Việc này tính tải ${fmt1(thisWl)}h (giờ × hệ số Độ phức tạp), vượt quá phần còn lại dành cho việc này trong tuần (còn ${fmt1(budgetH)}h, sau khi đã trừ các việc khác). Giảm giờ, giảm Độ phức tạp, hoặc giảm bớt việc khác trước.`);
       const doc = weekDoc(S.week, who); const list = doc ? [...(doc.entries||[])] : [];
       if(list.some(x=>x.id!==v.id && x.projectId===v.projectId && x.taskId===v.taskId))
         throw new Error("Đầu việc này đã có trong tuần. Bấm vào dòng đó trong bảng để sửa thay vì thêm mới.");
