@@ -1,29 +1,59 @@
-/* 
+/*
  * THEME – màu sắc, font chữ, bo góc dùng chung toàn ứng dụng.
  * Muốn đổi giao diện (màu thương hiệu, font, chế độ tối) → sửa file này trước.
- *   --teal   : màu chính (nút bấm, thanh tiến độ)
+ *   --teal       : accent trang trí (progress bar, focus ring, thanh chỉ báo) – KHÔNG dùng làm màu chữ/nền
+ *                  có chữ trắng đè lên vì #20A6C2 không đủ tương phản (WCAG) cho văn bản.
+ *   --teal-hover : bản đậm hơn của --teal (#087E9A) – dùng làm nền nút chính/trạng thái chọn có chữ trắng,
+ *                  màu link, màu chữ nhấn trên nền sáng (đủ tương phản AA); hover của nút chính dùng
+ *                  filter:brightness() trên chính token này, không có token thứ 3 riêng.
  *   --ink    : màu chữ;  --paper : màu nền trang;  --surface : màu nền thẻ/bảng
+ *   --hover  : màu nền khi rê chuột qua dòng/ô trên nền sáng (khác --line-2 là màu viền/ngăn cách)
  *   --side   : màu thanh menu bên trái
  *   --font   : font chữ (đổi cả dòng <link> Google Fonts trong index.html nếu đổi font)
   */
 :root{
-  --ink:#263238; --ink-2:#4B5560; --ink-3:#68727D;
-  --paper:#F5F6F8; --surface:#FFFFFF; --line:#E1E5E9; --line-2:#EDF0F2;
-  --side:#FFFFFF; --side-ink:#4B5560; --side-active:#FFFFFF;
-  --teal:#3EAE49; --teal-hover:#32953C; --teal-soft:#E7F5E8; --indigo:#4B5BA6; --ochre:#B7791F; --grey:#8A94A3;
-  --ok:#2F8F5B; --ok-soft:#DCEFE3; --warn:#C9860A; --warn-soft:#FBEFD2; --bad:#C0392B; --bad-soft:#F8DEDA;
-  --info:#2F6FED; --info-soft:#E8F0FE;
+  /* Midnight Navy + Electric Cyan — bảng màu chính thức (xem tài liệu nội bộ bàn giao thiết kế) */
+  --ink:#142C46; --ink-2:#62768C; --ink-3:#8292A5;
+  --paper:#EDF3F9; --surface:#FFFFFF; --line:#D9E4EF; --line-2:#E4EBF2; --hover:#F3F7FB;
+  /* Header: navy đậm nhất hệ thống, tách riêng khỏi --surface (thẻ/bảng vẫn trắng) */
+  --header-bg:#10243D; --header-ink:#FFFFFF; --header-icon:#D6E3EF; --header-hover:rgba(255,255,255,.12);
+  /* Sidebar: navy nhạt hơn header; menu mặc định/hover/đang chọn theo đúng bảng màu Navy & Electric Cyan */
+  --side:#193552; --side-ink:#D6E3EF; --side-icon:#A9C0D7; --side-grp-ink:#A9C0D7; --side-line:#2B4560;
+  --side-hover-bg:#244563; --side-hover-ink:#FFFFFF;
+  --side-active-bg:#176D78; --side-active-ink:#FFFFFF; --side-active-bar:#20A6C2;
+  /* --teal = accent tương tác chính (Electric Cyan) – dùng cho nút chính, link, thanh tiến độ, focus ring */
+  --teal:#20A6C2; --teal-hover:#087E9A; --teal-soft:#EAF4FA; --indigo:#4B5BA6; --ochre:#B7791F; --grey:#8292A5;
+  --ok:#2EAD59; --ok-soft:#E5F5EA; --warn:#E9A23B; --warn-soft:#FFF3D9; --bad:#D94F55; --bad-soft:#FCE8E8;
+  --info:#477FC1; --info-soft:#E5F1FC;
   --focus:var(--teal);
   --header-h:60px;
   --font:"Be Vietnam Pro", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   box-sizing:border-box;
   padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
 }
-/* Mặc định luôn là light theme (không tự chuyển tối theo hệ điều hành) – chỉ đổi khi có data-theme="dark" tường minh */
+/* 3 chế độ: data-theme="light" ép sáng · data-theme="dark" ép tối · không gắn data-theme = theo hệ thống
+   (prefers-color-scheme). index.html gắn data-theme="light" ngay từ đầu (tránh chớp màu) trừ khi người
+   dùng đã tự chọn "Theo hệ thống" ở menu tài khoản, lúc đó JS gỡ thuộc tính này đi. */
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme]){
+    --ink:#E6EBF1; --ink-2:#B3BDC9; --ink-3:#8793A2;
+    --paper:#10171F; --surface:#18212C; --line:#2A3542; --line-2:#212B37; --hover:#212B37;
+    --header-bg:#0B1A2B; --header-ink:#FFFFFF; --header-icon:#E2EAF3; --header-hover:rgba(255,255,255,.1);
+    --side:#0B1118; --side-ink:#9AA8B8; --side-icon:#8A9CB0; --side-grp-ink:#6E8299; --side-line:#24344A;
+    --side-hover-bg:#1C2E44; --side-hover-ink:#FFFFFF;
+    --side-active-bg:#215A3E; --side-active-ink:#FFFFFF; --side-active-bar:#35A853;
+    --teal:#35B3AE; --teal-hover:#2B918D; --teal-soft:#16393A; --indigo:#8C9BE0; --ochre:#E0A94A; --grey:#8E99A8;
+    --ok:#55C08A; --ok-soft:#173526; --warn:#E6AA3A; --warn-soft:#3A2E14; --bad:#EE6A5B; --bad-soft:#3E1D1A;
+    --info:#6FA2F2; --info-soft:#15263F;
+  }
+}
 :root[data-theme="dark"]{
   --ink:#E6EBF1; --ink-2:#B3BDC9; --ink-3:#8793A2;
-  --paper:#10171F; --surface:#18212C; --line:#2A3542; --line-2:#212B37;
-  --side:#0B1118; --side-ink:#9AA8B8;
+  --paper:#10171F; --surface:#18212C; --line:#2A3542; --line-2:#212B37; --hover:#212B37;
+  --header-bg:#0B1A2B; --header-ink:#FFFFFF; --header-icon:#E2EAF3; --header-hover:rgba(255,255,255,.1);
+  --side:#0B1118; --side-ink:#9AA8B8; --side-icon:#8A9CB0; --side-grp-ink:#6E8299; --side-line:#24344A;
+  --side-hover-bg:#1C2E44; --side-hover-ink:#FFFFFF;
+  --side-active-bg:#215A3E; --side-active-ink:#FFFFFF; --side-active-bar:#35A853;
   --teal:#35B3AE; --teal-hover:#2B918D; --teal-soft:#16393A; --indigo:#8C9BE0; --ochre:#E0A94A; --grey:#8E99A8;
   --ok:#55C08A; --ok-soft:#173526; --warn:#E6AA3A; --warn-soft:#3A2E14; --bad:#EE6A5B; --bad-soft:#3E1D1A;
   --info:#6FA2F2; --info-soft:#15263F;

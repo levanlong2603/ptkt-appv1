@@ -43,7 +43,7 @@ function viewDash(){
 }
 function projectDetail(p){
   /* data-act="dashtask" → luôn mở xem (openInfo), không bao giờ mở form sửa, kể cả trưởng phòng: Tổng quan dự án chỉ để xem */
-  const dashRow = (t,i,lvl=1) => { const idle = t.status==="Chưa bắt đầu"; return `<tr class="click${idle?" tr-idle":""}" data-act="dashtask" data-pid="${esc(p.id)}" data-id="${esc(t.id)}" tabindex="0" title="${esc(t.dv)}"><td style="padding-left:${10+lvl*32}px"><div class="cell-main">${esc(planShortName(t.dv))}</div>${t.detail&&!idle?`<div class="cell-sub">${esc(t.detail)}</div>`:""}${t.upd?`<div class="cell-sub">${esc(t.upd)}</div>`:""}${t.note?`<div class="cell-sub" style="color:var(--teal)">Ghi chú TrP: ${esc(t.note)}</div>`:""}</td>
+  const dashRow = (t,i,lvl=1) => { const idle = t.status==="Chưa bắt đầu"; return `<tr class="click${idle?" tr-idle":""}" data-act="dashtask" data-pid="${esc(p.id)}" data-id="${esc(t.id)}" tabindex="0" title="${esc(t.dv)}"><td style="padding-left:${10+lvl*32}px"><div class="cell-main">${esc(planShortName(t.dv))}</div>${t.detail&&!idle?`<div class="cell-sub">${esc(t.detail)}</div>`:""}${t.upd?`<div class="cell-sub">${esc(t.upd)}</div>`:""}${t.note?`<div class="cell-sub" style="color:var(--teal-hover)">Ghi chú TrP: ${esc(t.note)}</div>`:""}</td>
     <td>${esc(t.owner||"–")}</td><td>${t.doers.length?t.doers.map(esc).join(", "):"–"}</td><td>${t.deadline?dmy(t.deadline):"–"}</td><td>${stPill(t.status)}</td>
     <td>${warnPills(t.warns)}</td></tr>`; };
   const rows = planTreeRows(p, {scope:"dash|"+p.id, cols:6, row:dashRow, edit:false});

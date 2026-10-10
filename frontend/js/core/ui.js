@@ -52,9 +52,18 @@ document.getElementById("tbApps").addEventListener("click", e => { e.stopPropaga
 document.getElementById("tbBell").addEventListener("click", e => { e.stopPropagation(); tbToggle("tbBell","tbBellMenu"); });
 document.getElementById("tbAccount").addEventListener("click", e => { e.stopPropagation(); tbToggle("tbAccount","tbAccountMenu"); });
 document.getElementById("tbAccountMenu").addEventListener("click", e => {
+  const th = e.target.closest("[data-theme-set]");
+  if(th){ setTheme(th.dataset.themeSet); return; }
   const b = e.target.closest("[data-uact]"); if(!b) return;
   tbCloseAll(); if(b.dataset.uact==="pw") passwordForm(); else logout();
 });
+/* Giao diện: "light"/"dark" ép màu, "system" gỡ data-theme để CSS tự theo prefers-color-scheme.
+   index.html đã gắn data-theme="light" ngay khi tải trang (đọc localStorage) để không bị chớp màu. */
+function currentTheme(){ const t = store("theme"); return (t==="dark"||t==="system") ? t : "light"; }
+function setTheme(t){
+  if(t==="light"||t==="dark") document.documentElement.dataset.theme = t; else document.documentElement.removeAttribute("data-theme");
+  store("theme", t); renderHeader();
+}
 document.getElementById("tbBellMenu").addEventListener("click", e => {
   const b = e.target.closest("[data-tbgo]"); if(!b) return;
   tbCloseAll(); S.view = b.dataset.tbgo; store("view", S.view); render();
@@ -68,7 +77,15 @@ function renderHeader(){
     document.getElementById("tbName").textContent = S.user.display_name;
   }
   document.getElementById("tbAppsMenu").innerHTML = `<div class="tb-empty">Chưa có ứng dụng khác</div>`;
+  const th = currentTheme();
   document.getElementById("tbAccountMenu").innerHTML = S.user ? `
+    <div class="tb-head">Giao diện</div>
+    <div class="seg-in" role="group" aria-label="Giao diện" style="margin:0 10px 6px">
+      <button type="button" data-theme-set="light" aria-pressed="${th==="light"}">Sáng</button>
+      <button type="button" data-theme-set="dark" aria-pressed="${th==="dark"}">Tối</button>
+      <button type="button" data-theme-set="system" aria-pressed="${th==="system"}">Hệ thống</button>
+    </div>
+    <div class="tb-sep"></div>
     <button class="tb-item" data-uact="pw">Đổi mật khẩu</button>
     <button class="tb-item" data-uact="out">Đăng xuất</button>` : "";
   const lateN = (S.loaded && M) ? lateTaskCount() : 0;

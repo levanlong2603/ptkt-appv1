@@ -74,7 +74,7 @@ function planShortName(dv){ return (dv||"").replace(/^[0-9A-Z]{1,2}\d?\.\s*[^–
 function planTaskRow(t, i, lvl=1){
   const idle = t.status==="Chưa bắt đầu";
   return `<tr class="click${idle?" tr-idle":""}" data-act="task" data-id="${esc(t.id)}" tabindex="0" title="${esc(t.dv)}">
-      <td style="padding-left:${10+lvl*32}px"><div class="cell-main">${esc(planShortName(t.dv))}</div>${t.detail&&!idle?`<div class="cell-sub">${esc(t.detail)}</div>`:""}${t.note?`<div class="cell-sub" style="color:var(--teal)">Ghi chú TrP: ${esc(t.note)}</div>`:""}</td>
+      <td style="padding-left:${10+lvl*32}px"><div class="cell-main">${esc(planShortName(t.dv))}</div>${t.detail&&!idle?`<div class="cell-sub">${esc(t.detail)}</div>`:""}${t.note?`<div class="cell-sub" style="color:var(--teal-hover)">Ghi chú TrP: ${esc(t.note)}</div>`:""}</td>
       <td>${esc(t.owner||"–")}</td>
       <td>${t.doers.length?t.doers.map(esc).join(", "):"–"}</td>
       <td>${t.deadline?dmy(t.deadline):"–"}</td>

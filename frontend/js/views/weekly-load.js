@@ -62,7 +62,7 @@ function viewLoad(){
         <i class="tick" style="left:80%"></i>
         <span class="lbar-pct" style="color:${r.u>1?"var(--bad)":r.u>=.8?"var(--warn)":"var(--ink)"}">${r.L.es.length?pct(r.u):"–"}</span></div>
       <div class="small muted hide-m">${fmt1(r.L.wl)} / ${fmt1(r.s.cap)} điểm</div>
-      <div class="upct hide-m" style="text-align:center; color:${!r.L.es.length?"inherit":r.done.ratio>=1?"var(--ok)":r.done.ratio>0?"var(--teal)":"inherit"}">${r.L.es.length?pct(r.done.ratio):"–"}</div>
+      <div class="upct hide-m" style="text-align:center; color:${!r.L.es.length?"inherit":r.done.ratio>=1?"var(--ok)":r.done.ratio>0?"var(--teal-hover)":"inherit"}">${r.L.es.length?pct(r.done.ratio):"–"}</div>
       <div><span class="pill ${r.state[0]}">${r.state[1]}</span></div></div>`;
   }).join("") || `<div class="empty">Chưa có nhân sự. Thêm ở mục Cài đặt.</div>`;
   h += `</section>`;
