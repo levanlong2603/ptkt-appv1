@@ -29,6 +29,18 @@ function renderNav(){
 document.getElementById("nav").addEventListener("click", e => { const b=e.target.closest("button[data-view]"); if(!b) return; S.view=b.dataset.view; store("view",S.view); render(); document.getElementById("main").scrollTop=0; });
 document.getElementById("meSel").addEventListener("change", e => { S.me=e.target.value; store("me",S.me); render(); });
 
+/* ================= sidebar thu gọn/phóng to ================= */
+const sideToggleBtn = document.getElementById("sideToggle");
+sideToggleBtn.insertAdjacentHTML("afterbegin", ICONS.panelLeft);
+if(store("sideCollapsed")==="1") document.body.classList.add("side-collapsed");
+const syncSideToggleLabel = () => { const on = document.body.classList.contains("side-collapsed"); const label = on?"Mở rộng menu":"Thu gọn menu"; sideToggleBtn.setAttribute("aria-label", label); sideToggleBtn.title = label; };
+syncSideToggleLabel();
+sideToggleBtn.addEventListener("click", () => {
+  const on = document.body.classList.toggle("side-collapsed");
+  store("sideCollapsed", on?"1":"0");
+  syncSideToggleLabel();
+});
+
 /* ================= header (topbar) ================= */
 /* Icon chỉ cần chèn 1 lần lúc khởi động (không phải mỗi lần render) vì không đổi theo dữ liệu */
 document.getElementById("tbApps").insertAdjacentHTML("afterbegin", ICONS.grid);

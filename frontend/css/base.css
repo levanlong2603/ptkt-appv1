@@ -15,7 +15,8 @@ button,input,select,textarea{font:inherit; color:inherit}
 *::-webkit-scrollbar-track{background:transparent}
 *::-webkit-scrollbar-thumb{background:var(--line); border-radius:3px}
 *::-webkit-scrollbar-thumb:hover{background:var(--ink-3)}
-.app{display:grid; grid-template-columns:200px minmax(0,1fr); height:calc(100% - var(--header-h)); margin-top:var(--header-h)}
+.app{display:grid; grid-template-columns:228px minmax(0,1fr); height:calc(100% - var(--header-h)); margin-top:var(--header-h); transition:grid-template-columns .15s ease}
+@media (min-width:861px){ body.side-collapsed .app{grid-template-columns:60px minmax(0,1fr)} }
 main,.page,.stack,.grid2>*,.split>*,.prow,.prow>*,.lrow,.lrow>*,.me-sum>*,.toolbar>*{min-width:0}
 /* ---------- topbar (header cố định) ---------- */
 .topbar{position:fixed; top:0; left:0; right:0; height:var(--header-h); z-index:20; display:flex; align-items:center; justify-content:space-between;
@@ -46,10 +47,36 @@ main,.page,.stack,.grid2>*,.split>*,.prow,.prow>*,.lrow,.lrow>*,.me-sum>*,.toolb
 .tb-dropdown .tb-sep{height:1px; background:var(--line-2); margin:6px 4px}
 .tb-dropdown .tb-head{padding:8px 10px 4px; font-size:11px; font-weight:700; color:var(--ink-3); text-transform:uppercase; letter-spacing:.03em}
 @media (max-width:860px){ .topbar-wordmark,.topbar-div,.topbar-app{display:none} }
+@media (max-width:860px){ .side-toggle{display:none} }
 /* ---------- sidebar ---------- */
-.side{background:var(--side); color:var(--side-ink); display:flex; flex-direction:column; padding:14px 10px 16px; position:sticky; top:var(--header-h); height:calc(100vh - var(--header-h)); overflow:auto; border-right:1px solid var(--side-line)}
+.side{background:var(--side); color:var(--side-ink); display:flex; flex-direction:column; padding:14px 10px 16px; position:sticky; top:var(--header-h); height:calc(100vh - var(--header-h)); overflow:auto; border-right:1px solid var(--side-line); transition:width .15s ease}
+/* Đặt đè lên hàng của nhãn nhóm đầu tiên (.nav-grp:first-child) thay vì chiếm riêng 1 hàng phía trên */
+.side-head{position:absolute; top:14px; right:10px; z-index:1}
+.side-toggle{all:unset; cursor:pointer; width:22px; height:22px; border-radius:6px; display:flex; align-items:center; justify-content:center; color:var(--side-icon); flex:none}
+.side-toggle:hover{background:var(--side-hover-bg); color:var(--side-hover-ink)}
+.side-toggle:focus-visible{outline:2px solid var(--focus)}
+.side-toggle svg{width:17px; height:17px; transition:transform .15s ease}
+body.side-collapsed .side-toggle svg{transform:rotate(180deg)}
+/* Thu gọn sidebar: chỉ còn icon, ẩn chữ/nhãn, --app giảm cột trái (xem .app bên dưới) */
+body.side-collapsed .side{padding-left:8px; padding-right:8px}
+body.side-collapsed .side-head{left:0; right:0; display:flex; justify-content:center}
+/* Thu gọn ẩn luôn nhãn nhóm đầu tiên (nav-grp) nên không còn gì chừa chỗ cho nút nổi phía trên – đẩy
+   danh sách menu xuống dưới nút để không bị đè lên nút Dashboard đầu tiên */
+body.side-collapsed .nav{margin-top:34px}
+body.side-collapsed .nav-grp,
+body.side-collapsed .nav button span:not(.nav-badge),
+body.side-collapsed .side-foot label,
+body.side-collapsed .side-foot select,
+body.side-collapsed .conn span,
+body.side-collapsed .userbox-info,
+body.side-collapsed .userbox .acts{display:none}
+body.side-collapsed .nav button{justify-content:center; padding:9px 0}
+body.side-collapsed .nav-badge{position:absolute; top:2px; right:2px; margin:0; padding:2px 5px}
+body.side-collapsed .nav button{position:relative}
+body.side-collapsed .userbox-row{justify-content:center}
+body.side-collapsed .conn{justify-content:center}
 .nav-grp{padding:12px 12px 6px; font-size:11px; font-weight:700; color:var(--side-grp-ink); text-transform:uppercase; letter-spacing:.04em}
-.nav-grp:first-child{padding-top:4px}
+.nav-grp:first-child{padding-top:4px; padding-right:32px}
 .nav{display:flex; flex-direction:column; gap:1px}
 .nav button{all:unset; cursor:pointer; display:flex; align-items:center; gap:10px; padding:9px 10px; border-radius:8px; font-size:14px; color:var(--side-ink); border-left:3px solid transparent}
 .nav button:hover{background:var(--side-hover-bg); color:var(--side-hover-ink)}
