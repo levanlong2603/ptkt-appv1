@@ -159,7 +159,12 @@ function entryForm(entry, person){
     saveLabel: isNew ? "Thêm việc" : "Lưu thay đổi",
     onSave: async v => {
       if(!(v.hours>=1 && v.hours<=32)) throw new Error("Số giờ phải từ 1 đến 32.");
-      if(v.hours>remainH) throw new Error(`Vượt quá giờ còn lại trong tuần (còn ${fmt1(remainH)}h). Giảm bớt giờ ở việc này hoặc việc khác trước.`);
+      /* Tải tính vào hệ thống = giờ thật × hệ số Độ phức tạp (giống wlOf() ở p._tasks) – không chỉ so
+         giờ thật thô với giờ còn lại, vì việc khó hơn vẫn phải tính tải cao hơn dù tốn cùng số giờ. */
+      const proj = M.pById.get(v.projectId); const tk = proj && proj._tasks.find(x=>x.id===v.taskId);
+      const pt = v.pt || (tk && tk.pt) || null;
+      const thisWl = Math.round(v.hours*(pt ? PT_MULT[pt] : 1)*10)/10;
+      if(thisWl>remainH) throw new Error(`Việc này tính tải ${fmt1(thisWl)}h (giờ × hệ số Độ phức tạp), vượt quá giờ còn lại trong tuần (còn ${fmt1(remainH)}h). Giảm giờ, giảm Độ phức tạp, hoặc giảm bớt việc khác trước.`);
       const doc = weekDoc(S.week, who); const list = doc ? [...(doc.entries||[])] : [];
       if(list.some(x=>x.id!==v.id && x.projectId===v.projectId && x.taskId===v.taskId))
         throw new Error("Đầu việc này đã có trong tuần. Bấm vào dòng đó trong bảng để sửa thay vì thêm mới.");

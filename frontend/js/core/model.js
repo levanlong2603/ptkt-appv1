@@ -16,10 +16,11 @@ function derive(){
     const ref = taskMap.get(e.projectId+"|"+e.taskId);
     const pt = e.pt || (ref && ref.t.pt) || null;
     /* Từ bản cập nhật "nhập giờ trực tiếp": e.hours (số giờ thực tế đã làm trong tuần, người dùng tự gõ,
-       xem entryForm() ở weekly-input.js) là nguồn chính cho workload của một lần nhập tuần – không nhân
-       thêm hệ số Độ phức tạp nữa vì đây là giờ thật, không phải giờ quy đổi từ thang Quy mô 1–5.
-       e.qm (thang 1–5 cũ) chỉ còn dùng để đọc lại các lượt nhập từ trước khi có e.hours, không hỏi thêm. */
-    const wl = e.hours!=null ? e.hours : wlOf(e.qm, pt);
+       xem entryForm() ở weekly-input.js) là nguồn chính cho workload của một lần nhập tuần – vẫn nhân với
+       hệ số Độ phức tạp (PT_MULT, giống cách tính wl theo kế hoạch ở p._tasks bên dưới) để việc khó tốn
+       cùng số giờ vẫn tính tải cao hơn việc dễ. Thiếu Độ phức tạp (cả e.pt lẫn pt theo kế hoạch) → hệ số
+       trung tính 1. e.qm (thang 1–5 cũ) chỉ còn dùng để đọc lại các lượt nhập từ trước khi có e.hours. */
+    const wl = e.hours!=null ? Math.round(e.hours*(pt ? PT_MULT[pt] : 1)*10)/10 : wlOf(e.qm, pt);
     entries.push({...e, week:w.week, person:w.person, docId:w._id, ref, wl, type: ref ? ref.p.type : (pById.get(e.projectId)||{}).type || "Nội bộ"});
   }
   // latest per task
