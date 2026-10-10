@@ -138,16 +138,16 @@ function viewExec(){
   const soonList = T.filter(t=>OPEN.has(t.status) && t.deadline && t.deadline>=M.today && days(M.today,t.deadline)<=14).sort((a,b)=>a.deadline.localeCompare(b.deadline));
   const act = [];
   for(const t of fr.filter(t=>t.ms>=3)){ const a = {"Hãng":"Liên hệ hãng","Khách hàng":"Trao đổi khách hàng","Hàng hóa / thiết bị":"Đôn đốc hàng hóa","Chờ quyết định":"Ra quyết định","Cộng sự":"Điều phối nội bộ","Hệ thống":"Xử lý hệ thống","Thay đổi yêu cầu":"Chốt yêu cầu"}[t.nn]||"Xem đầu việc";
-    act.push({txt:`<b>${esc(t.p.name)}</b> – ${esc(t.dv.replace(/^[0-9A-Z]{1,2}\d?\.\s*[^–]*–\s*/,""))}${t.nn?" – "+esc(t.nn):""} (ma sát ${t.ms})`, btn:a}); }
-  for(const t of T.filter(t=>isLate(t) && t.pr==="P1" && !(t.ms>=3))) act.push({txt:`<b>${esc(t.p.name)}</b> – ${esc(t.dv.replace(/^[0-9A-Z]{1,2}\d?\.\s*[^–]*–\s*/,""))} – quá hạn ${dm(t.deadline)}`, btn:"Xem lại kế hoạch"});
-  for(const p of people.filter(p=>p.n && p.u>1)) act.push({txt:`<b>${esc(p.s.name)}</b> – <span style="color:${EXC.red}; font-weight:700">Quá tải ${pct(p.u)}</span>`, btn:"Điều phối công việc"});
+    act.push({txt:`<b>${esc(t.p.name)}</b> – ${esc(t.dv.replace(/^[0-9A-Z]{1,2}\d?\.\s*[^–]*–\s*/,""))}${t.nn?" – "+esc(t.nn):""} (ma sát ${t.ms})`, btn:a, go:"task:"+t.p.id+"|"+t.id}); }
+  for(const t of T.filter(t=>isLate(t) && t.pr==="P1" && !(t.ms>=3))) act.push({txt:`<b>${esc(t.p.name)}</b> – ${esc(t.dv.replace(/^[0-9A-Z]{1,2}\d?\.\s*[^–]*–\s*/,""))} – quá hạn ${dm(t.deadline)}`, btn:"Xem lại kế hoạch", go:"task:"+t.p.id+"|"+t.id});
+  for(const p of people.filter(p=>p.n && p.u>1)) act.push({txt:`<b>${esc(p.s.name)}</b> – <span style="color:${EXC.red}; font-weight:700">Quá tải ${pct(p.u)}</span>`, btn:"Điều phối công việc", go:"load:"+encodeURIComponent(p.s.name)});
   h += `<div class="ex-row ex-r4">
     <div class="ex-card"><div class="ex-h"><h3>LỊCH HẾT HẠN TRONG 2 TUẦN</h3><span class="muted small">${soonList.length} việc</span></div>
       <div class="ex-scroll" style="max-height:260px"><table class="ex-t"><tbody>
       ${soonList.map(t=>`<tr><td style="color:${days(M.today,t.deadline)<=3?EXC.red:"inherit"}; font-weight:600; white-space:nowrap">${dm(t.deadline)}</td><td class="w">${esc(t.dv.replace(/^[0-9A-Z]{1,2}\d?\.\s*[^–]*–\s*/,""))}<div class="muted" style="font-size:11.5px">${esc(t.p.name)}</div></td>
         <td class="c">${t.pr?`<span class="ex-tag tg-${t.pr.toLowerCase()}">${esc(t.pr)}</span>`:""}</td><td>${esc(t.owner||"–")}</td></tr>`).join("")||`<tr><td class="ex-empty">Không có đầu việc nào đến hạn trong 14 ngày tới.</td></tr>`}</tbody></table></div></div>
     <div class="ex-card ex-act"><div class="ex-h"><h3>⚠ VIỆC CẦN TRP CAN THIỆP NGAY</h3><span class="muted small">${act.length} việc</span></div>
-      <div class="ex-scroll" style="max-height:260px">${act.map(a=>`<div class="ex-ai"><div>${a.txt}</div><span class="ex-tag tg-gry">${esc(a.btn)}</span></div>`).join("")||`<div class="ex-empty">Không có việc cần can thiệp ngay.</div>`}</div></div></div>`;
+      <div class="ex-scroll" style="max-height:260px">${act.map(a=>`<div class="ex-ai"><div>${a.txt}</div><button data-act="exgo" data-go="${esc(a.go)}">${esc(a.btn)}</button></div>`).join("")||`<div class="ex-empty">Không có việc cần can thiệp ngay.</div>`}</div></div></div>`;
   h += `<div class="small muted">Workload, capacity, mức sử dụng và phân bổ workload tính theo ${P.short} đã chọn (dữ liệu nhập theo tuần). Công việc, dự án, ma sát, hạn chót tính theo tình trạng hiện tại (${dmy(M.today)}).</div></div>`;
   return h;
 }

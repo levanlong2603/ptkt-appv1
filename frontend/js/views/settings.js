@@ -19,7 +19,7 @@ function viewSettings(){
   h += `<section class="panel" style="margin-bottom:18px"><div class="panel-h"><h2>Nhân sự & capacity</h2>${ro?"":'<button class="btn primary" data-act="addstaff">+ Nhân sự</button>'}</div>
     <div class="tbl-wrap"><table style="table-layout:fixed"><thead><tr><th style="width:24%">Họ tên</th><th style="width:13%; text-align:center">Giờ / tuần</th><th style="width:15%; text-align:center">% trừ họp, phát sinh</th><th style="width:14%; text-align:center">Kinh nghiệm (năm)</th><th style="width:16%; text-align:center">Hệ số năng lực</th><th style="width:18%; text-align:center">Capacity (điểm/tuần)</th></tr></thead><tbody>
     ${M.staff.map((s,i)=>`<tr class="${ro?"":"click"}" data-act="${ro?"":"editstaff"}" data-i="${i}" tabindex="0"><td class="cell-main">${esc(s.name)}${s.title?`<div class="small muted">${esc(s.title)}</div>`:""}</td><td style="text-align:center">${s.hours}</td><td style="text-align:center">${Math.round(s.pct*100)}%</td><td style="text-align:center">${s.years||"–"}</td><td style="text-align:center">${fmt1(s.factor)}</td><td style="text-align:center; font-weight:600">${fmt1(s.cap)}</td></tr>`).join("")||'<tr><td colspan="6" class="muted">Chưa có nhân sự.</td></tr>'}
-    </tbody></table></div><div class="panel-b small muted">Capacity = Giờ/tuần × (1 − % họp, phát sinh) × Hệ số năng lực. Hệ số năng lực theo kinh nghiệm (gợi ý, trưởng phòng tự chọn): &lt;1 năm → 0,8 · 1–3 năm → 1,0 · 3–5 năm → 1,1 · 5–8 năm → 1,2 · &gt;8 năm → 1,3.</div></section>`;
+    </tbody></table></div><div class="panel-b small muted">Capacity = Giờ/tuần × (1 − % họp, phát sinh) × Hệ số năng lực. Hệ số năng lực theo kinh nghiệm (gợi ý, trưởng phòng tự chọn): &lt;1 năm → 1 · 1–2 năm → 2 · 2–3 năm → 3 · ≥3 năm → 4.</div></section>`;
   for(const t of TYPES){
     const list = S.catalog.map((c,i)=>({...c,i})).filter(c=>c.type===t);
     h += `<section class="panel" style="margin-bottom:18px"><div class="panel-h"><h2>${typeDot(t)}Quy trình ${t.toLowerCase()} <span class="muted small">· ${list.length} đầu việc chuẩn</span></h2>${ro?"":`<button class="btn" data-act="addcat" data-t="${t}">+ Đầu việc chuẩn</button>`}</div>
@@ -52,15 +52,15 @@ function staffForm(i){
   const isNew = i==null; const s = isNew ? {name:"", title:"", hours:40, pct:0.2, factor:1.0, years:0} : {...S.staff[i]};
   const factorHint = (val,vals) => {
     const y = +vals.years||0;
-    const sug = y<1?0.8:y<3?1:y<5?1.1:y<8?1.2:1.3;
-    return `Gợi ý theo ${y||0} năm kinh nghiệm: ${fmt1(sug)}`;
+    const sug = y<1?1:y<2?2:y<3?3:4;
+    return `Gợi ý theo ${y||0} năm kinh nghiệm: ${sug}`;
   };
   openForm({title:isNew?"Thêm nhân sự":"Sửa nhân sự", values:{...s, pctV:Math.round(s.pct*100)},
     fields:[{key:"name", label:"Họ tên", type:"text", required:true},
       {key:"title", label:"Chức danh (chỉ để tham khảo, dùng cho KPI & Năng lực)", type:"text", hint:()=>"Vd: Network Engineer, Security Engineer…"},
       {key:"hours", label:"Giờ làm / tuần", type:"number", half:true}, {key:"pctV", label:"% trừ họp, phát sinh", type:"number", half:true, hint:()=>"Khuyến nghị 15–25"},
       {key:"years", label:"Số năm kinh nghiệm (chỉ để tham khảo)", type:"number", half:true, hint:()=>"Dùng để gợi ý hệ số năng lực bên cạnh"},
-      {key:"factor", label:"Hệ số năng lực", type:"seg", options:[[0.8,"0,8"],[1,"1,0"],[1.1,"1,1"],[1.2,"1,2"],[1.3,"1,3"]], half:true, hint:factorHint}],
+      {key:"factor", label:"Hệ số năng lực", type:"seg", options:[[1,"1"],[2,"2"],[3,"3"],[4,"4"]], half:true, hint:factorHint}],
     onSave: async x => {
       if(!x.name.trim()) throw new Error("Nhập họ tên.");
       const list=[...S.staff]; const row={name:x.name.trim(), title:x.title||"", hours:+x.hours||40, pct:(+x.pctV||0)/100, factor:+x.factor||1, years:+x.years||0};

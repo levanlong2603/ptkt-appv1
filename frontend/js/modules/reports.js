@@ -175,6 +175,9 @@ function rpPreviewHtml(report){
     <tbody>${sh.rows.length ? sh.rows.map(r=>`<tr>${sh.cols.map(c=>`<td>${esc(r[c.key])}</td>`).join("")}</tr>`).join("") : `<tr><td colspan="${sh.cols.length}" class="muted">Không có dữ liệu.</td></tr>`}</tbody></table></div></div>`).join("");
 }
 function viewReports(){
+  /* Tạm khoá với tài khoản nhân viên — chỉ trưởng phòng dùng được ở giai đoạn này */
+  if(!S.canEdit) return `<div class="head"><div><h1>Báo cáo</h1></div></div>
+    <section class="panel"><div class="empty"><b>Tính năng đang phát triển</b>Trang Báo cáo hiện đang hoàn thiện, chỉ dành cho trưởng phòng.</div></section>`;
   rpInit();
   const report = rpBuild();
   let h = `<div class="head"><div><h1>Báo cáo</h1><div class="sub">Tạo, xem trước và xuất báo cáo Excel / PDF</div></div></div>`;
