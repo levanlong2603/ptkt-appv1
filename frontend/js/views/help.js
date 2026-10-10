@@ -6,7 +6,8 @@ function viewHelp(){
   return `<div class="head"><div><h1>Hướng dẫn</h1></div></div>` +
   (S.server ? sec("Tài khoản", [
     ["Đăng nhập", "Mỗi người dùng tài khoản riêng do trưởng phòng cấp. Nhân viên chỉ sửa được dữ liệu “Nhập theo tuần” của chính mình."],
-    ["Đổi mật khẩu", "Bấm “Đổi mật khẩu” ở góc dưới thanh bên."],
+    ["Đổi mật khẩu / Đăng xuất", "Bấm vào tên hoặc ảnh đại diện ở góc trên bên phải màn hình để mở menu tài khoản."],
+    ["Thông báo", "Nút chuông ở góc trên bên phải gộp số đầu việc quá hạn và góp ý chưa xem; bấm vào một dòng để đi thẳng tới đó."],
     ["Tự đăng xuất", `Nếu không thao tác gì trong ${IDLE_TIMEOUT_MIN} phút, hệ thống tự đăng xuất. Bấm chuột, gõ phím hoặc cuộn trang để tính lại thời gian.`]]) : "") + (S.local ? sec("Bản chạy trên máy", [
     ["Lưu ở đâu", "Dữ liệu lưu trong trình duyệt của máy đang mở file. Đóng file, mở lại vẫn còn (nếu dùng cùng trình duyệt và không xoá lịch sử)."],
     ["Chuyển / gộp dữ liệu", "Cài đặt → “Xuất sao lưu (.json)”, gửi file cho người khác, họ chọn “Nhập sao lưu…”. Nhập sao lưu sẽ thay toàn bộ dữ liệu trên máy đó."]]) : "") +
@@ -22,7 +23,8 @@ function viewHelp(){
     ["Lập kế hoạch", "Bấm từng đầu việc để điền người phụ trách, deadline theo HĐ, ưu tiên. Quy mô và độ phức tạp để “Chuẩn” nếu không có gì khác thường."],
     ["Mỗi tuần", "Xem “Tải tuần” (ai quá tải, ai còn khả năng, việc bị vướng) và “Tổng quan dự án” (quá hạn, sắp đến hạn, tiến độ theo giai đoạn)."],
     ["Đánh giá", "Đầu việc hoàn thành có nhãn “Chờ đánh giá” – bấm vào để chấm đạt yêu cầu, chất lượng, tự chủ, nhận xét."],
-    ["Cài đặt", "Sửa nhân sự & capacity, đầu việc chuẩn của 3 quy trình."]]) +
+    ["Cài đặt", "Sửa nhân sự & capacity, đầu việc chuẩn của 3 quy trình."],
+    ["Góp ý", "Đổi trạng thái xử lý từng góp ý (Mới / Đang xem xét / Đã thực hiện) ngay dưới nội dung góp ý đó."]]) +
   sec("Cách tính", [
     ["Workload", "Quy mô × Độ phức tạp (mỗi yếu tố 1–5). Workload không phải là thành tích."],
     ["Capacity", "40 giờ × (1 − 20% họp, phát sinh) × hệ số năng lực ≈ 32 điểm/tuần."],
