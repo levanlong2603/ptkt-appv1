@@ -36,7 +36,7 @@ main,.page,.stack,.grid2>*,.split>*,.prow,.prow>*,.lrow,.lrow>*,.me-sum>*,.toolb
 .tb-account span{font-size:13.5px; font-weight:600; white-space:nowrap}
 .tb-account .tb-chev{width:14px; height:14px; color:var(--header-icon); flex:none}
 .tb-account .avatar{width:30px; height:30px}
-.tb-dropdown{position:absolute; top:calc(100% + 8px); right:0; min-width:230px; max-width:320px; background:var(--surface); border:1px solid var(--line); border-radius:12px;
+.tb-dropdown{position:absolute; top:calc(100% + 8px); right:0; min-width:230px; max-width:320px; max-height:70vh; overflow:auto; background:var(--surface); border:1px solid var(--line); border-radius:12px;
   box-shadow:0 10px 30px rgba(20,30,45,.12); padding:6px; z-index:25}
 .tb-dropdown.tb-dropdown-r{right:0}
 .tb-dropdown .tb-empty{padding:16px 10px; text-align:center; color:var(--ink-3); font-size:12.5px}
@@ -193,15 +193,16 @@ td.num,th.num{text-align:right}
 .hbar .t i{display:block; height:100%}
 .alert-item{padding:10px 0; border-top:1px solid var(--line-2)}
 .alert-item:first-child{border-top:0}
-/* forms / drawer */
-.scrim{position:fixed; inset:0; background:rgba(10,18,28,.38); z-index:30}
-.drawer{position:fixed; top:0; right:0; bottom:0; width:min(700px,100%); background:var(--surface); z-index:31; display:flex; flex-direction:column; box-shadow:-12px 0 40px rgba(0,0,0,.18);
-  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px); animation:slide .18s ease-out}
-@keyframes slide{from{transform:translateX(24px); opacity:.6}}
+/* forms / modal – hộp thoại nhỏ ở giữa màn hình (không phải khay trượt cạnh phải nữa) */
+.scrim{position:fixed; inset:0; background:rgba(10,18,28,.45); z-index:30}
+.drawer{position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); width:min(640px,calc(100% - 32px)); max-height:min(88vh,860px);
+  background:var(--surface); z-index:31; display:flex; flex-direction:column; border-radius:16px; overflow:hidden; box-shadow:0 24px 64px rgba(10,18,28,.3);
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px); animation:pop .15s ease-out}
+@keyframes pop{from{transform:translate(-50%,-50%) scale(.97); opacity:0}}
 @media (prefers-reduced-motion: reduce){.drawer{animation:none}}
-.drawer-h{padding:18px 22px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:flex-start; gap:12px}
+.drawer-h{padding:18px 22px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex:none}
 .drawer-b{padding:18px 22px; overflow:auto; flex:1}
-.drawer-f{padding:14px 22px; border-top:1px solid var(--line); display:flex; gap:8px; justify-content:space-between}
+.drawer-f{padding:14px 22px; border-top:1px solid var(--line); display:flex; gap:8px; justify-content:space-between; flex:none}
 .field{margin-bottom:15px}
 .field > label{display:block; font-size:12.5px; font-weight:600; color:var(--ink-2); margin-bottom:5px}
 .field .hint{font-size:12px; color:var(--ink-3); margin-top:4px}

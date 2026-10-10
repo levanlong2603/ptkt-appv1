@@ -1,3 +1,15 @@
 /* Trang Báo cáo */
-.rp-cols{display:grid; grid-template-columns:300px minmax(0,1fr); gap:14px; align-items:start}
-@media (max-width:860px){ .rp-cols{grid-template-columns:minmax(0,1fr)} }
+.rp-tabs{display:flex; gap:22px; border-bottom:1px solid var(--line); margin-bottom:16px}
+.rp-tabs button{all:unset; cursor:pointer; padding:9px 2px; font-size:14px; font-weight:600; color:var(--ink-3); border-bottom:2px solid transparent}
+.rp-tabs button[aria-selected="true"]{color:var(--teal-hover); border-bottom-color:var(--teal-hover)}
+.rp-tabs button:hover{color:var(--ink)}
+.rp-sec-h{background:var(--header-bg); color:#fff; font-weight:700; font-size:13px; padding:9px 14px; border-radius:8px 8px 0 0}
+.rp-sec .tbl-wrap{border:1px solid var(--line); border-top:0; border-radius:0 0 8px 8px}
+.rp-export{position:relative; display:inline-flex}
+.rp-export .tb-dropdown{top:calc(100% + 6px)}
+.rp-weekbox{display:inline-flex; align-items:center; gap:4px; border:1px solid var(--line); border-radius:8px; padding:7px 10px; background:var(--surface); min-width:210px}
+.rp-weekbox button{all:unset; cursor:pointer; padding:2px 5px; border-radius:5px; color:var(--ink-3); font-size:14px; line-height:1; flex:none}
+.rp-weekbox button:hover{background:var(--hover); color:var(--ink)}
+.rp-weekbox-lbl{flex:1; text-align:center; font-size:13.5px; font-weight:500; color:var(--ink); white-space:nowrap}
+.rp-weekbox-ico{color:var(--ink-3); display:flex; flex:none}
+.rp-weekbox-ico svg{width:16px; height:16px}

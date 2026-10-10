@@ -77,6 +77,14 @@ function setTheme(t){
   store("theme", t); renderHeader();
 }
 document.getElementById("tbBellMenu").addEventListener("click", e => {
+  const bt = e.target.closest("[data-tbgo-task]");
+  if(bt){
+    const [pid, tid] = bt.dataset.tbgoTask.split("|");
+    tbCloseAll(); S.view = "plan"; S.planSel = pid; S.typeFilter = "Tất cả"; store("view", S.view); render();
+    /* Mở thẳng đầu việc cần xử lý, không chỉ mở dự án rồi để tự tìm (giống "exgo" ở events.js) */
+    const p = M.pById.get(pid); const tk = p && p._tasks.find(x=>x.id===tid); if(p && tk) taskForm(p, tk);
+    return;
+  }
   const b = e.target.closest("[data-tbgo]"); if(!b) return;
   tbCloseAll(); S.view = b.dataset.tbgo; store("view", S.view); render();
 });
@@ -100,13 +108,25 @@ function renderHeader(){
     <div class="tb-sep"></div>
     <button class="tb-item" data-uact="pw">Đổi mật khẩu</button>
     <button class="tb-item" data-uact="out">Đăng xuất</button>` : "";
-  const lateN = (S.loaded && M) ? lateTaskCount() : 0;
+  const late = (S.loaded && M) ? lateTasks() : [];
   const fbFn = NAV_BADGE.feedback; const fbN = fbFn ? fbFn() : 0;
-  const total = lateN + fbN;
+  const total = late.length + fbN;
   const bellN = document.getElementById("tbBellN");
   bellN.hidden = !total; bellN.textContent = total>99?"99+":total;
   const rows = [];
-  if(lateN) rows.push(`<button class="tb-item" type="button" data-tbgo="exec"><b>${lateN} đầu việc quá hạn</b><span class="muted">Xem Dashboard</span></button>`);
+  /* Liệt kê từng đầu việc quá hạn (đã sắp theo độ gấp ở lateTasks()), không chỉ gộp 1 dòng tổng số –
+     bấm thẳng vào 1 dòng mở ngay đầu việc đó, không phải chỉ mở Dashboard rồi tự tìm. Giới hạn hiện
+     TB_BELL_MAX dòng, còn lại gộp vào 1 dòng "Xem tất cả" để menu không quá dài. */
+  const TB_BELL_MAX = 6;
+  if(late.length){
+    rows.push(`<div class="tb-head">${late.length} đầu việc quá hạn</div>`);
+    for(const t of late.slice(0, TB_BELL_MAX)){
+      rows.push(`<button class="tb-item" type="button" data-tbgo-task="${esc(t.p.id)}|${esc(t.id)}">
+        <b>${t.pr?`<span class="pill bad" style="margin-right:5px">${esc(t.pr)}</span>`:""}${esc(planShortName(t.dv))}</b>
+        <span class="muted">${esc(t.p.name)} · Hạn ${dm(t.deadline)}${t.owner?" · "+esc(t.owner):""}</span></button>`);
+    }
+    if(late.length>TB_BELL_MAX) rows.push(`<button class="tb-item" type="button" data-tbgo="exec"><b>Xem tất cả ${late.length} đầu việc →</b></button>`);
+  }
   if(fbN) rows.push(`<button class="tb-item" type="button" data-tbgo="feedback"><b>${fbN} góp ý chưa xem</b><span class="muted">Xem Góp ý</span></button>`);
   document.getElementById("tbBellMenu").innerHTML = rows.length ? rows.join("") : `<div class="tb-empty">Không có thông báo mới</div>`;
 }

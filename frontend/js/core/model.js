@@ -108,9 +108,13 @@ function derive(){
   }
   return {today, thisMon, staff, capOf, projects, pById, taskMap, entries, tasks};
 }
-/* Số đầu việc quá hạn toàn phòng (không tính dự án Nội bộ) – dùng chung cho Dashboard và chuông thông báo ở header */
-function lateTaskCount(){
-  return M.tasks.filter(t=>t.p.type!=="Nội bộ" && t.warns.some(w=>w[1]==="Quá hạn")).length;
+/* Đầu việc quá hạn toàn phòng (không tính dự án Nội bộ) – dùng chung cho Dashboard và chuông thông báo ở
+   header. lateTasks() sắp theo độ gấp: Ưu tiên (P1 trước) rồi tới hạn chót (quá hạn lâu nhất lên đầu). */
+function lateTaskCount(){ return lateTasks().length; }
+function lateTasks(){
+  const prRank = {P1:1, P2:2, P3:3, P4:4};
+  return M.tasks.filter(t=>t.p.type!=="Nội bộ" && t.warns.some(w=>w[1]==="Quá hạn"))
+    .sort((a,b)=>(prRank[a.pr]||9)-(prRank[b.pr]||9) || String(a.deadline||"9999").localeCompare(String(b.deadline||"9999")));
 }
 function phasesFor(type){
   const seen = new Map();

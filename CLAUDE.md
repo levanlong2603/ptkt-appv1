@@ -21,8 +21,13 @@ Lõi (`frontend/js/views/`): Dashboard (`exec-dashboard.js`), Tổng quan dự �
 Tải tuần (`weekly-load.js`), Nhập theo tuần (`weekly-input.js`), Kế hoạch dự án (`plan.js`), Cài đặt
 (`settings.js`), Hướng dẫn (`help.js`). Module mở rộng (`frontend/js/modules/`, nạp sau lõi): Góp ý
 (`feedback.js`, collection `feedback`), Báo cáo (`reports.js`, xuất Excel/PDF, không lưu dữ liệu riêng –
-chỉ đọc lại `M`/`S`), KPI & Năng lực (`kpi.js`, Giai đoạn 1 – xem chú thích đầu file để biết phạm vi/giới
-hạn). Thứ tự nạp trong `index.html` quyết định thứ tự hiện trên menu trái.
+chỉ đọc lại `M`/`S`; 3 tab ngang hàng: "Báo cáo tuần" – theo dữ liệu Nhập theo tuần/Tải tuần (lọc Dự
+án/Nhân sự/Tuần); "Báo cáo dự án" – 1 dự án cụ thể theo kỳ tuần/tháng, dải KPI + bảng "Danh sách đầu việc"
+(không có phần nhân sự); "Báo cáo tổng hợp" – toàn phòng theo kỳ tuần/tháng, dải KPI + bảng "Tình hình các
+dự án" + "Tải công việc nhân sự". Quá hạn/Sắp hạn/Rủi ro ở 2 tab theo kỳ luôn tính theo tình trạng hiện
+tại lúc xuất, không truy hồi lại đúng thời điểm cuối kỳ vì không lưu ảnh chụp tiến độ lịch sử – chỉ "Xong
+trong kỳ" lọc thật theo kỳ đã chọn), KPI & Năng lực (`kpi.js`, Giai đoạn 1 – xem chú thích đầu file để
+biết phạm vi/giới hạn). Thứ tự nạp trong `index.html` quyết định thứ tự hiện trên menu trái.
 
 ## Công thức Workload / Capacity (`frontend/js/core/constants.js`, `model.js`)
 - **Đầu việc theo kế hoạch** (`p._tasks`, Kế hoạch dự án): `Workload (giờ) = QM_HOURS[Quy mô] ×
