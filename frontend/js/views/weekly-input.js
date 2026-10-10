@@ -153,11 +153,19 @@ function entryForm(entry, person){
       {key:"taskId", label:"Đầu việc (theo kế hoạch của dự án)", type:"select", options:taskOpts(e.projectId, e.taskId), required:true},
       {key:"work", label:"Việc đã làm trong tuần", type:"textarea"},
       {key:"qm", label:"Quy mô (thời gian đã làm)", type:"seg", options:[1,2,3,4,5].map(n=>[n,String(n)]), required:true,
-        hint:v=>v?`${QM_HINT[v]} — tính ${fmt1(QM_HOURS[v])}h vào tải tuần.`:"Chọn mức gần đúng nhất với thời gian bạn đã làm cho đúng đầu việc này trong tuần."},
-      {key:"pt", label:"Độ phức tạp (đánh giá tính chất đầu việc, không ảnh hưởng tới tải)", type:"seg", options:[[null,"Chưa đánh giá"],...[1,2,3,4,5].map(n=>[n,String(n)])],
-        /* Chỉ để phân loại/so sánh đầu việc này với các đầu việc khác (đồng bộ về Kế hoạch dự án ở onSave bên dưới)
-           – không còn nhân vào công thức tính tải tuần nữa (xem thảo luận: Quy mô đã phản ánh đúng thời gian thật). */
-        hint:v=>v?PT_HINT[v]:"Để tham khảo/so sánh độ khó giữa các đầu việc, không dùng để tính giờ."},
+        hint:(v,vals)=>{
+          if(!v) return "Chọn mức gần đúng nhất với thời gian bạn đã làm cho đúng đầu việc này trong tuần.";
+          const mult = vals.pt ? PT_MULT[vals.pt] : 1;
+          return `${QM_HINT[v]} × hệ số Độ phức tạp (×${fmt1(mult)}) = ${fmt1(wlOf(v,vals.pt))}h tính vào tải tuần.`;
+        }},
+      {key:"pt", label:"Độ phức tạp (để trống = hệ số trung tính ×1)", type:"seg", options:[[null,"Mặc định"],...[1,2,3,4,5].map(n=>[n,String(n)])],
+        /* Nhân vào Quy mô để ra tải (wlOf(), giống hệt công thức ở p._tasks) – đồng thời vẫn đồng bộ về
+           Độ phức tạp của đầu việc trong Kế hoạch dự án khi lưu (xem onSave bên dưới). */
+        hint:(v,vals)=>{
+          const mult = v ? PT_MULT[v] : 1;
+          const base = v ? `${PT_HINT[v]} (×${fmt1(mult)})` : "Mặc định, không điều chỉnh (×1)";
+          return vals.qm ? `${base} — ${QM_HINT[vals.qm]} × ${fmt1(mult)} = ${fmt1(wlOf(vals.qm,v))}h tính vào tải tuần.` : base;
+        }},
       {key:"status", label:"Trạng thái cuối tuần", type:"seg", options:ST_WEEK.map(s=>[s,s])},
       {key:"ms", label:"Ma sát (chỉ khi bị vướng)", type:"seg", options:[[null,"Không"],...[1,2,3,4,5].map(n=>[n,String(n)])], hint:v=>({1:"Vướng nhẹ",2:"Vướng vừa",3:"Vướng nhiều",4:"Phụ thuộc nghiêm trọng",5:"Bị đình trệ"}[v]||"")},
       {key:"nn", label:"Nguyên nhân", type:"select", options:[["",""],...CAUSES.map(c=>[c,c])]},
@@ -166,10 +174,9 @@ function entryForm(entry, person){
     saveLabel: isNew ? "Thêm việc" : "Lưu thay đổi",
     onSave: async v => {
       if(!v.qm) throw new Error("Chọn Quy mô (thời gian đã làm).");
-      /* Tải tính vào hệ thống = đúng số giờ đại diện của mức Quy mô đã chọn (QM_HOURS) – Độ phức tạp chỉ
-         là nhãn phân loại, không nhân vào đây nữa (khớp với model.js/derive()). */
-      const thisWl = QM_HOURS[v.qm];
-      if(thisWl>budgetH) throw new Error(`Việc này tính tải ${fmt1(thisWl)}h, vượt quá phần còn lại dành cho việc này trong tuần (còn ${fmt1(budgetH)}h, sau khi đã trừ các việc khác). Chọn mức Quy mô thấp hơn hoặc giảm bớt việc khác trước.`);
+      /* Tải tính vào hệ thống = Quy mô × hệ số Độ phức tạp (wlOf(), khớp với model.js/derive()). */
+      const thisWl = wlOf(v.qm, v.pt);
+      if(thisWl>budgetH) throw new Error(`Việc này tính tải ${fmt1(thisWl)}h (Quy mô × Độ phức tạp), vượt quá phần còn lại dành cho việc này trong tuần (còn ${fmt1(budgetH)}h, sau khi đã trừ các việc khác). Chọn mức Quy mô/Độ phức tạp thấp hơn hoặc giảm bớt việc khác trước.`);
       const doc = weekDoc(S.week, who); const list = doc ? [...(doc.entries||[])] : [];
       if(list.some(x=>x.id!==v.id && x.projectId===v.projectId && x.taskId===v.taskId))
         throw new Error("Đầu việc này đã có trong tuần. Bấm vào dòng đó trong bảng để sửa thay vì thêm mới.");
