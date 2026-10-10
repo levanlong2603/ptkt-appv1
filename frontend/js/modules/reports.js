@@ -180,7 +180,7 @@ function viewReports(){
     <section class="panel"><div class="empty"><b>Tính năng đang phát triển</b>Trang Báo cáo hiện đang hoàn thiện, chỉ dành cho trưởng phòng.</div></section>`;
   rpInit();
   const report = rpBuild();
-  let h = `<div class="head"><div><h1>Báo cáo</h1><div class="sub">Tạo, xem trước và xuất báo cáo Excel / PDF</div></div></div>`;
+  let h = `<div class="head"><h1>Báo cáo</h1></div>`;
   h += `<section class="panel" style="margin-bottom:14px"><div class="panel-b" style="padding:12px 16px">
     <div class="chips" role="group" aria-label="Chọn mẫu báo cáo">${RP_TEMPLATES.map(t=>`<button class="chip-btn" data-act="rptpl" data-type="${t.type}" aria-pressed="${S.rp.type===t.type}" title="${esc(t.hint)}">${esc(t.label)}</button>`).join("")}</div>
     </div></section>`;

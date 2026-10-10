@@ -18,7 +18,7 @@ NAV_BADGE.feedback = () => { const seen = store("fbSeen")||""; return S.feedback
 function viewFeedback(){
   const seen = store("fbSeen")||"";
   if(S.feedback.some(f=>(f.createdAt||"")>seen)){ store("fbSeen", new Date().toISOString()); schedule(); }
-  let h = `<div class="head"><div><h1>Góp ý</h1><div class="sub">Nhận xét và yêu cầu cải tiến cho ứng dụng</div></div>
+  let h = `<div class="head"><h1>Góp ý</h1>
     <button class="btn primary" data-act="addfeedback">+ Gửi góp ý</button></div>`;
   if(!S.feedback.length) return h + `<section class="panel"><div class="empty"><b>Chưa có góp ý nào</b>Bấm "+ Gửi góp ý" để gửi nhận xét hoặc đề xuất cải tiến đầu tiên.</div></section>`;
   h += S.feedback.map(f => {

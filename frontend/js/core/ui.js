@@ -137,9 +137,9 @@ function warnPills(ws){ return ws.map(w=>`<span class="pill ${w[0]}">${esc(w[1])
 function weekNav(){
   const w=S.week, isNow = w===mondayOf(todayISO());
   return `<div class="toolbar"><div class="weeknav">
-    <button class="btn ghost icon" data-act="wk" data-d="-7" aria-label="Tuần trước">‹</button>
-    <div class="lbl">Tuần ${isoWeek(w)}<small>${dm(w)} – ${dmy(addDays(w,6))}</small></div>
-    <button class="btn ghost icon" data-act="wk" data-d="7" aria-label="Tuần sau">›</button></div>
+    <button data-act="wk" data-d="-7" aria-label="Tuần trước">‹</button>
+    <div class="lbl">Tuần ${isoWeek(w)} · ${dm(w)} – ${dmy(addDays(w,6))}</div>
+    <button data-act="wk" data-d="7" aria-label="Tuần sau">›</button></div>
     ${isNow?"":'<button class="btn" data-act="wk" data-d="0">Tuần này</button>'}</div>`;
 }
 function typeDot(t){ return `<span class="tdot" style="background:${TYPE_COLOR[t]||"var(--grey)"}"></span>`; }

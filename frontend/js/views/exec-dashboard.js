@@ -80,7 +80,7 @@ function viewExec(){
   const fr = active.filter(t=>(t.ms||0)>=1).sort((a,b)=>(b.ms||0)-(a.ms||0) || String(a.deadline||"9").localeCompare(String(b.deadline||"9")));
 
   let h = `<div class="ex">
-  <div class="head"><div><h1>Dashboard</h1><div class="sub">Tình hình vận hành phòng kỹ thuật${simAs?` · đang xem riêng: ${esc(simAs)}`:""}</div></div>
+  <div class="head"><h1>Dashboard</h1>
     <div class="ex-ctl"><div class="ex-wk"><button data-act="exnav" data-d="-1" aria-label="Kỳ trước">‹</button><div class="lb">${esc(P.label)}</div><button data-act="exnav" data-d="1" aria-label="Kỳ sau">›</button></div>
       <div class="ex-seg" role="group" aria-label="Kỳ báo cáo">${[["week","Tuần"],["month","Tháng"],["quarter","Quý"]].map(([k,l])=>`<button data-act="exper" data-k="${k}" aria-pressed="${kind===k}">${l}</button>`).join("")}</div>
       <button class="btn icon" data-act="exrefresh" title="Làm mới" aria-label="Làm mới">${ICONS.refresh}</button></div></div>`;

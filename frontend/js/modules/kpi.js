@@ -110,7 +110,7 @@ function viewKpi(){
   const avg = evaluated.length ? Math.round(evaluated.reduce((a,x)=>a+x.r.kpi,0)/evaluated.length) : null;
   const excellent = evaluated.filter(x=>(kpiLabel(x.r.kpi)||{}).label==="Xuất sắc").length;
   const improve = evaluated.filter(x=>(kpiLabel(x.r.kpi)||{}).label==="Cần cải thiện").length;
-  let h = `<div class="head"><div><h1>KPI &amp; Năng lực</h1><div class="sub">Đánh giá hiệu quả công việc theo kỳ — tự tính từ Tải tuần &amp; Kế hoạch dự án</div></div>
+  let h = `<div class="head"><h1>KPI &amp; Năng lực</h1>
     ${S.canEdit?`<button class="btn" data-act="kpicfg">Cấu hình tiêu chí</button>`:""}</div>`;
   h += `<section class="panel" style="margin-bottom:14px"><div class="panel-b">${kpiPeriodNav()}</div></section>`;
   h += `<div class="band">
@@ -154,7 +154,7 @@ function kpiDetailView(){
   const lb = kpiLabel(r.kpi);
   const noteId = `${S.kpi.kind}-${S.kpi.anchor}__${slug(name)}`;
   const note = (S.kpiNotes||[]).find(n=>n.id===noteId);
-  let h = `<div class="head"><div><button class="btn ghost" data-act="kpiback">‹ Quay lại danh sách</button><h1 style="margin-top:8px">${esc(name)}</h1><div class="sub">${esc(s.title||"Chưa có chức danh")} · ${esc(info.label)}</div></div></div>`;
+  let h = `<div class="head"><div><button class="btn ghost" data-act="kpiback">‹ Quay lại danh sách</button><h1 style="margin-top:8px">${esc(name)}</h1></div></div>`;
   h += `<div class="band">
     <div class="stat ${lb?lb.cls:""}"><div class="v">${r.kpi??"–"}</div><div class="l">KPI tổng${lb?" · "+esc(lb.label):""}</div></div>
     ${KPI_CRIT.map(c=>`<div class="stat"><div class="v">${r.scores[c.key]??"–"}</div><div class="l">${c.label}</div></div>`).join("")}
