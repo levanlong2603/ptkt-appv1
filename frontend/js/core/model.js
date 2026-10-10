@@ -14,14 +14,13 @@ function derive(){
   const entries = [];
   for(const w of S.weeks) for(const e of (w.entries||[])){
     const ref = taskMap.get(e.projectId+"|"+e.taskId);
-    /* Từ bản cập nhật "nhập giờ trực tiếp": e.hours (số giờ thực tế đã làm trong tuần, người dùng tự gõ,
-       xem entryForm() ở weekly-input.js) là nguồn chính cho workload của một lần nhập tuần – vẫn nhân với
-       hệ số Độ phức tạp (PT_MULT, giống cách tính wl theo kế hoạch ở p._tasks bên dưới) để việc khó tốn
-       cùng số giờ vẫn tính tải cao hơn việc dễ. Không lấy "theo kế hoạch" (pt của đầu việc trong Kế hoạch
-       dự án) làm mặc định nữa – để trống Độ phức tạp ở đây là hệ số trung tính ×1 đúng nghĩa, không âm
-       thầm đổi theo plan. e.qm (thang 1–5 cũ) chỉ còn dùng để đọc lại các lượt nhập từ trước khi có
-       e.hours, vẫn giữ nguyên cách tính cũ (có rơi về pt theo kế hoạch) để không đổi dữ liệu lịch sử. */
-    const wl = e.hours!=null ? Math.round(e.hours*(e.pt ? PT_MULT[e.pt] : 1)*10)/10 : wlOf(e.qm, e.pt || (ref && ref.t.pt) || null);
+    /* Workload của một lượt nhập tuần = đúng số giờ đại diện của mức Quy mô đã chọn (QM_HOURS, xem
+       constants.js) – KHÔNG nhân với Độ phức tạp (e.pt) nữa. Độ phức tạp giờ chỉ là nhãn để đánh giá/so
+       sánh tính chất đầu việc (đồng bộ về Kế hoạch dự án khi lưu, xem entryForm() ở weekly-input.js),
+       không còn tác động tới số giờ tính tải – tránh tính trùng vì giờ thật/Quy mô đã phản ánh đúng thời
+       gian thật rồi. e.hours (giờ gõ tự do, bản "nhập giờ trực tiếp" trước đây) chỉ còn đọc lại các lượt
+       nhập cũ, không hỏi thêm nữa; cũng không nhân Độ phức tạp để nhất quán với e.qm. */
+    const wl = e.hours!=null ? e.hours : (e.qm!=null ? QM_HOURS[e.qm] : null);
     entries.push({...e, week:w.week, person:w.person, docId:w._id, ref, wl, type: ref ? ref.p.type : (pById.get(e.projectId)||{}).type || "Nội bộ"});
   }
   // latest per task

@@ -25,8 +25,15 @@ chỉ đọc lại `M`/`S`), KPI & Năng lực (`kpi.js`, Giai đoạn 1 – xem
 hạn). Thứ tự nạp trong `index.html` quyết định thứ tự hiện trên menu trái.
 
 ## Công thức Workload / Capacity (`frontend/js/core/constants.js`, `model.js`)
-- `Workload (giờ) = QM_HOURS[Quy mô] × PT_MULT[Độ phức tạp]` (hàm `wlOf()`); thiếu Quy mô → `null` (bắt
-  buộc); thiếu Độ phức tạp → hệ số mặc định 1,0 (không chặn).
+- **Đầu việc theo kế hoạch** (`p._tasks`, Kế hoạch dự án): `Workload (giờ) = QM_HOURS[Quy mô] ×
+  PT_MULT[Độ phức tạp]` (hàm `wlOf()`); thiếu Quy mô → `null` (bắt buộc); thiếu Độ phức tạp → hệ số mặc
+  định 1,0 (không chặn). Đây là ước lượng/kế hoạch, không phải số đã làm thật.
+- **Một lượt nhập trong tuần** (Nhập theo tuần, `e.qm`): `Workload (giờ) = QM_HOURS[Quy mô]` — **không**
+  nhân với Độ phức tạp nữa. Độ phức tạp ở đây chỉ còn là nhãn đánh giá/so sánh tính chất đầu việc (đồng bộ
+  ngược về `t.pt` của đầu việc trong Kế hoạch dự án khi lưu), không tác động tới số giờ tính tải — tránh
+  tính trùng vì Quy mô (ước lượng theo khoảng giờ thật) đã phản ánh đúng mức độ tốn thời gian rồi.
+  `e.hours` (giờ gõ tự do, bản "nhập giờ trực tiếp" cũ, đã bỏ khỏi form) chỉ còn đọc lại dữ liệu lịch sử,
+  dùng thẳng không nhân gì.
 - `Capacity (giờ/tuần) = Giờ/tuần × (1 − % họp, phát sinh) × Hệ số năng lực` (`model.js`, `derive()`).
   Hệ số năng lực **chỉ nhân ở Capacity**, Workload không chia lại cho hệ số (tránh tính trùng).
 - Tiến độ dự án (`p._prog`, `p._phases`, `planStat()`) dùng trọng số `t.wl ?? 1` (không phải `t.wl || 0`)
