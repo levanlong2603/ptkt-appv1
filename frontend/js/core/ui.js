@@ -158,7 +158,7 @@ function openForm(cfg){
     const hint = typeof f.hint==="function" ? f.hint(v, vals) : (f.hint||"");
     let ctl = "";
     const dis = f.disabled ? "disabled" : "";
-    if(f.type==="text"||f.type==="number"||f.type==="password") ctl = `<input class="inp" id="${id}" type="${f.type==="number"?"number":f.type==="password"?"password":"text"}" ${f.type==="password"?'autocomplete="new-password"':""} value="${esc(v??"")}" ${f.required?"required":""} ${dis}>`;
+    if(f.type==="text"||f.type==="number"||f.type==="password") ctl = `<input class="inp" id="${id}" type="${f.type==="number"?"number":f.type==="password"?"password":"text"}" ${f.type==="password"?'autocomplete="new-password"':""} ${f.type==="number"&&f.min!=null?`min="${f.min}"`:""} ${f.type==="number"&&f.max!=null?`max="${f.max}"`:""} ${f.type==="number"&&f.step!=null?`step="${f.step}"`:""} value="${esc(v??"")}" ${f.required?"required":""} ${dis}>`;
     else if(f.type==="date") ctl = `<input class="inp" id="${id}" type="date" value="${esc(v||"")}" ${dis}>`;
     else if(f.type==="textarea") ctl = `<textarea class="inp" id="${id}" ${dis}>${esc(v||"")}</textarea>`;
     else if(f.type==="check") ctl = `<label style="display:flex;gap:8px;align-items:center;font-weight:500;color:var(--ink)"><input type="checkbox" id="${id}" ${v?"checked":""} ${dis}> ${esc(f.label)}</label>`;

@@ -41,11 +41,11 @@ function rpBuildWeek(){
   const staffLabel = f.staff==="__all__" ? "Tất cả nhân sự" : f.staff;
   const es = M.entries.filter(e=>e.week===w && (!f.project||e.projectId===f.project) && (f.staff==="__all__"||e.person===f.staff))
     .sort((a,b)=>a.person.localeCompare(b.person,"vi") || (a.type||"").localeCompare(b.type||"","vi"));
-  const cols1 = ["Người","Dự án","Loại","Đầu việc","Việc đã làm","Quy mô","Độ phức tạp","Workload","Trạng thái","Ma sát","Nguyên nhân","Vướng mắc"];
+  const cols1 = ["Người","Dự án","Loại","Đầu việc","Việc đã làm","Số giờ","Độ phức tạp","Workload","Trạng thái","Ma sát","Nguyên nhân","Vướng mắc"];
   const rows1 = es.map(e => ({
     "Người": e.person, "Dự án": (M.pById.get(e.projectId)||{}).name || "(đã xoá)", "Loại": e.type,
     "Đầu việc": e.ref ? planShortName(e.ref.t.dv) : "(đã xoá)", "Việc đã làm": e.work || "",
-    "Quy mô": e.qm ?? "", "Độ phức tạp": e.pt ?? "", "Workload": e.wl ?? "",
+    "Số giờ": e.hours ?? e.qm ?? "", "Độ phức tạp": e.pt ?? "", "Workload": e.wl ?? "",
     "Trạng thái": e.status || "", "Ma sát": e.ms ?? "", "Nguyên nhân": e.nn || "", "Vướng mắc": e.note || ""
   }));
   const staffList = f.staff==="__all__" ? M.staff : M.staff.filter(s=>s.name===f.staff);

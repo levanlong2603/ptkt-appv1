@@ -15,7 +15,11 @@ function derive(){
   for(const w of S.weeks) for(const e of (w.entries||[])){
     const ref = taskMap.get(e.projectId+"|"+e.taskId);
     const pt = e.pt || (ref && ref.t.pt) || null;
-    const wl = wlOf(e.qm, pt);
+    /* Từ bản cập nhật "nhập giờ trực tiếp": e.hours (số giờ thực tế đã làm trong tuần, người dùng tự gõ,
+       xem entryForm() ở weekly-input.js) là nguồn chính cho workload của một lần nhập tuần – không nhân
+       thêm hệ số Độ phức tạp nữa vì đây là giờ thật, không phải giờ quy đổi từ thang Quy mô 1–5.
+       e.qm (thang 1–5 cũ) chỉ còn dùng để đọc lại các lượt nhập từ trước khi có e.hours, không hỏi thêm. */
+    const wl = e.hours!=null ? e.hours : wlOf(e.qm, pt);
     entries.push({...e, week:w.week, person:w.person, docId:w._id, ref, wl, type: ref ? ref.p.type : (pById.get(e.projectId)||{}).type || "Nội bộ"});
   }
   // latest per task
