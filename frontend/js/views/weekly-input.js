@@ -155,12 +155,12 @@ function entryForm(entry, person){
       {key:"hours", label:"Số giờ đã làm trong tuần", type:"number", min:1, max:Math.min(32,budgetH||32), step:0.5, required:true, half:true,
         hint:"Chỉ tính giờ bạn trực tiếp làm cho đúng đầu việc này trong tuần, có thể nhập lẻ 0,5 giờ."},
       {label:"Còn lại trong tuần", type:"badge", half:true, text:`${fmt1(remainH)}h / ${fmt1(stH.cap)}h`, tone: remainH<=0?"bad":remainH<stH.cap*0.2?"warn":"info"},
-      {key:"pt", label:"Độ phức tạp (để trống = theo kế hoạch)", type:"seg", options:[[null,"Theo kế hoạch"],...[1,2,3,4,5].map(n=>[n,String(n)])],
-        /* Hiện rõ số giờ sau khi nhân hệ số Độ phức tạp, để thấy ngay số tính vào tải tuần không phải số giờ thô đã gõ ở trên. */
+      {key:"pt", label:"Độ phức tạp (để trống = hệ số trung tính ×1)", type:"seg", options:[[null,"Mặc định"],...[1,2,3,4,5].map(n=>[n,String(n)])],
+        /* Hiện rõ số giờ sau khi nhân hệ số Độ phức tạp, để thấy ngay số tính vào tải tuần không phải số giờ thô đã gõ ở trên.
+           Không rơi về Độ phức tạp của đầu việc trong Kế hoạch dự án nữa – để trống ở đây luôn là ×1 thật sự. */
         hint:(v,vals)=>{
-          const proj = M.pById.get(vals.projectId); const tk = proj && proj._tasks.find(x=>x.id===vals.taskId);
-          const pt = v || (tk && tk.pt) || null, mult = pt ? PT_MULT[pt] : 1;
-          const base = v ? `${PT_HINT[v]} (×${fmt1(mult)})` : (tk && tk.pt ? `Theo kế hoạch: ${PT_HINT[tk.pt]} (×${fmt1(mult)})` : "Theo kế hoạch: đầu việc chưa đặt Độ phức tạp, dùng hệ số trung tính ×1");
+          const mult = v ? PT_MULT[v] : 1;
+          const base = v ? `${PT_HINT[v]} (×${fmt1(mult)})` : "Mặc định, không điều chỉnh (×1)";
           return vals.hours ? `${base} — ${fmt1(vals.hours)}h × ${fmt1(mult)} = ${fmt1(Math.round(vals.hours*mult*10)/10)}h tính vào tải tuần.` : base;
         }},
       {key:"status", label:"Trạng thái cuối tuần", type:"seg", options:ST_WEEK.map(s=>[s,s])},
@@ -171,11 +171,9 @@ function entryForm(entry, person){
     saveLabel: isNew ? "Thêm việc" : "Lưu thay đổi",
     onSave: async v => {
       if(!(v.hours>=1 && v.hours<=32)) throw new Error("Số giờ phải từ 1 đến 32.");
-      /* Tải tính vào hệ thống = giờ thật × hệ số Độ phức tạp (giống wlOf() ở p._tasks) – không chỉ so
-         giờ thật thô với giờ còn lại, vì việc khó hơn vẫn phải tính tải cao hơn dù tốn cùng số giờ. */
-      const proj = M.pById.get(v.projectId); const tk = proj && proj._tasks.find(x=>x.id===v.taskId);
-      const pt = v.pt || (tk && tk.pt) || null;
-      const thisWl = Math.round(v.hours*(pt ? PT_MULT[pt] : 1)*10)/10;
+      /* Tải tính vào hệ thống = giờ thật × hệ số Độ phức tạp đã chọn ở đây (không rơi về Độ phức tạp của
+         đầu việc trong Kế hoạch dự án – để trống là ×1 thật sự, khớp với model.js/derive()). */
+      const thisWl = Math.round(v.hours*(v.pt ? PT_MULT[v.pt] : 1)*10)/10;
       if(thisWl>budgetH) throw new Error(`Việc này tính tải ${fmt1(thisWl)}h (giờ × hệ số Độ phức tạp), vượt quá phần còn lại dành cho việc này trong tuần (còn ${fmt1(budgetH)}h, sau khi đã trừ các việc khác). Giảm giờ, giảm Độ phức tạp, hoặc giảm bớt việc khác trước.`);
       const doc = weekDoc(S.week, who); const list = doc ? [...(doc.entries||[])] : [];
       if(list.some(x=>x.id!==v.id && x.projectId===v.projectId && x.taskId===v.taskId))
