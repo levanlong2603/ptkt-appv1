@@ -77,10 +77,14 @@ function rpBuildWeek(){
   const merges1 = showPerson
     ? [{col:0, keys:["person"]}, {col:1, keys:["person","projectId"]}, {col:2, keys:["person","projectId","phaseCode"]}]
     : [{col:0, keys:["projectId"]}, {col:1, keys:["projectId","phaseCode"]}];
+  /* Tên file xuất = đúng dòng tiêu đề lớn đang hiện trên màn hình (xem rpWeekHtml()) – "BÁO CÁO TUẦN"
+     hay "BÁO CÁO TẢI TUẦN" tuỳ chế độ xem, cộng với kỳ báo cáo. */
+  const titleLine = (S.rp.wkView==="load" ? "Báo cáo tải tuần" : "Báo cáo tuần");
+  const period = `Tuần ${isoWeek(w)} (${dm(w)} – ${dmy(addDays(w,6))})`;
   return {
-    title:"Báo cáo tuần", scope:`${typeLabel} · ${staffLabel}`,
-    period:`Tuần ${isoWeek(w)} (${dm(w)} – ${dmy(addDays(w,6))})`,
-    filename:`Bao-cao-tuan-${isoWeek(w)}-${w}`,
+    title:titleLine, scope:`${typeLabel} · ${staffLabel}`,
+    period,
+    filename:slug(`${titleLine} – ${period}`),
     showPerson, rows,
     sheets:[
       {name:"Chi tiết", cols:cols1.map(h=>({header:h,key:h})), rows:rows1, merges:merges1, rawRows:rows},
@@ -132,9 +136,10 @@ function rpBuildProjectExport(){
   const cols = ["Hạng mục","Đầu việc","Chi tiết thực hiện","Deadline theo HĐ","Trạng thái thực hiện","Vướng mắc","Hướng giải quyết"];
   const rows = pr.rows.map(t => ({"Hạng mục":t.phase, "Đầu việc":t.name, "Chi tiết thực hiện":t.detail,
     "Deadline theo HĐ":t.deadline?dmy(t.deadline):"", "Trạng thái thực hiện":t.status||"", "Vướng mắc":t.issue, "Hướng giải quyết":""}));
+  const title = `Báo cáo dự án – ${pr.p.name} – ${pr.P.label}`;
   return {
-    title:`Báo cáo dự án – ${pr.p.name} – ${pr.P.label}`, scope:`${pr.p.name} (${pr.p.type})`,
-    period:rpRangeText(pr), filename:`Bao-cao-du-an-${slug(pr.p.name)}-${pr.kind}-${pr.anchor}`,
+    title, scope:`${pr.p.name} (${pr.p.type})`,
+    period:rpRangeText(pr), filename:slug(title),
     sheets:[
       {name:"Tổng quan", cols:colsSum.map(h=>({header:h,key:h})), rows:rowsSum},
       {name:"Đầu việc", cols:cols.map(h=>({header:h,key:h})), rows, merges:[{col:0, keys:["phase"]}], rawRows:pr.rows}
@@ -209,9 +214,10 @@ function rpBuildOverviewExport(){
   const colsProj = ["STT","Tên dự án","Người phụ trách","SE","Mốc HĐ","Tiến độ hiện tại","Vướng mắc","Đề xuất"];
   const rowsProj = ov.projRows.map((p,i) => ({"STT":i+1, "Tên dự án":p.name, "Người phụ trách":p.owner, "SE":p.se,
     "Mốc HĐ":p.milestones, "Tiến độ hiện tại":p.progress, "Vướng mắc":p.situation, "Đề xuất":p.proposal}));
+  const title = `Báo cáo tổng hợp dự án – ${ov.P.label}`;
   return {
-    title:`Báo cáo tổng hợp dự án – ${ov.P.label}`, scope:ov.ptype,
-    period:rpRangeText(ov), filename:`Bao-cao-tong-hop-du-an-${ov.kind}-${ov.anchor}`,
+    title, scope:ov.ptype,
+    period:rpRangeText(ov), filename:slug(title),
     sheets:[
       {name:"Tổng quan", cols:colsSum.map(h=>({header:h,key:h})), rows:rowsSum},
       {name:"Tình hình dự án", cols:colsProj.map(h=>({header:h,key:h})), rows:rowsProj}
@@ -472,7 +478,7 @@ function rpProjectHtml(){
   h += `<section class="panel" id="rp-print"><div class="panel-b">
     <div style="text-align:center; margin-bottom:18px">
       <div style="font-size:18px; font-weight:800; letter-spacing:.01em">BÁO CÁO DỰ ÁN – ${esc(pr.p.name.toUpperCase())} – ${esc(pr.P.label.toUpperCase())}</div>
-      <div class="small muted" style="margin-top:4px">${esc(pr.p.type)}${pr.p.owner?" · PM: "+esc(pr.p.owner):""} · ${esc(rpRangeText(pr))} · lập ngày ${dmy(todayISO())}</div>
+      <div class="small muted" style="margin-top:4px">${esc(pr.p.type)}${pr.p.owner?" · TM: "+esc(pr.p.owner):""} · ${esc(rpRangeText(pr))} · lập ngày ${dmy(todayISO())}</div>
     </div>
     <div class="band" style="margin-bottom:20px">${pr.stats.map(s=>`<div class="stat ${s.bad?"bad":""}"><div class="v">${esc(String(s.v))}</div><div class="l">${esc(s.l)}</div></div>`).join("")}</div>
     <div class="rp-sec rp-sec-grn">
