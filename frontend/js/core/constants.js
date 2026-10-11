@@ -76,7 +76,7 @@ const VIEWS = [
   {id:"exec", label:"Dashboard", icon:"exec"},
   {id:"dash", label:"Tổng quan dự án", icon:"dash"},
   {id:"load", label:"Tải tuần", icon:"load"},
-  {id:"input", label:"Nhập theo tuần", icon:"input"},
+  {id:"input", label:"Việc trong tuần", icon:"input"},
   {id:"plan", label:"Kế hoạch dự án", icon:"plan"},
   {sep:true},
   {id:"settings", label:"Cài đặt", icon:"set"},

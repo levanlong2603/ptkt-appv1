@@ -71,7 +71,10 @@ function rpBuildWeek(){
       /* Vướng mắc tính TẠI ĐÚNG TUẦN w đang xem (mang sang từ tuần trước nếu tuần này chưa hoàn thành và
          không nhập lại), không chỉ lấy ghi chú của riêng lượt nhập tuần này – xem rpIssueAt() ở trên.
          Nguyên nhân (e.nn) giờ đi cùng Ma sát, không ghép chung với Vướng mắc nữa. */
-      issue: rpIssueAt(e.projectId, e.taskId, w)
+      issue: rpIssueAt(e.projectId, e.taskId, w),
+      /* Hướng giải quyết = "Ghi chú của trưởng phòng" (t.note) – giờ chỉ sửa được ở Nhập theo tuần/Việc
+         trong tuần (field mgrNote, weekly-input.js), cùng 1 trường task.note nên luôn khớp. */
+      solution: t ? (t.note||"") : ""
     };
   }).sort((a,b) => a.person.localeCompare(b.person,"vi") || a.projectName.localeCompare(b.projectName,"vi") || a.phaseCode.localeCompare(b.phaseCode,"vi"));
   const cols1 = showPerson
@@ -82,7 +85,7 @@ function rpBuildWeek(){
     if(showPerson) o["Người thực hiện"] = r.person;
     o["Dự án"] = r.projectName; o["Hạng mục"] = r.phase; o["Đầu việc"] = r.name;
     o["Chi tiết thực hiện"] = r.detail; o["Deadline theo HĐ"] = r.deadline?dmy(r.deadline):"";
-    o["Trạng thái thực hiện"] = r.status; o["Vướng mắc"] = r.issue; o["Hướng giải quyết"] = "";
+    o["Trạng thái thực hiện"] = r.status; o["Vướng mắc"] = r.issue; o["Hướng giải quyết"] = r.solution;
     return o;
   });
   const staffList = staff==="__all__" ? M.staff : M.staff.filter(s=>s.name===staff);
@@ -146,8 +149,10 @@ function rpBuildProject(){
   const rows = [...tasks].sort((a,b)=>(phaseOrder.get(a.phase)??999)-(phaseOrder.get(b.phase)??999)).map(t => ({
     phase: phaseName.get(t.phase) || t.phase || "Khác", name:planShortName(t.dv),
     detail: t.detail || t.upd || "", deadline:t.deadline, status:t.status,
-    /* Vướng mắc chỉ lấy ghi chú (t.note) – Nguyên nhân (t.nn) giờ đi cùng Ma sát, không ghép chung nữa. */
-    issue: t.note || ""
+    /* Vướng mắc = của NGƯỜI LÀM (t.lastNote, từ lượt nhập tuần gần nhất) – khác hẳn "Hướng giải quyết"
+       bên dưới (t.note, "Ghi chú của trưởng phòng", sửa ở Việc trong tuần). Trước đây 2 cột này nhầm
+       dùng chung t.note, hiện cùng 1 nội dung ở cả 2 cột – đã tách lại cho đúng. */
+    issue: t.lastNote || "", solution: t.note || ""
   }));
   return {empty:false, p, kind, anchor, P, stats, rows, risk};
 }
@@ -157,7 +162,7 @@ function rpBuildProjectExport(){
   const colsSum = ["Chỉ số","Giá trị"], rowsSum = pr.stats.map(s=>({"Chỉ số":s.l, "Giá trị":String(s.v)}));
   const cols = ["Hạng mục","Đầu việc","Chi tiết thực hiện","Deadline theo HĐ","Trạng thái thực hiện","Vướng mắc","Hướng giải quyết"];
   const rows = pr.rows.map(t => ({"Hạng mục":t.phase, "Đầu việc":t.name, "Chi tiết thực hiện":t.detail,
-    "Deadline theo HĐ":t.deadline?dmy(t.deadline):"", "Trạng thái thực hiện":t.status||"", "Vướng mắc":t.issue, "Hướng giải quyết":""}));
+    "Deadline theo HĐ":t.deadline?dmy(t.deadline):"", "Trạng thái thực hiện":t.status||"", "Vướng mắc":t.issue, "Hướng giải quyết":t.solution}));
   const title = `Báo cáo dự án – ${pr.p.name} – ${pr.P.label}`;
   return {
     title, scope:`${pr.p.name} (${pr.p.type})`,
@@ -446,7 +451,7 @@ function rpWeekRowsHtml(report){
         <td style="vertical-align:top">${r.deadline?dmy(r.deadline):"–"}</td>
         <td style="vertical-align:top">${r.status?stPill(r.status):"–"}</td>
         <td class="small" style="white-space:pre-wrap; vertical-align:top">${r.issue?esc(r.issue):'<span class="muted">–</span>'}</td>
-        <td class="small muted" style="vertical-align:top">–</td></tr>`;
+        <td class="small" style="white-space:pre-wrap; vertical-align:top">${r.solution?esc(r.solution):'<span class="muted">–</span>'}</td></tr>`;
     }).join("")}</tbody></table></div></div>`;
 }
 function rpWeekHtml(){
@@ -456,7 +461,7 @@ function rpWeekHtml(){
   let h = `<section class="panel" style="margin-bottom:14px; overflow:visible"><div class="panel-b" style="display:flex; align-items:center; gap:14px">
     <div style="display:flex; align-items:center; gap:14px; flex:1; min-width:0; overflow-x:auto; padding:2px">
       <div class="seg-in" role="group" aria-label="Nội dung xem" style="flex:none">
-        <button type="button" data-act="rpwkview" data-v="input" aria-pressed="${view==="input"}">Nhập theo tuần</button>
+        <button type="button" data-act="rpwkview" data-v="input" aria-pressed="${view==="input"}">Việc trong tuần</button>
         <button type="button" data-act="rpwkview" data-v="load" aria-pressed="${view==="load"}">Tải tuần</button>
       </div>
       ${rpWeekToolbarHtml()}
@@ -521,7 +526,7 @@ function rpProjectHtml(){
         <td style="vertical-align:top">${t.deadline?dmy(t.deadline):"–"}</td>
         <td style="vertical-align:top">${t.status?stPill(t.status):"–"}</td>
         <td class="small" style="white-space:pre-wrap; vertical-align:top">${t.issue?esc(t.issue):'<span class="muted">–</span>'}</td>
-        <td class="small muted" style="vertical-align:top">–</td></tr>`;
+        <td class="small" style="white-space:pre-wrap; vertical-align:top">${t.solution?esc(t.solution):'<span class="muted">–</span>'}</td></tr>`;
       }).join("") : `<tr><td colspan="7" class="muted" style="padding:14px">Dự án chưa có đầu việc nào.</td></tr>`}</tbody></table></div></div>
   </div></section>`;
   return h;

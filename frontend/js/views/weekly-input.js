@@ -3,7 +3,7 @@
 /* ================= VIEW: weekly input ================= */
 function viewInput(){
   const w = S.week;
-  let h = `<div class="head"><div><h1>Nhập theo tuần</h1></div>${weekNav()}</div>`;
+  let h = `<div class="head"><div><h1>Việc trong tuần</h1></div>${weekNav()}</div>`;
   if(S.me==="__all__") return h + viewInputAll(w);
   if(!S.me && S.user && !isFullRole(S.user.role)) return h + `<section class="panel"><div class="empty"><b>Tài khoản chưa gắn với nhân sự</b>Nhờ trưởng phòng vào Cài đặt → Tài khoản đăng nhập để gắn tài khoản của bạn với tên nhân sự.</div></section>`;
   if(!S.me) return h + `<section class="panel"><div class="empty"><b>Chọn tên của bạn</b>Chọn tên ở mục “Tôi là” (góc dưới thanh bên) để nhập công việc của mình.</div>
@@ -114,6 +114,12 @@ function entryForm(entry, person){
   const isNew = !entry;
   const who = person || (entry && entry.person) || S.me;
   const e = entry ? {...entry} : {id:uid("e"), projectId:"", taskId:"", work:"", qm:null, hours:null, pt:null, status:"", ms:null, nn:"", note:""};
+  /* "Ghi chú của trưởng phòng" – không phải trường của riêng lượt nhập tuần (e.note là "Vướng mắc" của
+     người nhập), mà đọc/ghi thẳng task.note của đúng đầu việc đang chọn – CÙNG một trường đang hiện ở
+     Kế hoạch dự án (taskForm, plan.js), nên sửa bên nào cũng tự khớp bên kia (xem onSave bên dưới và
+     route PATCH /api/doc/projects/:id/task-note ở server.js). */
+  const taskRef0 = e.projectId && e.taskId ? M.taskMap.get(e.projectId+"|"+e.taskId) : null;
+  e.mgrNote = taskRef0 ? (taskRef0.t.note||"") : "";
   /* "Còn lại" hiển thị cho người nhập = capacity − tổng workload cả tuần (giống hệt số "Workload tuần"
      hiện ở đầu trang), để luôn khớp với con số họ vừa thấy, kể cả khi đang sửa một việc đã có sẵn.
      Khi KIỂM TRA lúc Lưu thì vẫn phải trừ riêng phần của chính việc đang sửa ra khỏi tổng trước (budgetH),
@@ -174,7 +180,12 @@ function entryForm(entry, person){
          mắc. Nguyên nhân vẫn là trường "nn" như cũ, chỉ đổi cách trình bày. */
       {key:"ms", label:"Ma sát (chỉ khi bị vướng)", type:"seg", options:[[null,"Không"],...[1,2,3,4,5].map(n=>[n,String(n)])], half:true, hint:v=>({1:"Vướng nhẹ",2:"Vướng vừa",3:"Vướng nhiều",4:"Phụ thuộc nghiêm trọng",5:"Bị đình trệ"}[v]||"")},
       {key:"nn", label:"Nguyên nhân", type:"select", options:[["",""],...CAUSES.map(c=>[c,c])], half:true},
-      {key:"note", label:"Vướng mắc / cần ai hỗ trợ", type:"textarea"}
+      {key:"note", label:"Vướng mắc / cần ai hỗ trợ", type:"textarea"},
+      /* Cùng 1 trường task.note với "Ghi chú của trưởng phòng" ở Kế hoạch dự án (plan.js) – chỉ trưởng
+         phòng/phó phòng/admin ghi được, để đưa hướng giải quyết ngay tại đây khi xem vướng mắc (vd từ
+         chuông thông báo) mà không cần sang Kế hoạch dự án. */
+      ...(e.projectId && e.taskId ? [{key:"mgrNote", label:"Ghi chú của trưởng phòng", type:"textarea", disabled:!S.canEdit,
+        hint:()=>S.canEdit?"":"Chỉ trưởng phòng/phó phòng sửa được ghi chú này."}] : [])
     ],
     saveLabel: isNew ? "Thêm việc" : "Lưu thay đổi",
     onSave: async v => {
@@ -195,6 +206,12 @@ function entryForm(entry, person){
       if(v.pt && taskRef && v.pt !== taskRef.t.pt){
         try{ await S.db.api("PATCH", `/api/doc/projects/${v.projectId}/task-pt`, {taskId:v.taskId, pt:v.pt}); }
         catch(e){ toast("Đã lưu việc trong tuần, nhưng không đồng bộ được độ phức tạp vào Kế hoạch dự án."); }
+      }
+      /* Đồng bộ "Ghi chú của trưởng phòng" về đúng đầu việc – chỉ gửi khi có đổi và người lưu đủ quyền
+         (ô bị khoá với nhân viên nên v.mgrNote khi đó luôn bằng giá trị cũ, không gửi thừa). */
+      if(S.canEdit && taskRef && v.mgrNote!==undefined && v.mgrNote!==(taskRef.t.note||"")){
+        try{ await S.db.api("PATCH", `/api/doc/projects/${v.projectId}/task-note`, {taskId:v.taskId, note:v.mgrNote||""}); }
+        catch(e){ toast("Đã lưu việc trong tuần, nhưng không đồng bộ được ghi chú trưởng phòng vào Kế hoạch dự án."); }
       }
     },
     onDelete: isNew ? null : async () => {

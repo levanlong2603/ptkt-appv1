@@ -59,6 +59,10 @@ function derive(){
       const ms = le ? (le.ms ?? null) : (t.init ? t.init.ms ?? null : null);
       const nn = le ? (le.nn||"") : (t.init ? t.init.nn||"" : "");
       const upd = la ? [la.work, la.note].filter(Boolean).join(" · ") : "";
+      /* Vướng mắc của NGƯỜI LÀM, tách riêng khỏi "Ghi chú của trưởng phòng" (t.note, trường gốc trên task) –
+         lấy từ lượt nhập tuần gần nhất (la.note), dùng cho cột "Vướng mắc" ở Báo cáo dự án (reports.js),
+         không lẫn với t.note ("Hướng giải quyết"). */
+      const lastNote = la ? (la.note||"") : "";
       /* "Ngày cập nhật": tuần/ngày nhân viên lưu lần gần nhất, tách riêng khỏi nội dung "Cập nhật" ở trên */
       /* Ngày cập nhật = mốc gần nhất giữa lần nhập theo tuần và lần trưởng phòng/TM/SE sửa trực tiếp đầu việc ở Kế hoạch dự án */
       const weekDate = la ? parse(la.week) : null;
@@ -79,7 +83,7 @@ function derive(){
         if(OPEN.has(status) && (ms||0) >= 3) warns.push(["bad","Ma sát cao"]);
         if((status==="Đang làm"||status==="Đang vướng") && (!lastWeek || lastWeek < addDays(thisMon,-14))) warns.push(["warn","Không cập nhật >2 tuần"]);
       }
-      const o = {...t, p, key:k, qmE:qm, ptE:pt, wl, status, src, ms, nn, upd, updDate, lastWeek, doers, done, ontime, warns, phase: phaseOf(t.dv)};
+      const o = {...t, p, key:k, qmE:qm, ptE:pt, wl, status, src, ms, nn, upd, lastNote, updDate, lastWeek, doers, done, ontime, warns, phase: phaseOf(t.dv)};
       tasks.push(o); return o;
     });
     const live = p._tasks.filter(t => t.status!=="Hủy");

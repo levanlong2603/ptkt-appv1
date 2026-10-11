@@ -271,6 +271,28 @@ app.patch("/api/doc/projects/:id/task-pt", auth, A(async (req, res) => {
   audit(u, "set", p); broadcast("projects");
   res.status(204).end();
 }));
+/* Đồng bộ "Ghi chú của trưởng phòng" giữa Nhập theo tuần và Kế hoạch dự án – cả 2 nơi đọc/ghi cùng 1
+   trường task.note nên tự động khớp nhau 2 chiều, không cần đồng bộ riêng gì thêm ngoài route này. Chỉ
+   trưởng phòng/phó phòng/admin (FULL_ROLES) ghi được, khớp đúng quyền đã có sẵn ở taskForm (plan.js) và
+   PUT /api/doc/projects/:id (chặn nhân viên ghi t.note dù PUT cả dự án). Phạm vi hẹp: chỉ sửa đúng
+   trường note của 1 đầu việc, giống cách task-pt ở trên đồng bộ Độ phức tạp. */
+app.patch("/api/doc/projects/:id/task-note", auth, A(async (req, res) => {
+  if (!FULL_ROLES.has(req.user.role)) return res.status(403).json({ error: "Chỉ trưởng phòng/phó phòng được ghi chú này" });
+  const { id } = req.params;
+  const { taskId, note } = req.body || {};
+  if (!ID_RE.test(id) || typeof taskId !== "string" || typeof note !== "string")
+    return res.status(400).json({ error: "Dữ liệu không hợp lệ" });
+  const p = `projects/${id}`;
+  const ex = await store.getDoc(p);
+  if (!ex) return res.status(404).json({ error: "Không tìm thấy dự án" });
+  const body = JSON.parse(ex);
+  const task = (body.tasks || []).find(t => t.id === taskId);
+  if (!task) return res.status(404).json({ error: "Không tìm thấy đầu việc" });
+  task.note = note;
+  await store.upsertDoc(p, "projects", id, JSON.stringify(body), req.user.username);
+  audit(req.user, "set", p); broadcast("projects");
+  res.status(204).end();
+}));
 app.delete("/api/doc/:coll/:id", auth, A(async (req, res) => {
   const { coll, id } = req.params;
   if (!COLLECTIONS.has(coll) || !ID_RE.test(id)) return res.status(400).json({ error: "Đường dẫn không hợp lệ" });

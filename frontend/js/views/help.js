@@ -5,15 +5,15 @@ function viewHelp(){
   const sec = (t, rows) => `<section class="panel" style="margin-bottom:16px"><div class="panel-h"><h2>${t}</h2></div><div class="panel-b"><dl class="kv" style="grid-template-columns:190px 1fr; gap:10px 16px">${rows.map(r=>`<dt style="font-weight:600;color:var(--ink)">${r[0]}</dt><dd>${r[1]}</dd>`).join("")}</dl></div></section>`;
   return `<div class="head"><div><h1>Hướng dẫn</h1></div></div>` +
   (S.server ? sec("Tài khoản", [
-    ["Đăng nhập", "Mỗi người dùng tài khoản riêng do trưởng phòng cấp. Nhân viên chỉ sửa được dữ liệu “Nhập theo tuần” của chính mình."],
+    ["Đăng nhập", "Mỗi người dùng tài khoản riêng do trưởng phòng cấp. Nhân viên chỉ sửa được dữ liệu “Việc trong tuần” của chính mình."],
     ["Đổi mật khẩu / Đăng xuất", "Bấm vào tên hoặc ảnh đại diện ở góc trên bên phải màn hình để mở menu tài khoản."],
-    ["Thông báo", "Nút chuông ở góc trên bên phải gộp số đầu việc quá hạn và góp ý chưa xem; bấm vào một dòng để đi thẳng tới đó."],
+    ["Thông báo", "Nút chuông ở góc trên bên phải liệt kê các đầu việc đang vướng mắc trong tuần (nhân viên chỉ thấy của mình, trưởng phòng/phó phòng thấy của mọi người); bấm vào một dòng để mở thẳng việc đó ở “Việc trong tuần”."],
     ["Tự đăng xuất", `Nếu không thao tác gì trong ${IDLE_TIMEOUT_MIN} phút, hệ thống tự đăng xuất. Bấm chuột, gõ phím hoặc cuộn trang để tính lại thời gian.`]]) : "") + (S.local ? sec("Bản chạy trên máy", [
     ["Lưu ở đâu", "Dữ liệu lưu trong trình duyệt của máy đang mở file. Đóng file, mở lại vẫn còn (nếu dùng cùng trình duyệt và không xoá lịch sử)."],
     ["Chuyển / gộp dữ liệu", "Cài đặt → “Xuất sao lưu (.json)”, gửi file cho người khác, họ chọn “Nhập sao lưu…”. Nhập sao lưu sẽ thay toàn bộ dữ liệu trên máy đó."]]) : "") +
   sec("Nhân viên · mỗi thứ 2, khoảng 10 phút", [
     ["1. Chọn tên", "Chọn tên ở mục “Tôi là” dưới thanh bên (trình duyệt sẽ nhớ)."],
-    ["2. Nhập theo tuần", "Mở “Nhập theo tuần”, chọn đúng tuần. Bấm “+ Thêm việc” cho mỗi đầu việc đã làm, hoặc “Chép việc dở dang từ tuần trước”."],
+    ["2. Việc trong tuần", "Mở “Việc trong tuần”, chọn đúng tuần. Bấm “+ Thêm việc” cho mỗi đầu việc đã làm, hoặc “Chép việc dở dang từ tuần trước”."],
     ["3. Quy mô trong tuần", "Chấm khối lượng phần việc làm trong tuần: 1 = 0,5–2h · 2 = 2–8h · 3 = 8–24h · 4 = trên 24h · 5 = cả tuần."],
     ["4. Trạng thái cuối tuần", "Đang làm / Đang vướng / Tạm dừng / Hoàn thành / Hủy. Nếu vướng: chọn ma sát, nguyên nhân, ghi cần ai hỗ trợ. Trạng thái tự cập nhật về kế hoạch dự án."],
     ["Việc ngoài dự án", "Hỗ trợ, việc phát sinh, đào tạo nội bộ: chọn dự án “Việc chung của phòng”."]]) +
