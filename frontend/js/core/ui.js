@@ -77,12 +77,17 @@ function setTheme(t){
   store("theme", t); renderHeader();
 }
 document.getElementById("tbBellMenu").addEventListener("click", e => {
-  const bt = e.target.closest("[data-tbgo-task]");
-  if(bt){
-    const [pid, tid] = bt.dataset.tbgoTask.split("|");
-    tbCloseAll(); S.view = "plan"; S.planSel = pid; S.typeFilter = "Tất cả"; store("view", S.view); render();
-    /* Mở thẳng đầu việc cần xử lý, không chỉ mở dự án rồi để tự tìm (giống "exgo" ở events.js) */
-    const p = M.pById.get(pid); const tk = p && p._tasks.find(x=>x.id===tid); if(p && tk) taskForm(p, tk);
+  const bi = e.target.closest("[data-tbgo-issue]");
+  if(bi){
+    const [id, person] = bi.dataset.tbgoIssue.split("|");
+    /* Mở thẳng Nhập theo tuần, đúng người + đúng tuần của lượt nhập đó, rồi mở luôn form sửa dòng này –
+       để vào ghi chú/hướng xử lý ngay (ô "Vướng mắc / cần ai hỗ trợ"), không chỉ xem danh sách rồi tự
+       tìm. Đổi cả "Tôi là" sang đúng người đó (giống cách trưởng phòng/phó phòng vẫn làm khi sửa dữ liệu
+       tuần người khác) để entryForm() mở được. */
+    const w = mondayOf(todayISO());
+    tbCloseAll(); S.view = "input"; S.week = w; S.me = person; store("view", S.view); store("me", S.me); render();
+    const doc = weekDoc(w, person); const en = doc && (doc.entries||[]).find(x=>x.id===id);
+    if(en) entryForm(en, person);
     return;
   }
   const b = e.target.closest("[data-tbgo]"); if(!b) return;
@@ -108,27 +113,22 @@ function renderHeader(){
     <div class="tb-sep"></div>
     <button class="tb-item" data-uact="pw">Đổi mật khẩu</button>
     <button class="tb-item" data-uact="out">Đăng xuất</button>` : "";
-  const late = (S.loaded && M) ? lateTasks() : [];
-  const fbFn = NAV_BADGE.feedback; const fbN = fbFn ? fbFn() : 0;
-  const total = late.length + fbN;
+  /* Chuông thông báo: CHỈ còn đúng 1 nội dung – vướng mắc nhập trong "Nhập theo tuần" của tuần hiện tại
+     (weekIssues() ở model.js, nguồn trực tiếp từ lượt nhập tuần, không lấy theo dữ liệu đã tổng hợp ở
+     Kế hoạch dự án/Tổng quan dự án). Đã bỏ hẳn các mục cũ (đầu việc quá hạn, góp ý chưa xem). */
+  const issues = (S.loaded && M) ? weekIssues() : [];
   const bellN = document.getElementById("tbBellN");
-  bellN.hidden = !total; bellN.textContent = total>99?"99+":total;
+  bellN.hidden = !issues.length; bellN.textContent = issues.length>99?"99+":issues.length;
+  const TB_BELL_MAX = 8;
   const rows = [];
-  /* Liệt kê từng đầu việc quá hạn (đã sắp theo độ gấp ở lateTasks()), không chỉ gộp 1 dòng tổng số –
-     bấm thẳng vào 1 dòng mở ngay đầu việc đó, không phải chỉ mở Dashboard rồi tự tìm. Giới hạn hiện
-     TB_BELL_MAX dòng, còn lại gộp vào 1 dòng "Xem tất cả" để menu không quá dài. */
-  const TB_BELL_MAX = 6;
-  if(late.length){
-    rows.push(`<div class="tb-head">${late.length} đầu việc quá hạn</div>`);
-    for(const t of late.slice(0, TB_BELL_MAX)){
-      rows.push(`<button class="tb-item" type="button" data-tbgo-task="${esc(t.p.id)}|${esc(t.id)}">
-        <b>${t.pr?`<span class="pill bad" style="margin-right:5px">${esc(t.pr)}</span>`:""}${esc(planShortName(t.dv))}</b>
-        <span class="muted">${esc(t.p.name)} · Hạn ${dm(t.deadline)}${t.owner?" · "+esc(t.owner):""}</span></button>`);
-    }
-    if(late.length>TB_BELL_MAX) rows.push(`<button class="tb-item" type="button" data-tbgo="exec"><b>Xem tất cả ${late.length} đầu việc →</b></button>`);
+  for(const e of issues.slice(0, TB_BELL_MAX)){
+    const t = e.ref.t, p = e.ref.p;
+    rows.push(`<button class="tb-item" type="button" data-tbgo-issue="${esc(e.id)}|${esc(e.person)}">
+      <b><span class="pill ${e.ms>=3?"bad":"warn"}" style="margin-right:5px">Ma sát ${e.ms}</span>${esc(planShortName(t.dv))}</b>
+      <span class="muted">${esc(p.name)}${e.nn?" · "+esc(e.nn):""} · ${esc(e.person)}</span></button>`);
   }
-  if(fbN) rows.push(`<button class="tb-item" type="button" data-tbgo="feedback"><b>${fbN} góp ý chưa xem</b><span class="muted">Xem Góp ý</span></button>`);
-  document.getElementById("tbBellMenu").innerHTML = rows.length ? rows.join("") : `<div class="tb-empty">Không có thông báo mới</div>`;
+  if(issues.length>TB_BELL_MAX) rows.push(`<button class="tb-item" type="button" data-tbgo="input"><b>Xem tất cả ${issues.length} vướng mắc →</b></button>`);
+  document.getElementById("tbBellMenu").innerHTML = rows.length ? rows.join("") : `<div class="tb-empty">Không có vướng mắc nào trong tuần</div>`;
 }
 
 function render(){

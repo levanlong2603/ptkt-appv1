@@ -116,6 +116,17 @@ function lateTasks(){
   return M.tasks.filter(t=>t.p.type!=="Nội bộ" && t.warns.some(w=>w[1]==="Quá hạn"))
     .sort((a,b)=>(prRank[a.pr]||9)-(prRank[b.pr]||9) || String(a.deadline||"9999").localeCompare(String(b.deadline||"9999")));
 }
+/* Vướng mắc TRONG TUẦN HIỆN TẠI (dùng riêng cho chuông thông báo ở header) – lấy thẳng từ lượt nhập
+   "Nhập theo tuần" của đúng tuần này (M.entries, e.ms), KHÔNG lấy theo t.ms/t.nn của đầu việc (giá trị
+   "mới nhất tính tới hiện tại" dùng chung cho Kế hoạch dự án/Tổng quan dự án – có thể đến từ một tuần cũ
+   hơn nhiều). Sắp theo cấp độ ma sát cao nhất lên đầu. Nhân viên chỉ thấy vướng mắc của chính mình
+   (so theo S.me, gắn với tài khoản); trưởng phòng/phó phòng/admin (S.canEdit) thấy của mọi người. */
+function weekIssues(){
+  const w = mondayOf(todayISO());
+  let list = M.entries.filter(e=>e.week===w && e.ref && e.ref.p.type!=="Nội bộ" && (e.ms||0)>=1);
+  if(!S.canEdit) list = list.filter(e=>e.person===S.me);
+  return list.sort((a,b)=>(b.ms||0)-(a.ms||0));
+}
 function phasesFor(type){
   const seen = new Map();
   for(const c of S.catalog){
