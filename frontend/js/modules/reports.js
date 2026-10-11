@@ -42,10 +42,14 @@ function rpBuildWeek(){
   const rows = es.map(e => {
     const p = e.ref ? e.ref.p : M.pById.get(e.projectId);
     const t = e.ref ? e.ref.t : null;
-    const phaseName = (p && t) ? ((p._phases.find(ph=>ph.code===t.phase)||{}).name || t.phase || "Khác") : "Khác";
+    /* e.ref.t là task THÔ lấy từ taskMap (chưa qua derive()), không có field "phase" lưu sẵn – field này
+       luôn được tính động bằng phaseOf(t.dv) (xem model.js, p._tasks) nên phải tính lại giống hệt ở đây,
+       không đọc t.phase trực tiếp (lúc nào cũng rỗng → rơi về "Khác"). */
+    const phaseCode = t ? phaseOf(t.dv) : "";
+    const phaseName = (p && t) ? ((p._phases.find(ph=>ph.code===phaseCode)||{}).name || phaseCode || "Khác") : "Khác";
     return {
       person: e.person, projectId: e.projectId, projectName: p ? p.name : "(dự án đã xoá)",
-      phaseCode: t ? (t.phase||"") : "", phase: phaseName,
+      phaseCode, phase: phaseName,
       name: t ? planShortName(t.dv) : "(đầu việc đã xoá)",
       detail: e.work || "", deadline: t ? t.deadline : null, status: e.status || "",
       /* Vướng mắc chỉ lấy ghi chú (e.note) – Nguyên nhân (e.nn) giờ đi cùng Ma sát, không ghép chung nữa. */
