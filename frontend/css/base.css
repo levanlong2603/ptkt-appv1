@@ -87,7 +87,7 @@ body.side-collapsed .nav-grp:first-child{max-height:0; padding:0; margin:0; bord
 /* Các nhãn nhóm sau (vd "CÀI ĐẶT") không ẩn hẳn khi thu gọn – chỉ ẩn chữ, giữ lại thành 1 đường kẻ phân
    cách mảnh giữa các nhóm icon, để vẫn phân biệt được "Dashboard & Quản lý" với "Cài đặt" dù không còn
    đọc được chữ (ảnh chụp người dùng gửi cho thấy icon thu gọn dồn liền một cụm, khó biết ranh giới). */
-body.side-collapsed .nav-grp:not(:first-child){max-height:0; padding:0; margin:11px 12px; color:transparent; border-color:rgba(255,255,255,.18)}
+body.side-collapsed .nav-grp:not(:first-child){max-height:0; padding:0; margin:0; color:transparent; border-color:transparent}
 .nav{display:flex; flex-direction:column; gap:1px}
 .nav button{all:unset; cursor:pointer; display:flex; align-items:center; gap:10px; padding:9px 10px; border-radius:8px; font-size:14px; color:var(--side-ink); border-left:3px solid transparent; transition:padding .15s ease, gap .15s ease}
 .nav button:hover{background:var(--side-hover-bg); color:var(--side-hover-ink)}
@@ -124,6 +124,15 @@ h3{font-size:14px; font-weight:600; margin:0}
 .panel-b{padding:14px 18px}
 .data-ico{width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex:none}
 .data-ico svg{width:19px; height:19px}
+/* Trang Hướng dẫn: nội dung tự soạn (xem help.js) – h2/h3 reset về margin:0 ở trên cần giãn lại riêng
+   trong khung này, dùng chung cho cả lúc xem (.help-view) lẫn lúc sửa (.help-editor, contenteditable). */
+.help-view h2,.help-editor h2{font-size:16px; margin:20px 0 8px}
+.help-view h2:first-child,.help-editor h2:first-child{margin-top:0}
+.help-view h3,.help-editor h3{font-size:14px; color:var(--teal-hover); margin:14px 0 6px}
+.help-view p,.help-editor p{margin:0 0 8px; line-height:1.55}
+.help-view b,.help-editor b{color:var(--ink)}
+.help-editor{min-height:260px; border:1px solid var(--line); border-radius:8px; padding:12px 16px; outline:none}
+.help-editor:focus{border-color:var(--teal)}
 .data-t{font-weight:700; font-size:15px}
 .btn svg{width:14px; height:14px; flex:none}
 .grid2{display:grid; grid-template-columns:minmax(0,1.9fr) minmax(300px,1fr); gap:18px; align-items:start}

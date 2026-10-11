@@ -53,8 +53,8 @@ function startSession(user){
   const db = makeServerDb(); S.db = db; S.conn = "on"; S.loaded = false; setConn();
   const onErr = () => {};
   db.collection("config").onSnapshot(snap => {
-    S.staff = []; S.catalog = [];
-    for(const d of snap.docs){ const b=d.data()||{}; if(d.id==="staff") S.staff=b.list||[]; if(d.id==="catalog") S.catalog=b.list||[]; }
+    S.staff = []; S.catalog = []; S.help = "";
+    for(const d of snap.docs){ const b=d.data()||{}; if(d.id==="staff") S.staff=b.list||[]; if(d.id==="catalog") S.catalog=b.list||[]; if(d.id==="help") S.help=b.html||""; }
     S.loaded = true; schedule(); }, onErr);
   db.collection("projects").onSnapshot(snap => { S.projects = snap.docs.map(d=>({...d.data(), id:d.id})); S.loaded=true; schedule(); }, onErr);
   const cutoff = addDays(mondayOf(todayISO()), -7*156);
