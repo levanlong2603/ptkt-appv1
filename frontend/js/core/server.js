@@ -145,7 +145,8 @@ function userForm(u){
   const v = u ? {...u, pw:""} : {username:"", display_name:"", staff_name:"", role:"member", active:true, pw:""};
   openForm({title: isNew ? "Tạo tài khoản" : "Sửa tài khoản", subtitle: isNew ? "" : u.username, values:v,
     fields:[
-      ...(isNew ? [{key:"username", label:"Tên đăng nhập (chữ không dấu, số, . _ -)", type:"text", required:true}] : []),
+      {key:"username", label:"Tên đăng nhập (chữ không dấu, số, . _ -)", type:"text", required:true,
+        hint:isNew?"":"Đổi tên đăng nhập sẽ buộc tài khoản này phải đăng nhập lại."},
       {key:"display_name", label:"Tên hiển thị", type:"text", required:true},
       {key:"staff_name", label:"Gắn với nhân sự (để nhập theo tuần)", type:"select", options:[["",""],...M.staff.map(s=>[s.name,s.name])]},
       /* Vai trò "admin" (hệ thống/khởi tạo CSDL) không phải lựa chọn thường – chỉ tạo mới được bằng
@@ -163,7 +164,7 @@ function userForm(u){
     onSave: async x => {
       try{
         if(isNew) await S.db.api("POST", "/api/users", {username:x.username, password:x.pw, display_name:x.display_name, staff_name:x.staff_name||null, role:x.role});
-        else await S.db.api("PATCH", `/api/users/${u.id}`, {display_name:x.display_name, staff_name:x.staff_name||null, role:x.role, active:x.active, ...(x.pw?{password:x.pw}:{})});
+        else await S.db.api("PATCH", `/api/users/${u.id}`, {username:x.username, display_name:x.display_name, staff_name:x.staff_name||null, role:x.role, active:x.active, ...(x.pw?{password:x.pw}:{})});
       }catch(e){ throw new Error(e.message || "Không lưu được tài khoản."); }
       toast(isNew ? "Đã tạo tài khoản" : "Đã lưu tài khoản"); S.users = null; loadUsers();
     }});

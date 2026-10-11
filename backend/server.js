@@ -342,14 +342,20 @@ app.patch("/api/users/:id", auth, adminOnly, A(async (req, res) => {
   if (!allowedRoles.includes(role)) return res.status(400).json({ error: "Vai trò không hợp lệ" });
   if (FULL_ROLES.has(u.role) && (!FULL_ROLES.has(role) || !active) && (await store.countActiveAdmins()) <= 1)
     return res.status(400).json({ error: "Phải còn ít nhất một tài khoản trưởng phòng/phó phòng đang hoạt động" });
+  const username = b.username === undefined ? u.username : String(b.username).trim();
+  if (!/^[A-Za-z0-9._-]{3,40}$/.test(username)) return res.status(400).json({ error: "Tên đăng nhập 3–40 ký tự, chỉ gồm chữ không dấu, số, dấu . _ -" });
+  if (username !== u.username) {
+    const dup = await store.getUserByUsername(username);
+    if (dup && dup.id !== u.id) return res.status(400).json({ error: "Tên đăng nhập đã tồn tại" });
+  }
   let tv = u.token_version, hash = u.pass_hash;
-  if (role !== u.role) tv++;   // đổi vai trò: buộc đăng nhập lại để nhận quyền mới
+  if (role !== u.role || username !== u.username) tv++;   // đổi vai trò/tên đăng nhập: buộc đăng nhập lại
   if (b.password) {
     if (String(b.password).length < 8) return res.status(400).json({ error: "Mật khẩu phải có ít nhất 8 ký tự" });
     hash = bcrypt.hashSync(String(b.password), 10); tv++;
   }
   if (!active && u.active) tv++;
-  await store.updateUser(u.id, { display_name: String(b.display_name ?? u.display_name), staff_name: (b.staff_name ?? u.staff_name) || null, role, active, pass_hash: hash, token_version: tv });
+  await store.updateUser(u.id, { username, display_name: String(b.display_name ?? u.display_name), staff_name: (b.staff_name ?? u.staff_name) || null, role, active, pass_hash: hash, token_version: tv });
   audit(req.user, "user-update", u.username);
   res.json(publicUser(await store.getUserById(u.id)));
 }));
