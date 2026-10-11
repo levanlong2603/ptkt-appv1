@@ -311,21 +311,65 @@ async function rpExportExcel(report){
 async function rpExportPdf(report){
   const el = document.getElementById("rp-print");
   if(!el) return;
-  const canvas = await html2canvas(el, {scale:2, useCORS:true, backgroundColor:"#ffffff"});
+  /* #rp-print là 1 .panel (viền 1px + bo góc – xem base.css) để hiển thị đẹp trên màn hình, nhưng khi
+     chụp vào PDF viền/bo góc đó bị "đóng cứng" vào ảnh, lộ ra như khung thừa quanh nội dung (nhất là ở
+     trang cuối, dưới bảng còn khoảng trắng). onclone chỉ sửa DOM bản sao html2canvas dùng để chụp, không
+     ảnh hưởng gì tới trang đang hiển thị.
+     th{position:sticky; top:0} (base.css, dùng chung cho tiêu đề cột dính khi cuộn ở mọi bảng trong app)
+     là lỗi biết rõ của html2canvas: nó chụp các ô dính này lạc khỏi đúng vị trí trong bảng, nổi thành
+     khung viền rỗng ở sai chỗ trong ảnh xuất ra. Ép position:static cho mọi phần tử trong bản sao để bảng
+     chụp đúng vị trí tự nhiên như trình bày.
+     Đo toạ độ từng <tr> (để sau này không ngắt trang giữa 1 hàng) NGAY TRONG bản sao này (không đo trên
+     #rp-print gốc đang hiển thị) – đo trên bản gốc trước đây bị lệch dần xuống dưới bảng dài vì bản gốc
+     còn viền/bo góc (border:1px) mà bản chụp thì không còn, 2 bản lệch vài px khiến tỉ lệ quy đổi
+     canvas.width/bề rộng CSS bị sai, cộng dồn theo chiều cao bảng càng dài càng lệch nhiều. */
+  let rowRanges = [], cloneW = 0;
+  const canvas = await html2canvas(el, {scale:2, useCORS:true, backgroundColor:"#ffffff", onclone:(doc)=>{
+    const c = doc.getElementById("rp-print");
+    if(c){
+      c.style.border = "none"; c.style.borderRadius = "0"; c.style.boxShadow = "none";
+      c.querySelectorAll("th, thead").forEach(n => { n.style.position = "static"; n.style.top = "auto"; });
+      const cb = c.getBoundingClientRect();
+      cloneW = cb.width;
+      rowRanges = Array.from(c.querySelectorAll("tr")).map(tr => {
+        const r = tr.getBoundingClientRect();
+        return {top:r.top-cb.top, bottom:r.bottom-cb.top};
+      }).sort((a,b)=>a.top-b.top);
+    }
+  }});
   const { jsPDF } = window.jspdf;
   const landscape = canvas.width > canvas.height;
   const pdf = new jsPDF(landscape ? "l" : "p", "mm", "a4");
   const pageWidth = landscape ? 297 : 210, pageHeight = landscape ? 210 : 297;
-  const imgHeight = (canvas.height * pageWidth) / canvas.width;
-  const imgData = canvas.toDataURL("image/png");
-  let heightLeft = imgHeight, position = 0;
-  pdf.addImage(imgData, "PNG", 0, position, pageWidth, imgHeight);
-  heightLeft -= pageHeight;
-  while(heightLeft > 0){
-    position -= pageHeight;
-    pdf.addPage();
-    pdf.addImage(imgData, "PNG", 0, position, pageWidth, imgHeight);
-    heightLeft -= pageHeight;
+  /* Chừa lề 10mm quanh nội dung (trước đây dán sát mép A4) – contentWidth/Height là phần còn lại sau khi
+     trừ lề 2 bên, dùng để quy đổi tỉ lệ px↔mm và để addImage() chừa đúng khoảng lề khi dán từng trang. */
+  const margin = 10;
+  const contentWidth = pageWidth - margin*2, contentHeight = pageHeight - margin*2;
+  const pxPerMm = canvas.width / contentWidth;
+  const pageHeightPx = Math.round(contentHeight * pxPerMm);
+  /* Không cắt ngang giữa 1 dòng <tr>: nếu mép trang (endPx) rơi vào giữa 1 hàng, lùi mép trang lên đúng
+     đỉnh hàng đó – phần còn lại của trang hiện tại để trắng, cả hàng chuyển nguyên vẹn sang trang sau.
+     rowRanges đo sẵn ở trên (đơn vị CSS px trong bản sao), quy đổi sang hệ px của canvas bằng đúng tỉ lệ
+     canvas.width/bề rộng bản sao đó (cloneW) để khớp chính xác với ảnh thật sự được chụp. */
+  const rowScale = cloneW ? canvas.width / cloneW : 1;
+  const rowRangesPx = rowRanges.map(r => ({top:r.top*rowScale, bottom:r.bottom*rowScale}));
+  let posPx = 0, first = true;
+  while(posPx < canvas.height - 1){
+    let endPx = Math.min(posPx + pageHeightPx, canvas.height);
+    if(endPx < canvas.height){
+      const cross = rowRangesPx.find(r => r.top < endPx-1 && r.bottom > endPx+1);
+      if(cross && cross.top > posPx+1) endPx = cross.top;
+    }
+    const sliceH = Math.max(1, Math.round(endPx - posPx));
+    const pc = document.createElement("canvas");
+    pc.width = canvas.width; pc.height = pageHeightPx;
+    const ctx = pc.getContext("2d");
+    ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, pc.width, pc.height);
+    ctx.drawImage(canvas, 0, posPx, canvas.width, sliceH, 0, 0, canvas.width, sliceH);
+    if(!first) pdf.addPage();
+    pdf.addImage(pc.toDataURL("image/png"), "PNG", margin, margin, contentWidth, contentHeight);
+    first = false;
+    posPx = endPx;
   }
   pdf.save(`${report.filename}.pdf`);
 }
@@ -372,13 +416,15 @@ function rpExportBtnHtml(canExport){
 }
 /* Tách toolbar (đặt lên ngang hàng tiêu đề "Báo cáo", giống Dashboard) khỏi nội dung bảng – viewReports()
    gọi cả 2 hàm với CÙNG 1 "ov" đã build sẵn, khỏi tính lại 2 lần. */
-/* Đầy đủ như Dashboard (ô kỳ + Tuần/Tháng/Quý + Tổng thể/Cá nhân + làm mới), cả 3 mức đều chọn được
-   (khác Báo cáo tuần bị khoá ở Tuần) – ô "Loại dự án" + nút Xuất báo cáo vẫn ở đúng vị trí cũ (thanh công
-   cụ riêng, đầu rpOverviewContent()). */
+/* Đầy đủ như Dashboard (ô kỳ + Tuần/Tháng/Quý + Tổng thể/Cá nhân + làm mới), cả 3 mức Tuần/Tháng/Quý đều
+   chọn được (khác Báo cáo tuần bị khoá ở Tuần) – ô "Loại dự án" + nút Xuất báo cáo vẫn ở đúng vị trí cũ
+   (thanh công cụ riêng, đầu rpOverviewContent()). Riêng ô Tổng thể/Cá nhân khoá cứng ở "Cá nhân"
+   (scopeToggleHtml(true)) như Kế hoạch dự án: báo cáo tổng hợp không có khái niệm lọc theo 1 nhân sự nên
+   bật "Tổng thể" ở đây không có gì để lọc – để mở tự do sẽ gây hiểu lầm là có tác dụng. */
 function rpOverviewToolbar(ov){
   return `<div class="ex-wk" style="flex:none"><button type="button" data-act="rpovnav" data-d="-1" aria-label="Kỳ trước">‹</button><div class="lb">${esc(ov.P.label)}</div><button type="button" data-act="rpovnav" data-d="1" aria-label="Kỳ sau">›</button></div>
     <div class="ex-seg" role="group" aria-label="Kỳ báo cáo" style="flex:none">${[["week","Tuần"],["month","Tháng"],["quarter","Quý"]].map(([k,l])=>`<button type="button" data-act="rpovkind" data-k="${k}" aria-pressed="${ov.kind===k}">${l}</button>`).join("")}</div>
-    ${scopeToggleHtml()}
+    ${scopeToggleHtml(true)}
     <button class="btn icon" data-act="exrefresh" title="Làm mới" aria-label="Làm mới">${ICONS.refresh}</button>`;
 }
 function rpOverviewContent(ov){
@@ -462,7 +508,10 @@ function rpWeekRowsHtml(report){
 }
 /* Đầy đủ các nút như Dashboard (ô tuần + Tuần/Tháng/Quý + Tổng thể/Cá nhân + làm mới) – RIÊNG seg kỳ bị
    khoá chỉ ở "Tuần" (Tháng/Quý disabled, không bấm được) vì Báo cáo tuần chỉ chỉnh được theo tuần. Seg
-   xem/lọc/nút Xuất báo cáo vẫn ở đúng vị trí cũ (thanh công cụ riêng, đầu rpWeekContent()). */
+   xem/lọc/nút Xuất báo cáo vẫn ở đúng vị trí cũ (thanh công cụ riêng, đầu rpWeekContent()). Ô Tổng thể/Cá
+   nhân cũng khoá cứng ở "Cá nhân" (scopeToggleHtml(true)): bộ lọc theo người thật của tab này là ô "Nhân
+   sự" riêng (rpWeekFilterHtml(), S.rp.wkStaff) – để ô này mở tự do sẽ trùng/gây hiểu lầm vì không nối gì
+   với S.rp.wkStaff. */
 function rpWeekToolbar(report){
   return `${rpWeekTitleNav()}
     <div class="ex-seg" role="group" aria-label="Kỳ báo cáo">
@@ -470,7 +519,7 @@ function rpWeekToolbar(report){
       <button type="button" disabled title="Báo cáo tuần chỉ chỉnh được theo tuần">Tháng</button>
       <button type="button" disabled title="Báo cáo tuần chỉ chỉnh được theo tuần">Quý</button>
     </div>
-    ${scopeToggleHtml()}
+    ${scopeToggleHtml(true)}
     <button class="btn icon" data-act="exrefresh" title="Làm mới" aria-label="Làm mới">${ICONS.refresh}</button>`;
 }
 function rpWeekContent(report){
@@ -533,14 +582,16 @@ function rpWeekJournalHtml(){
       return `<tr><td class="cell-main" style="vertical-align:top">${esc(n)}</td>${dates.map(d=>`<td class="small" style="white-space:pre-wrap; vertical-align:top">${m.get(d)?esc(m.get(d)):'<span class="muted">–</span>'}</td>`).join("")}</tr>`;
     }).join("")}</tbody></table></div></div>`;
 }
-/* Đầy đủ như Dashboard (ô kỳ + Tuần/Tháng/Quý + Tổng thể/Cá nhân + làm mới), cả 3 mức đều chọn được
-   (khác Báo cáo tuần bị khoá ở Tuần) – ô "Loại dự án"/"Dự án" + nút Xuất báo cáo vẫn ở đúng vị trí cũ
-   (thanh công cụ riêng, đầu rpProjectContent()), kể cả khi pr.empty (chưa chọn dự án) – vẫn cần hiện để
-   người dùng chọn dự án. */
+/* Đầy đủ như Dashboard (ô kỳ + Tuần/Tháng/Quý + Tổng thể/Cá nhân + làm mới), cả 3 mức Tuần/Tháng/Quý đều
+   chọn được (khác Báo cáo tuần bị khoá ở Tuần) – ô "Loại dự án"/"Dự án" + nút Xuất báo cáo vẫn ở đúng vị
+   trí cũ (thanh công cụ riêng, đầu rpProjectContent()), kể cả khi pr.empty (chưa chọn dự án) – vẫn cần
+   hiện để người dùng chọn dự án. Ô Tổng thể/Cá nhân khoá cứng ở "Cá nhân" (scopeToggleHtml(true)) như Kế
+   hoạch dự án/Báo cáo tổng hợp dự án: báo cáo 1 dự án không có khái niệm lọc theo 1 nhân sự nên bật
+   "Tổng thể" ở đây không có gì để lọc. */
 function rpProjectToolbar(pr){
   return `<div class="ex-wk" style="flex:none"><button type="button" data-act="rppjnav" data-d="-1" aria-label="Kỳ trước">‹</button><div class="lb">${esc(pr.P.label)}</div><button type="button" data-act="rppjnav" data-d="1" aria-label="Kỳ sau">›</button></div>
     <div class="ex-seg" role="group" aria-label="Kỳ báo cáo" style="flex:none">${[["week","Tuần"],["month","Tháng"],["quarter","Quý"]].map(([k,l])=>`<button type="button" data-act="rppjkind" data-k="${k}" aria-pressed="${pr.kind===k}">${l}</button>`).join("")}</div>
-    ${scopeToggleHtml()}
+    ${scopeToggleHtml(true)}
     <button class="btn icon" data-act="exrefresh" title="Làm mới" aria-label="Làm mới">${ICONS.refresh}</button>`;
 }
 function rpProjectContent(pr){

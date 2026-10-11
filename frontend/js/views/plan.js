@@ -22,10 +22,22 @@ function viewPlan(){
     S.planAutoOpened[filt] = true;
   }
   const chips = `<div class="chips" role="group" aria-label="Lọc dự án">${PLAN_FILTERS.map(f=>`<button class="chip-btn" data-act="tf" data-t="${esc(f.key)}" aria-pressed="${filt===f.key}">${esc(f.label)}</button>`).join("")}</div>`;
+  /* Thanh điều khiển giống hệt Tổng quan dự án (ô kỳ + Tuần/Tháng/Quý + Tổng thể/Cá nhân + làm mới) –
+     trang này tự lọc theo "Tôi là" riêng (S.me đọc thẳng ở trên, không qua effectiveSimAs()), nên ô kỳ và
+     dropdown Cá nhân/Tổng thể ở đây CHƯA có tác dụng lọc gì, chỉ thêm cho đồng bộ giao diện (đã xác nhận
+     với người dùng), dùng chung S.week/S.period/periodInfo()/exnav/exper/exrefresh với Dashboard/Tổng
+     quan dự án nên đổi kỳ ở trang nào cũng khớp trang kia. */
+  const kind = S.period || "week", per = periodInfo(S.week, kind);
   let h = `<div class="head"><div><h1>Kế hoạch dự án</h1></div>
-    <div class="head-ctl">${chips}
+    <div class="ex-ctl">
+      <div class="ex-wk"><button data-act="exnav" data-d="-1" aria-label="Kỳ trước">‹</button><div class="lb">${esc(per.label)}</div><button data-act="exnav" data-d="1" aria-label="Kỳ sau">›</button></div>
+      <div class="ex-seg" role="group" aria-label="Kỳ báo cáo">${[["week","Tuần"],["month","Tháng"],["quarter","Quý"]].map(([k,l])=>`<button data-act="exper" data-k="${k}" aria-pressed="${kind===k}">${l}</button>`).join("")}</div>
+      ${scopeToggleHtml(true)}
+      <button class="btn icon" data-act="exrefresh" title="Làm mới" aria-label="Làm mới">${ICONS.refresh}</button>
+    </div></div>`;
+  h += `<div class="head-ctl" style="margin-bottom:16px">${chips}
       <input class="inp" type="search" placeholder="Tìm dự án" style="width:180px" data-act="pq" value="${esc(S.planQuery)}" aria-label="Tìm dự án">
-      ${S.canEdit?'<button class="btn primary" data-act="newp">+ Dự án mới</button>':""}</div></div>`;
+      ${S.canEdit?'<button class="btn primary" data-act="newp">+ Dự án mới</button>':""}</div>`;
   let body = "";
   for(const t of TYPES){
     const g = pool.filter(p=>p.type===t);

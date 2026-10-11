@@ -195,9 +195,15 @@ function typeDot(t){ return `<span class="tdot" style="background:${TYPE_COLOR[t
 /* "Cá nhân"/"Tổng thể": dùng chung cho Dashboard/Tổng quan dự án/Tải tuần – những trang trước đây nhân
    viên luôn thấy dữ liệu CẢ PHÒNG, không tự thu hẹp về riêng mình được như trưởng phòng/phó phòng/admin
    (đã có ô "Tôi là" ở thanh bên để làm việc này). Chỉ hiện nút này cho nhân viên (!S.canEdit) có gắn
-   nhân sự (staff_name) – không có gì để lọc riêng nếu tài khoản chưa gắn nhân sự. */
-function scopeToggleHtml(){
+   nhân sự (staff_name) – không có gì để lọc riêng nếu tài khoản chưa gắn nhân sự.
+   locked=true (dùng ở Kế hoạch dự án – trang đó tự lọc theo "Tôi là" riêng, luôn cá nhân với nhân viên,
+   không qua effectiveSimAs()): vẫn hiện ô này cho đồng bộ giao diện nhưng khoá cứng ở "Cá nhân", disabled
+   không đổi được, phản ánh đúng thực tế thay vì cho chọn "Tổng thể" mà không có tác dụng gì. */
+function scopeToggleHtml(locked){
   if(S.canEdit || !(S.user && S.user.staff_name)) return "";
+  if(locked) return `<select class="inp" style="width:auto; flex:none" aria-label="Phạm vi xem" disabled title="Kế hoạch dự án luôn lọc theo chính mình">
+    <option selected>Cá nhân</option>
+  </select>`;
   S.scopeMode = S.scopeMode || "all";
   return `<select class="inp" data-act="scopemode" style="width:auto; flex:none" aria-label="Phạm vi xem">
     <option value="all" ${S.scopeMode==="all"?"selected":""}>Tổng thể</option>
