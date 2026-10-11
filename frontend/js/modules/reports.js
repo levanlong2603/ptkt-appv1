@@ -456,13 +456,17 @@ function rpWeekRowsHtml(report){
 }
 function rpWeekHtml(){
   const report = rpBuildWeek();
-  const canExport = report.sheets.some(sh=>sh.rows.length) && !S.rp.busy;
   const view = S.rp.wkView||"input";
+  /* "Nhật ký tuần" chỉ xem trên màn hình (bảng chéo nhân sự × ngày từ S.worklogs) – không có trong
+     report.sheets (rpBuildWeek() không đụng tới worklog, xem worklog.js) nên không xuất Excel/PDF được,
+     ẩn nút Xuất báo cáo khi đang ở chế độ này. */
+  const canExport = view!=="journal" && report.sheets.some(sh=>sh.rows.length) && !S.rp.busy;
   let h = `<section class="panel" style="margin-bottom:14px; overflow:visible"><div class="panel-b" style="display:flex; align-items:center; gap:14px">
     <div style="display:flex; align-items:center; gap:14px; flex:1; min-width:0; overflow-x:auto; padding:2px">
       <div class="seg-in" role="group" aria-label="Nội dung xem" style="flex:none">
         <button type="button" data-act="rpwkview" data-v="input" aria-pressed="${view==="input"}">Việc trong tuần</button>
         <button type="button" data-act="rpwkview" data-v="load" aria-pressed="${view==="load"}">Tải tuần</button>
+        <button type="button" data-act="rpwkview" data-v="journal" aria-pressed="${view==="journal"}">Nhật ký tuần</button>
       </div>
       ${rpWeekToolbarHtml()}
     </div>
@@ -470,15 +474,46 @@ function rpWeekHtml(){
   </div></section>`;
   /* Bỏ panel-h "Xem trước" + dòng data-t/scope rời – đồng bộ với kiểu Báo cáo tổng hợp dự án: tiêu đề lớn
      căn giữa + phụ đề ngay trong cùng 1 khung, rồi vào thẳng bảng, không có nhãn "Xem trước" nào nữa. */
-  const titleLine = view==="load" ? "BÁO CÁO TẢI TUẦN" : "BÁO CÁO TUẦN";
+  const titleLine = view==="load" ? "BÁO CÁO TẢI TUẦN" : view==="journal" ? "NHẬT KÝ TUẦN" : "BÁO CÁO TUẦN";
   h += `<section class="panel" id="rp-print"><div class="panel-b">
     <div style="text-align:center; margin-bottom:18px">
       <div style="font-size:18px; font-weight:800; letter-spacing:.01em">${titleLine} – ${esc((report.period||"").toUpperCase())}</div>
       <div class="small muted" style="margin-top:4px">${esc(report.scope||"")} · lập ngày ${dmy(todayISO())}</div>
     </div>
-    ${view==="load" ? rpWeekLoadHtml(report.sheets[1]) : rpWeekRowsHtml(report)}
+    ${view==="load" ? rpWeekLoadHtml(report.sheets[1]) : view==="journal" ? rpWeekJournalHtml() : rpWeekRowsHtml(report)}
   </div></section>`;
   return h;
+}
+/* Bảng chéo Nhân sự × Ngày trong tuần, gộp nhật ký (worklog.js) của mọi người để trưởng phòng/phó phòng
+   xem nhanh ai làm gì từng ngày – chỉ xem, không xuất file (xem ghi chú ở rpWeekHtml()). Mọi tài khoản đã
+   đăng nhập đều đọc được worklog (quyền ghi mới riêng tư – own-week-self, backend/server.js), nên trang
+   Báo cáo (đã mở công khai cho mọi người) cũng hiện bảng này cho tất cả, không giới hạn S.canEdit. */
+function rpWeekJournalHtml(){
+  const w = S.week, staffSel = S.rp.wkStaff;
+  const byPerson = new Map();
+  for(const doc of (S.worklogs||[])){
+    if(doc.week!==w) continue;
+    if(staffSel!=="__all__" && doc.person!==staffSel) continue;
+    const m = new Map((doc.days||[]).map(d=>[d.date, (d.text||"").trim()]));
+    if([...m.values()].some(Boolean)) byPerson.set(doc.person, m);
+  }
+  const names = [...byPerson.keys()].sort((a,b)=>a.localeCompare(b,"vi"));
+  if(!names.length) return `<div class="empty"><b>Chưa có nhật ký nào</b>Không có ai ghi nhật ký trong tuần ${isoWeek(w)}${staffSel!=="__all__"?` cho ${esc(staffSel)}`:""}.</div>`;
+  const satDate = addDays(w,5), sunDate = addDays(w,6);
+  const showSat = names.some(n=>byPerson.get(n).get(satDate));
+  const showSun = names.some(n=>byPerson.get(n).get(sunDate));
+  const dates = [0,1,2,3,4].map(i=>addDays(w,i));
+  if(showSat) dates.push(satDate);
+  if(showSun) dates.push(sunDate);
+  const colLabel = d => `${WL_DAY_LABEL[parse(d).getDay()]}<div class="small muted" style="font-weight:400">${dm(d)}</div>`;
+  return `<div class="rp-sec rp-sec-grn">
+    <div class="tbl-wrap"><table style="table-layout:fixed"><thead><tr>
+      <th style="width:13%">Nhân sự</th>${dates.map(d=>`<th>${colLabel(d)}</th>`).join("")}
+    </tr></thead>
+    <tbody>${names.map(n => {
+      const m = byPerson.get(n);
+      return `<tr><td class="cell-main" style="vertical-align:top">${esc(n)}</td>${dates.map(d=>`<td class="small" style="white-space:pre-wrap; vertical-align:top">${m.get(d)?esc(m.get(d)):'<span class="muted">–</span>'}</td>`).join("")}</tr>`;
+    }).join("")}</tbody></table></div></div>`;
 }
 function rpProjectHtml(){
   const pr = rpBuildProject();

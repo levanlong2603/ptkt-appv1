@@ -54,10 +54,6 @@ if (JWT_SECRET.length < 32) {
  *                   nhân viên gửi gì cũng bị máy chủ giữ nguyên giá trị cũ (xem route PUT /api/doc/projects/:id)
  *   "own"         : ai cũng tạo mới được (PUT lên id chưa tồn tại); sửa/xoá thì chỉ người tạo
  *                   (created_by, máy chủ ghi) hoặc tài khoản toàn quyền mới được.
- *   "own-week-self": NGOẠI LỆ riêng của "own-week" – CHỈ đúng chủ nhân (so staff_name) mới ghi được dữ
- *                   liệu của chính mình (và chỉ tuần hiện tại trở đi); head/deputy KHÔNG được ghi hộ
- *                   người khác như "own-week" thường (coi như sổ tay riêng tư). Chỉ "admin" (tài khoản hệ
- *                   thống) mới là ngoại lệ toàn quyền ghi được tất cả, bỏ qua mọi kiểm tra ở trên.
  * Mọi tài khoản đã đăng nhập đều ĐỌC được tất cả.
  */
 const FULL_ROLES = new Set(["admin", "head", "deputy"]);
@@ -73,8 +69,10 @@ const RULES = {
   weeks: "own-week",        // weeks/<thứ 2 của tuần>__<tên>  (dữ liệu nhập theo tuần)
   feedback: "own",          // feedback/<id>  (góp ý, yêu cầu cải tiến)
   kpiNote: "admin",         // kpiNote/<kỳ>__<tên nhân sự>  (nhận xét của trưởng phòng ở trang KPI & Năng lực)
-  worklog: "own-week-self", // worklog/<thứ 2 của tuần>__<tên>  (nhật ký làm việc trong tuần, tự do ghi chú –
-                             // riêng tư: chỉ chính người đó ghi được, trừ admin – xem own-week-self ở trên)
+  worklog: "own-week",      // worklog/<thứ 2 của tuần>__<tên>  (nhật ký làm việc trong tuần, tự do ghi chú –
+                             // đúng cơ chế own-week: tài khoản toàn quyền sửa được của mọi người/mọi tuần,
+                             // để bù lại khi ai đó quên ghi lúc làm thêm giờ; nhân viên chỉ sửa tuần hiện
+                             // tại trở đi, của chính mình)
 };
 const COLLECTIONS = new Set(Object.keys(RULES));
 const ID_RE = /^[A-Za-z0-9_\-.~:@+]{1,200}$/;
@@ -196,11 +194,7 @@ function mondayOfToday() {
 /* op: "write" (PUT, gồm cả thêm/sửa/xoá đầu việc bên trong) | "delete" (DELETE, xoá cả dự án) */
 function canWrite(user, coll, id, body, existing, op = "write") {
   const rule = RULES[coll];
-  /* "own-week-self" (worklog): ngoại lệ riêng, kiểm tra TRƯỚC bypass FULL_ROLES ở dưới – chỉ "admin" bỏ
-     qua hết, head/deputy KHÔNG được bypass như own-week thường (coi như sổ tay riêng tư của từng người),
-     rơi thẳng xuống đúng logic chủ sở hữu+khoá tuần cũ dùng chung với "own-week" ở cuối hàm. */
-  if (rule === "own-week-self" && user.role === "admin") return true;
-  if (rule !== "own-week-self" && FULL_ROLES.has(user.role)) return true;
+  if (FULL_ROLES.has(user.role)) return true;
   if (rule === "member") return true;
   if (rule === "own-project") {
     if (!existing) return false; // dự án mới chỉ trưởng phòng tạo được
@@ -213,13 +207,13 @@ function canWrite(user, coll, id, body, existing, op = "write") {
     if (!existing) return true; // ai cũng tạo mới được
     return existing.created_by === user.username;
   }
-  if ((rule !== "own-week" && rule !== "own-week-self") || !user.staff_name) return false;
+  if (rule !== "own-week" || !user.staff_name) return false;
   const check = b => b && b.person === user.staff_name && id === `${b.week}__${slug(b.person)}`;
   if (existing && !check(existing)) return false;
   if (body && !check(body)) return false;
   /* Chỉ sửa được dữ liệu tuần hiện tại (theo lịch máy chủ); tuần cũ đã khoá, chỉ tài khoản toàn quyền
-     ("own-week") hoặc admin ("own-week-self", đã return true ở trên) mới can thiệp được, để tránh chỉnh
-     sửa tuần cũ làm lệch tỉ lệ hoàn thành đã "chốt". */
+     (FULL_ROLES, đã return true ở trên) mới can thiệp được, để tránh chỉnh sửa tuần cũ làm lệch tỉ lệ
+     hoàn thành đã "chốt". */
   const week = (body && body.week) || (existing && existing.week);
   if (week && week < mondayOfToday()) return false;
   return true;

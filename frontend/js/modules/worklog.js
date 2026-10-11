@@ -17,17 +17,13 @@ function worklogDoc(week, person){ return (S.worklogs||[]).find(w=>w.week===week
 function saveWorklogDays(week, person, days){ return write("worklog/"+worklogDocId(week,person), {week, person, days}); }
 const WL_DAY_LABEL = ["Chủ nhật","Thứ 2","Thứ 3","Thứ 4","Thứ 5","Thứ 6","Thứ 7"];
 /* Trả về đoạn HTML bảng theo ngày (không phải cả trang) – weekly-input.js chèn thẳng vào dưới khối tóm
-   tắt khi S.wkMode==="journal". Khác hẳn "locked" của dữ liệu tuần thường (own-week): nhật ký riêng tư
-   (own-week-self, backend/server.js) – CHỈ chính chủ (S.user.staff_name === người đang xem) mới sửa
-   được, và chỉ tuần hiện tại trở đi; admin (tài khoản hệ thống) là ngoại lệ duy nhất sửa được tất cả, kể
-   cả tuần cũ/của người khác. Trưởng phòng/phó phòng xem "Tôi là" người khác thì bị khoá y như xem hộ. */
+   tắt khi S.wkMode==="journal". Đúng cơ chế own-week (giống dữ liệu tuần thường, backend/server.js):
+   trưởng phòng/phó phòng/admin (S.canEdit) sửa được của mọi người, mọi tuần – để bù lại khi ai đó quên
+   ghi lúc làm thêm giờ; nhân viên chỉ sửa tuần hiện tại trở đi, của chính mình. */
 function worklogPanelHtml(){
   const w = S.week, person = S.me;
-  const isAdmin = !!(S.user && S.user.role==="admin");
-  const isOwner = !!(S.user && S.user.staff_name===person);
-  const locked = !isAdmin && (!isOwner || w < mondayOf(todayISO()));
-  const lockMsg = !isOwner && !isAdmin ? "Nhật ký riêng tư – chỉ chính chủ mới ghi được."
-    : `Tuần ${isoWeek(w)} đã qua, không ghi thêm được nữa.`;
+  const locked = !S.canEdit && w < mondayOf(todayISO());
+  const lockMsg = `Tuần ${isoWeek(w)} đã qua, chỉ trưởng phòng/phó phòng mới ghi thêm được.`;
   const doc = worklogDoc(w, person);
   const saved = new Map((doc && doc.days || []).map(d=>[d.date, d.text||""]));
   /* Thứ 7/Chủ nhật chỉ hiện nếu đã có trong dữ liệu đã lưu, HOẶC phiên này vừa bấm "+ Thêm..." cho ĐÚNG
