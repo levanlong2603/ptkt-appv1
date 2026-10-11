@@ -1,6 +1,41 @@
 "use strict";
 /* Màn hình: executive dashboard */
 /* ================= VIEW: executive dashboard ================= */
+/* Mảng "Cần ưu tiên xử lý" của lần render gần nhất – xem chỗ gán trong viewExec() và ACTIONS["exinfo"]. */
+let EX_ACT = [];
+/* "Xem chi tiết" ở "CẦN ƯU TIÊN XỬ LÝ": chỉ mở popup xem thông tin (readOnly), không điều hướng sang
+   trang khác – đầu việc dùng lại đúng khung openInfo() đã có (giống dashtask ở Tổng quan dự án); nhân
+   sự quá tải/dự án rủi ro cao thì dựng popup nhẹ ngay từ dữ liệu đã hiện sẵn trên dòng đó (a.title/desc),
+   không cần tính lại. */
+ACTIONS["exinfo"] = t => {
+  const a = EX_ACT[+t.dataset.i]; if(!a) return;
+  const g = a.go || "";
+  /* Nút "Đi đến xử lý" trong popup: điều hướng đúng như data-act="exgo" cũ (trước khi đổi "Xem chi tiết"
+     sang mở popup xem thuần) – chỉ khác là giờ phải bấm thêm 1 bước mới đi, không tự động chuyển trang
+     ngay khi bấm "Xem chi tiết" nữa. */
+  if(g.startsWith("task:")){
+    const [pid, tid] = g.slice(5).split("|"); const p = M.pById.get(pid); const tk = p && p._tasks.find(x=>x.id===tid);
+    if(p && tk){
+      openInfo(p, tk, {label:"Đi đến xử lý", onClick:()=>{
+        S.view="plan"; S.planSel=pid; S.typeFilter="Tất cả"; store("view",S.view); render();
+        const p2=M.pById.get(pid); const tk2=p2&&p2._tasks.find(x=>x.id===tid); if(p2&&tk2) taskForm(p2, tk2);
+      }});
+      return;
+    }
+  }
+  if(g.startsWith("p:")){
+    const pid = g.slice(2); const p = M.pById.get(pid);
+    openForm({title:"Dự án", subtitle:a.project, values:{}, fields:[], readOnly:true,
+      extraBtn:{label:"Đi đến xử lý", onClick:()=>{ S.view="plan"; S.planSel=pid; S.typeFilter="Tất cả"; store("view",S.view); render(); }},
+      info:`<h3 style="margin-bottom:12px">${esc(a.title)}</h3><div class="kv"><dt>Dự án</dt><dd>${esc(a.project)}</dd><dt>Người phụ trách</dt><dd>${esc(a.person)}</dd>
+      <dt>Tình trạng</dt><dd>${esc(a.desc)}</dd>${p?`<dt>Tiến độ</dt><dd>${pct(p._prog)}</dd>`:""}</div>`});
+    return;
+  }
+  // còn lại: "load:" (nhân sự quá tải)
+  openForm({title:"Nhân sự", subtitle:a.person, values:{}, fields:[], readOnly:true,
+    extraBtn:{label:"Đi đến xử lý", onClick:()=>{ S.me=a.person; store("me",S.me); S.view="load"; store("view",S.view); render(); }},
+    info:`<h3 style="margin-bottom:12px">${esc(a.title)}</h3><div class="kv"><dt>Nhân sự</dt><dd>${esc(a.person)}</dd><dt>Mức sử dụng</dt><dd>${esc(a.desc)}</dd></div>`});
+};
 function periodInfo(anchor, kind){
   const d = parse(anchor);
   if(kind==="week") return {weeks:[anchor], label:`Tuần ${isoWeek(anchor)} · ${dm(anchor)} – ${dmy(addDays(anchor,6))}`, short:"tuần"};
@@ -129,9 +164,13 @@ function viewExec(){
   for(const p of people.filter(p=>p.n && p.u>1)) act.push({level:["tg-org","Trung bình"], title:`Quá tải ${pct(p.u)}`, desc:`Capacity ${fmt1(p.c)} điểm · Workload ${fmt1(p.w)} điểm`, person:p.s.name, project:"–", btn:"Điều phối công việc", go:"load:"+encodeURIComponent(p.s.name)});
   for(const p of runP.filter(p=>risk(p)[2]===3 && !actPid.has(p.id))){ const note = p._late?`${p._late} đầu việc quá hạn`:p._stuck?`${p._stuck} đầu việc đang vướng`:"Rủi ro cao, cần theo dõi sát";
     act.push({level:["tg-org","Trung bình"], title:"Dự án rủi ro cao", desc:note, person:p.owner||"–", project:p.name, btn:"Xem dự án", go:"p:"+p.id}); }
+  /* "Xem chi tiết" chỉ MỞ POPUP xem thông tin (readOnly), không điều hướng sang trang khác nữa – người
+     dùng chỉ cần nắm thông tin ngay tại Dashboard, không mất công bấm quay lại. Lưu lại mảng act[] vào
+     EX_ACT để ACTIONS["exinfo"] (bên dưới) đọc lại đúng dòng đã bấm theo chỉ số i, khỏi phải tính lại. */
+  EX_ACT = act;
   h += `<div class="ex-row ex-r4">
     <div class="ex-card ex-act"><div class="ex-h"><h3>CẦN ƯU TIÊN XỬ LÝ</h3><span class="muted small">${act.length} việc</span></div>
-      <div class="ex-scroll" style="max-height:340px">${act.map((a,i)=>`<div class="ex-ai ex-ai2"><div class="ex-ai-n">${i+1}</div><div class="ex-ai-b"><div class="ex-ai-top"><span class="ex-tag ${a.level[0]}">${a.level[1]}</span><b>${esc(a.title)}</b></div><div class="muted small">${a.desc}</div><div class="ex-ai-meta"><span>Người phụ trách: <b>${esc(a.person)}</b></span><span>Dự án: <b>${esc(a.project)}</b></span></div></div><button class="lnk" data-act="exgo" data-go="${esc(a.go)}">Xem chi tiết ›</button></div>`).join("")||`<div class="ex-empty">Không có việc cần can thiệp ngay.</div>`}</div></div>
+      <div class="ex-scroll" style="max-height:340px">${act.map((a,i)=>`<div class="ex-ai ex-ai2"><div class="ex-ai-n">${i+1}</div><div class="ex-ai-b"><div class="ex-ai-top"><span class="ex-tag ${a.level[0]}">${a.level[1]}</span><b>${esc(a.title)}</b></div><div class="muted small">${a.desc}</div><div class="ex-ai-meta"><span>Người phụ trách: <b>${esc(a.person)}</b></span><span>Dự án: <b>${esc(a.project)}</b></span></div></div><button class="lnk" data-act="exinfo" data-i="${i}">Xem chi tiết ›</button></div>`).join("")||`<div class="ex-empty">Không có việc cần can thiệp ngay.</div>`}</div></div>
     <div class="ex-card"><div class="ex-h"><h3>LỊCH HẠN SẮP TỚI</h3><span class="muted small">${soonList.length} việc</span></div>
       <div class="ex-scroll" style="max-height:340px">${soonList.map(t=>{ const d=new Date(t.deadline+"T00:00:00"); const dd=String(d.getDate()).padStart(2,"0"); const r = days(M.today,t.deadline)<=3;
         return `<div class="ex-dl"><div class="ex-dl-d"><div class="n">${dd}</div><div class="m">Th${d.getMonth()+1}</div></div><div class="ex-dl-b"><div class="w">${esc(t.dv.replace(/^[0-9A-Z]{1,2}\d?\.\s*[^–]*–\s*/,""))}</div><div class="muted small">${esc(t.p.name)} · ${esc(t.owner||"–")}</div></div><div class="ex-dl-r${r?" soon":""}">${exRelDay(t.deadline)}</div></div>`; }).join("")||`<div class="ex-empty">Không có đầu việc nào đến hạn trong 14 ngày tới.</div>`}</div></div></div>`;

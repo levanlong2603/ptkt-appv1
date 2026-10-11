@@ -233,7 +233,7 @@ function openForm(cfg){
   layer.innerHTML = `<div class="scrim" data-close></div><div class="drawer" role="dialog" aria-modal="true" aria-labelledby="dlgT">
     <div class="drawer-h"><div><h2 id="dlgT">${esc(cfg.title)}</h2>${cfg.subtitle?`<div class="small muted" style="margin-top:3px">${esc(cfg.subtitle)}</div>`:""}</div><button class="btn ghost icon" data-close aria-label="Đóng">✕</button></div>
     <div class="drawer-b" id="dlgB">${body()}</div>
-    <div class="drawer-f"><div>${cfg.onDelete?'<button class="btn danger" data-del>Xoá</button>':""}</div><div class="toolbar"><button class="btn" data-close>${cfg.readOnly?"Đóng":"Huỷ"}</button>${cfg.readOnly?"":`<button class="btn primary" data-save>${esc(cfg.saveLabel||"Lưu")}</button>`}</div></div></div>`;
+    <div class="drawer-f"><div>${cfg.onDelete?'<button class="btn danger" data-del>Xoá</button>':""}</div><div class="toolbar">${cfg.extraBtn?`<button class="btn" data-extra>${esc(cfg.extraBtn.label)}</button>`:""}<button class="btn" data-close>${cfg.readOnly?"Đóng":"Huỷ"}</button>${cfg.readOnly?"":`<button class="btn primary" data-save>${esc(cfg.saveLabel||"Lưu")}</button>`}</div></div></div>`;
   const dlg = layer.querySelector(".drawer");
   const api = { setOptions(key, opts){ optsOverride[key]=opts; vals[key]=""; const f = cfg.fields.find(x=>x.key===key); const wrap = dlg.querySelector(`[data-field="${key}"]`); if(f && wrap){ const tmp=document.createElement("div"); tmp.innerHTML=fieldHTML(f); wrap.replaceWith(tmp.firstElementChild); } } };
   const readInputs = () => { for(const f of cfg.fields){ if(!f.key) continue; const el = dlg.querySelector("#f_"+f.key); if(!el) continue; if(f.type==="check") vals[f.key]=el.checked; else if(f.type==="number") vals[f.key]=el.value===""?null:+el.value; else if(f.type!=="seg") vals[f.key]=el.value||(f.type==="date"?null:""); } };
@@ -251,6 +251,7 @@ function openForm(cfg){
       return;
     }
     if(e.target.closest("[data-del]")){ try{ const r = await cfg.onDelete(); if(r!==false) close(); }catch(err){} return; }
+    if(e.target.closest("[data-extra]")){ close(); cfg.extraBtn.onClick(); return; }
   });
   dlg.addEventListener("change", e => {
     const el = e.target; if(!el.id || !el.id.startsWith("f_")) return;

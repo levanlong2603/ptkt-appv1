@@ -217,9 +217,12 @@ function taskForm(p, t){
   });
 }
 function nextTaskId(p){ let n=(p.tasks||[]).length+1; const ids=new Set((p.tasks||[]).map(t=>t.id)); while(ids.has("t"+String(n).padStart(3,"0"))) n++; return "t"+String(n).padStart(3,"0"); }
-function openInfo(p, t){
+/* extraBtn tuỳ chọn (vd {label, onClick}) – thêm nút đi tới nơi xử lý bên cạnh "Đóng", dùng cho chỗ gọi
+   cần điều hướng tiếp (xem ACTIONS["exinfo"] ở exec-dashboard.js). Gọi không kèm tham số (Tổng quan dự án,
+   data-act="dashtask") thì vẫn chỉ xem thuần, không có nút thêm – đúng ý "Tổng quan dự án chỉ để xem". */
+function openInfo(p, t, extraBtn){
   const c = S.catalog.find(x=>x.name===t.dv)||{};
-  openForm({title:"Đầu việc", subtitle:p.name, values:{}, fields:[], readOnly:true,
+  openForm({title:"Đầu việc", subtitle:p.name, values:{}, fields:[], readOnly:true, extraBtn,
     info:`<h3 style="margin-bottom:12px">${esc(t.dv)}</h3><div class="kv"><dt>Nội dung</dt><dd>${esc(t.detail||"–")}</dd><dt>Phụ trách</dt><dd>${esc(t.owner||"–")}</dd>
     <dt>Deadline HĐ</dt><dd>${dmy(t.deadline)}</dd><dt>Trạng thái</dt><dd>${stPill(t.status)}</dd><dt>Cập nhật</dt><dd>${esc(t.upd||"–")}</dd><dt>Ngày cập nhật</dt><dd>${esc(t.updDate||"–")}</dd>
     <dt>Kết quả đầu ra</dt><dd>${esc(c.result||"–")}</dd><dt>Workload</dt><dd>${t.wl??"–"}</dd>
