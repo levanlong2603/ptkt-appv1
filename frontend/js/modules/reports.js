@@ -335,17 +335,20 @@ function rpProjOptions(withAll, selected, ptype){
   const list = ptype ? M.projects.filter(p=>planMatchFilter(p, ptype)) : M.projects;
   return ph + list.map(p => `<option value="${esc(p.id)}" ${p.id===selected?"selected":""}>${esc(p.name)}</option>`).join("");
 }
-function rpWeekToolbarHtml(){
-  /* Giữ đúng 3 trường, cùng kiểu thanh công cụ trần (không nhãn) như 2 tab Báo cáo dự án/Báo cáo tổng
-     hợp dự án – ô Tuần trước, rồi 2 ô chọn lọc. */
-  return `
-    <div class="rp-weekbox" role="group" aria-label="Chọn tuần" style="flex:none">
+/* Ô tuần kiểu Dashboard (.ex-wk) – đặt lên NGANG HÀNG tiêu đề "Báo cáo" (xem viewReports()). Báo cáo tuần
+   CHỈ chỉnh được theo tuần (không có Tháng/Quý như 2 tab Báo cáo dự án/Báo cáo tổng hợp dự án – đúng tên
+   gọi "Báo cáo tuần"), nên không có .ex-seg kỳ đi kèm như 2 tab kia. */
+function rpWeekTitleNav(){
+  return `<div class="ex-wk" style="flex:none">
       <button type="button" data-act="wk" data-d="-7" aria-label="Tuần trước">‹</button>
-      <span class="rp-weekbox-lbl">Tuần ${isoWeek(S.week)} · ${dm(S.week)} – ${dmy(addDays(S.week,6))}</span>
+      <div class="lb">Tuần ${isoWeek(S.week)} · ${dm(S.week)} – ${dmy(addDays(S.week,6))}</div>
       <button type="button" data-act="wk" data-d="7" aria-label="Tuần sau">›</button>
-      <span class="rp-weekbox-ico">${ICONS.calendar}</span>
-    </div>
-    <select class="inp" data-act="rpwktype" style="flex:none; width:auto; min-width:160px"><option value="" ${!S.rp.wkType?"selected":""}>— Tất cả loại —</option>${TYPES.map(t=>`<option ${t===S.rp.wkType?"selected":""}>${esc(t)}</option>`).join("")}</select>
+    </div>`;
+}
+/* 2 ô lọc (Loại dự án/Nhân sự) – vẫn ở thanh công cụ riêng bên dưới hàng tiêu đề như trước, không chuyển
+   lên cùng ô tuần. */
+function rpWeekFilterHtml(){
+  return `<select class="inp" data-act="rpwktype" style="flex:none; width:auto; min-width:160px"><option value="" ${!S.rp.wkType?"selected":""}>— Tất cả loại —</option>${TYPES.map(t=>`<option ${t===S.rp.wkType?"selected":""}>${esc(t)}</option>`).join("")}</select>
     <select class="inp" data-act="rpstaff" style="flex:none; width:auto; min-width:180px"><option value="__all__" ${S.rp.wkStaff==="__all__"?"selected":""}>— Tất cả nhân sự —</option>${M.staff.map(s=>`<option ${s.name===S.rp.wkStaff?"selected":""}>${esc(s.name)}</option>`).join("")}</select>`;
 }
 function rpPreviewHtml(report){
@@ -367,18 +370,21 @@ function rpExportBtnHtml(canExport){
       <button class="tb-item" type="button" data-act="rppdf"><b>Xuất PDF (.pdf)</b></button>
     </div>` : ""}</div>`;
 }
-function rpOverviewHtml(){
-  const ov = rpBuildOverview();
+/* Tách toolbar (đặt lên ngang hàng tiêu đề "Báo cáo", giống Dashboard) khỏi nội dung bảng – viewReports()
+   gọi cả 2 hàm với CÙNG 1 "ov" đã build sẵn, khỏi tính lại 2 lần. */
+/* Đầy đủ như Dashboard (ô kỳ + Tuần/Tháng/Quý + Tổng thể/Cá nhân + làm mới), cả 3 mức đều chọn được
+   (khác Báo cáo tuần bị khoá ở Tuần) – ô "Loại dự án" + nút Xuất báo cáo vẫn ở đúng vị trí cũ (thanh công
+   cụ riêng, đầu rpOverviewContent()). */
+function rpOverviewToolbar(ov){
+  return `<div class="ex-wk" style="flex:none"><button type="button" data-act="rpovnav" data-d="-1" aria-label="Kỳ trước">‹</button><div class="lb">${esc(ov.P.label)}</div><button type="button" data-act="rpovnav" data-d="1" aria-label="Kỳ sau">›</button></div>
+    <div class="ex-seg" role="group" aria-label="Kỳ báo cáo" style="flex:none">${[["week","Tuần"],["month","Tháng"],["quarter","Quý"]].map(([k,l])=>`<button type="button" data-act="rpovkind" data-k="${k}" aria-pressed="${ov.kind===k}">${l}</button>`).join("")}</div>
+    ${scopeToggleHtml()}
+    <button class="btn icon" data-act="exrefresh" title="Làm mới" aria-label="Làm mới">${ICONS.refresh}</button>`;
+}
+function rpOverviewContent(ov){
   const canExport = !S.rp.busy && ov.projRows.length;
   let h = `<section class="panel" style="margin-bottom:14px; overflow:visible"><div class="panel-b" style="display:flex; align-items:center; gap:14px">
     <div style="display:flex; align-items:center; gap:14px; flex:1; min-width:0; overflow-x:auto; padding:2px">
-      <div class="seg-in" role="group" aria-label="Kỳ báo cáo" style="flex:none">${[["week","Theo tuần"],["month","Theo tháng"]].map(([k,l])=>`<button type="button" data-act="rpovkind" data-k="${k}" aria-pressed="${ov.kind===k}">${l}</button>`).join("")}</div>
-      <div class="rp-weekbox" role="group" aria-label="${ov.kind==="week"?"Chọn tuần":"Chọn tháng"}" style="flex:none">
-        <button type="button" data-act="rpovnav" data-d="-1" aria-label="Kỳ trước">‹</button>
-        <span class="rp-weekbox-lbl">${esc(ov.P.label)}</span>
-        <button type="button" data-act="rpovnav" data-d="1" aria-label="Kỳ sau">›</button>
-        <span class="rp-weekbox-ico">${ICONS.calendar}</span>
-      </div>
       <select class="inp" data-act="rpovptype" style="flex:none; width:auto; min-width:150px">${PLAN_FILTERS.map(pf=>`<option value="${esc(pf.key)}" ${pf.key===ov.ptype?"selected":""}>${esc(pf.label)}</option>`).join("")}</select>
     </div>
     <div style="flex:none">${rpExportBtnHtml(canExport)}</div>
@@ -454,8 +460,20 @@ function rpWeekRowsHtml(report){
         <td class="small" style="white-space:pre-wrap; vertical-align:top">${r.solution?esc(r.solution):'<span class="muted">–</span>'}</td></tr>`;
     }).join("")}</tbody></table></div></div>`;
 }
-function rpWeekHtml(){
-  const report = rpBuildWeek();
+/* Đầy đủ các nút như Dashboard (ô tuần + Tuần/Tháng/Quý + Tổng thể/Cá nhân + làm mới) – RIÊNG seg kỳ bị
+   khoá chỉ ở "Tuần" (Tháng/Quý disabled, không bấm được) vì Báo cáo tuần chỉ chỉnh được theo tuần. Seg
+   xem/lọc/nút Xuất báo cáo vẫn ở đúng vị trí cũ (thanh công cụ riêng, đầu rpWeekContent()). */
+function rpWeekToolbar(report){
+  return `${rpWeekTitleNav()}
+    <div class="ex-seg" role="group" aria-label="Kỳ báo cáo">
+      <button type="button" aria-pressed="true">Tuần</button>
+      <button type="button" disabled title="Báo cáo tuần chỉ chỉnh được theo tuần">Tháng</button>
+      <button type="button" disabled title="Báo cáo tuần chỉ chỉnh được theo tuần">Quý</button>
+    </div>
+    ${scopeToggleHtml()}
+    <button class="btn icon" data-act="exrefresh" title="Làm mới" aria-label="Làm mới">${ICONS.refresh}</button>`;
+}
+function rpWeekContent(report){
   const view = S.rp.wkView||"input";
   /* "Nhật ký tuần" chỉ xem trên màn hình (bảng chéo nhân sự × ngày từ S.worklogs) – không có trong
      report.sheets (rpBuildWeek() không đụng tới worklog, xem worklog.js) nên không xuất Excel/PDF được,
@@ -468,7 +486,7 @@ function rpWeekHtml(){
         <button type="button" data-act="rpwkview" data-v="load" aria-pressed="${view==="load"}">Tải tuần</button>
         <button type="button" data-act="rpwkview" data-v="journal" aria-pressed="${view==="journal"}">Nhật ký tuần</button>
       </div>
-      ${rpWeekToolbarHtml()}
+      ${rpWeekFilterHtml()}
     </div>
     <div style="flex:none">${rpExportBtnHtml(canExport)}</div>
   </div></section>`;
@@ -515,28 +533,26 @@ function rpWeekJournalHtml(){
       return `<tr><td class="cell-main" style="vertical-align:top">${esc(n)}</td>${dates.map(d=>`<td class="small" style="white-space:pre-wrap; vertical-align:top">${m.get(d)?esc(m.get(d)):'<span class="muted">–</span>'}</td>`).join("")}</tr>`;
     }).join("")}</tbody></table></div></div>`;
 }
-function rpProjectHtml(){
-  const pr = rpBuildProject();
+/* Đầy đủ như Dashboard (ô kỳ + Tuần/Tháng/Quý + Tổng thể/Cá nhân + làm mới), cả 3 mức đều chọn được
+   (khác Báo cáo tuần bị khoá ở Tuần) – ô "Loại dự án"/"Dự án" + nút Xuất báo cáo vẫn ở đúng vị trí cũ
+   (thanh công cụ riêng, đầu rpProjectContent()), kể cả khi pr.empty (chưa chọn dự án) – vẫn cần hiện để
+   người dùng chọn dự án. */
+function rpProjectToolbar(pr){
+  return `<div class="ex-wk" style="flex:none"><button type="button" data-act="rppjnav" data-d="-1" aria-label="Kỳ trước">‹</button><div class="lb">${esc(pr.P.label)}</div><button type="button" data-act="rppjnav" data-d="1" aria-label="Kỳ sau">›</button></div>
+    <div class="ex-seg" role="group" aria-label="Kỳ báo cáo" style="flex:none">${[["week","Tuần"],["month","Tháng"],["quarter","Quý"]].map(([k,l])=>`<button type="button" data-act="rppjkind" data-k="${k}" aria-pressed="${pr.kind===k}">${l}</button>`).join("")}</div>
+    ${scopeToggleHtml()}
+    <button class="btn icon" data-act="exrefresh" title="Làm mới" aria-label="Làm mới">${ICONS.refresh}</button>`;
+}
+function rpProjectContent(pr){
   const canExport = !pr.empty && pr.rows.length && !S.rp.busy;
   let h = `<section class="panel" style="margin-bottom:14px; overflow:visible"><div class="panel-b" style="display:flex; align-items:center; gap:14px">
     <div style="display:flex; align-items:center; gap:14px; flex:1; min-width:0; overflow-x:auto; padding:2px">
-      <div class="seg-in" role="group" aria-label="Kỳ báo cáo" style="flex:none">${[["week","Theo tuần"],["month","Theo tháng"]].map(([k,l])=>`<button type="button" data-act="rppjkind" data-k="${k}" aria-pressed="${pr.kind===k}">${l}</button>`).join("")}</div>
-      <div class="rp-weekbox" role="group" aria-label="${pr.kind==="week"?"Chọn tuần":"Chọn tháng"}" style="flex:none">
-        <button type="button" data-act="rppjnav" data-d="-1" aria-label="Kỳ trước">‹</button>
-        <span class="rp-weekbox-lbl">${esc(pr.P.label)}</span>
-        <button type="button" data-act="rppjnav" data-d="1" aria-label="Kỳ sau">›</button>
-        <span class="rp-weekbox-ico">${ICONS.calendar}</span>
-      </div>
       <select class="inp" data-act="rppjptype" style="flex:none; width:auto; min-width:150px">${PLAN_FILTERS.map(pf=>`<option value="${esc(pf.key)}" ${pf.key===S.rp.pjPtype?"selected":""}>${esc(pf.label)}</option>`).join("")}</select>
       <select class="inp" data-act="rppjproj" style="flex:none; width:auto; min-width:220px">${rpProjOptions(false, S.rp.pjProject, S.rp.pjPtype)}</select>
     </div>
     <div style="flex:none">${rpExportBtnHtml(canExport)}</div>
   </div></section>`;
-  if(pr.empty){
-    h += `<section class="panel"><div class="panel-b"><div class="empty"><b>Chưa chọn dự án</b>Chọn một dự án ở trên để xem báo cáo.</div></div></section>`;
-    return h;
-  }
-  const riskTone = pr.risk==="Cao" ? "bad" : pr.risk==="Trung bình" ? "warn" : "ok";
+  if(pr.empty) return h + `<section class="panel"><div class="panel-b"><div class="empty"><b>Chưa chọn dự án</b>Chọn một dự án ở trên để xem báo cáo.</div></div></section>`;
   h += `<section class="panel" id="rp-print"><div class="panel-b">
     <div style="text-align:center; margin-bottom:18px">
       <div style="font-size:18px; font-weight:800; letter-spacing:.01em">BÁO CÁO DỰ ÁN – ${esc(pr.p.name.toUpperCase())} – ${esc(pr.P.label.toUpperCase())}</div>
@@ -566,17 +582,21 @@ function rpProjectHtml(){
   </div></section>`;
   return h;
 }
+/* Ô tuần/kỳ của tab đang chọn lên NGANG HÀNG tiêu đề "Báo cáo" (giống Dashboard) – các nút lọc/xuất còn
+   lại vẫn ở đúng vị trí cũ (thanh công cụ riêng bên dưới hàng tab), không chuyển lên theo. */
 function viewReports(){
   rpInit();
-  let h = `<div class="head"><div><h1>Báo cáo</h1></div></div>`;
+  let toolbar, content;
+  if(S.rp.tab==="project"){ const pr = rpBuildProject(); toolbar = rpProjectToolbar(pr); content = rpProjectContent(pr); }
+  else if(S.rp.tab==="overview"){ const ov = rpBuildOverview(); toolbar = rpOverviewToolbar(ov); content = rpOverviewContent(ov); }
+  else { const report = rpBuildWeek(); toolbar = rpWeekToolbar(report); content = rpWeekContent(report); }
+  let h = `<div class="head"><div><h1>Báo cáo</h1></div><div class="head-ctl">${toolbar}</div></div>`;
   h += `<div class="rp-tabs" role="tablist">
     <button type="button" role="tab" data-act="rptab" data-tab="week" aria-selected="${S.rp.tab==="week"}">Báo cáo tuần</button>
     <button type="button" role="tab" data-act="rptab" data-tab="project" aria-selected="${S.rp.tab==="project"}">Báo cáo dự án</button>
     <button type="button" role="tab" data-act="rptab" data-tab="overview" aria-selected="${S.rp.tab==="overview"}">Báo cáo tổng hợp dự án</button>
   </div>`;
-  if(S.rp.tab==="project") h += rpProjectHtml();
-  else if(S.rp.tab==="overview") h += rpOverviewHtml();
-  else h += rpWeekHtml();
+  h += content;
   return h;
 }
 ACTIONS["rptab"] = el => { S.rp.tab = el.dataset.tab; S.rp.exportOpen = false; render(); };

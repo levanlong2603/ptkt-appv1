@@ -2,9 +2,10 @@
 /* Màn hình: dashboard */
 /* ================= VIEW: dashboard ================= */
 function viewDash(){
-  /* Trưởng phòng chọn một người cụ thể ở "Tôi là" (không phải "Tất cả") → chỉ thấy dự án người đó là TM/SE,
-     như đang xem thay họ. Tài khoản nhân viên tự đăng nhập thì không bị thu hẹp, vẫn thấy cả phòng. */
-  const simAs = (S.canEdit && S.me && S.me!=="__all__") ? S.me : null;
+  /* Trưởng phòng/phó phòng/admin chọn một người cụ thể ở "Tôi là" (không phải "Tất cả") → chỉ thấy dự án
+     người đó là TM/SE, như đang xem thay họ. Nhân viên tự đăng nhập: mặc định vẫn thấy cả phòng, nhưng có
+     thể tự bật "Cá nhân" (nút scopeToggleHtml() cạnh tiêu đề) để thu hẹp về đúng dự án của mình. */
+  const simAs = effectiveSimAs();
   const P = M.projects.filter(p => p.type!=="Nội bộ" && (!simAs || projectAssigned(p, simAs)));
   const allT = M.tasks.filter(t=>t.p.type!=="Nội bộ" && (!simAs || projectAssigned(t.p, simAs)));
   const late = allT.filter(t=>t.warns.some(w=>w[1]==="Quá hạn"));
@@ -12,11 +13,21 @@ function viewDash(){
   const stuck = allT.filter(t=>OPEN.has(t.status) && (t.status==="Đang vướng"||(t.ms||0)>=1));
   const running = t => P.filter(p=>p.type===t && (p._prog==null || p._prog<1)).length;
   const q = (S.dashQuery||"").toLowerCase();
+  /* Thanh điều khiển giống hệt Dashboard (ô kỳ + Tuần/Tháng/Quý + Tổng thể/Cá nhân + làm mới) – trang này
+     chưa dùng kỳ để lọc gì, chỉ thêm sẵn cho đồng bộ giao diện, dùng chung S.week/S.period/periodInfo()/
+     exnav/exper (exec-dashboard.js, events.js) với Dashboard nên đổi kỳ ở trang nào cũng khớp trang kia. */
+  const kind = S.period || "week", per = periodInfo(S.week, kind);
   let h = `<div class="head"><div><h1>Tổng quan dự án</h1></div>
-    <div class="head-ctl">
+    <div class="ex-ctl">
+      <div class="ex-wk"><button data-act="exnav" data-d="-1" aria-label="Kỳ trước">‹</button><div class="lb">${esc(per.label)}</div><button data-act="exnav" data-d="1" aria-label="Kỳ sau">›</button></div>
+      <div class="ex-seg" role="group" aria-label="Kỳ báo cáo">${[["week","Tuần"],["month","Tháng"],["quarter","Quý"]].map(([k,l])=>`<button data-act="exper" data-k="${k}" aria-pressed="${kind===k}">${l}</button>`).join("")}</div>
+      ${scopeToggleHtml()}
+      <button class="btn icon" data-act="exrefresh" title="Làm mới" aria-label="Làm mới">${ICONS.refresh}</button>
+    </div></div>`;
+  h += `<div class="head-ctl" style="margin-bottom:16px">
       <div class="chips" role="group" aria-label="Lọc theo loại">${PLAN_FILTERS.map(f=>`<button class="chip-btn" data-act="tf" data-t="${esc(f.key)}" aria-pressed="${S.typeFilter===f.key}">${esc(f.label)}</button>`).join("")}</div>
       <input class="inp" type="search" placeholder="Tìm dự án" style="width:180px" data-act="dashq" value="${esc(S.dashQuery||"")}" aria-label="Tìm dự án">
-    </div></div>`;
+    </div>`;
   h += `<div class="band">
     <div class="stat"><div class="v">${running("Triển khai")}</div><div class="l">${typeDot("Triển khai")}Dự án triển khai đang chạy</div></div>
     <div class="stat"><div class="v">${running("Thầu")}</div><div class="l">${typeDot("Thầu")}Gói thầu đang làm</div></div>

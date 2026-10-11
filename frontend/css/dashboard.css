@@ -8,6 +8,7 @@
 .ex-seg{display:flex; background:var(--surface); border:1px solid var(--line); border-radius:9px; padding:3px}
 .ex-seg button{all:unset; cursor:pointer; padding:5px 16px; border-radius:6px; font-size:13.5px; color:var(--ink)}
 .ex-seg button[aria-pressed="true"]{background:var(--teal-hover); color:#fff; font-weight:600}
+.ex-seg button:disabled{color:var(--ink-3); opacity:.5; cursor:not-allowed}
 .ex-ctl button:focus-visible{outline:2px solid var(--focus)}
 .ex-kpis{display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:12px; margin-bottom:12px}
 .ex-card{background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:14px 16px; min-width:0}

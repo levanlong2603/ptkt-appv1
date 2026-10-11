@@ -74,10 +74,11 @@ function viewExec(){
   const P = periodInfo(S.week, kind);
   const nW = Math.max(1, P.weeks.length);
   const inP = new Set(P.weeks);
-  /* Trưởng phòng chọn một người cụ thể ở "Tôi là" (không phải "Tất cả") → Dashboard chỉ tính theo
-     dự án người đó là TM/SE (cho công việc/dự án/ma sát) và theo workload của riêng người đó (cho
-     phần nguồn lực). Tài khoản nhân viên tự đăng nhập thì không bị thu hẹp, vẫn thấy cả phòng. */
-  const simAs = (S.canEdit && S.me && S.me!=="__all__") ? S.me : null;
+  /* Trưởng phòng/phó phòng/admin chọn một người cụ thể ở "Tôi là" (không phải "Tất cả") → Dashboard chỉ
+     tính theo dự án người đó là TM/SE (cho công việc/dự án/ma sát) và theo workload của riêng người đó
+     (cho phần nguồn lực). Nhân viên: mặc định vẫn thấy cả phòng, tự bật "Cá nhân" (scopeToggleHtml() cạnh
+     tiêu đề) để thu hẹp về riêng mình. */
+  const simAs = effectiveSimAs();
   const staffList = simAs ? M.staff.filter(s=>s.name===simAs) : M.staff;
   const E = M.entries.filter(e=>inP.has(e.week) && (!simAs || e.person===simAs));
   /* Đầu việc Hủy không tính vào workload, đồng bộ với loadFor() ở weekly-load.js */
@@ -123,6 +124,7 @@ function viewExec(){
   <div class="head"><h1>Dashboard</h1>
     <div class="ex-ctl"><div class="ex-wk"><button data-act="exnav" data-d="-1" aria-label="Kỳ trước">‹</button><div class="lb">${esc(P.label)}</div><button data-act="exnav" data-d="1" aria-label="Kỳ sau">›</button></div>
       <div class="ex-seg" role="group" aria-label="Kỳ báo cáo">${[["week","Tuần"],["month","Tháng"],["quarter","Quý"]].map(([k,l])=>`<button data-act="exper" data-k="${k}" aria-pressed="${kind===k}">${l}</button>`).join("")}</div>
+      ${scopeToggleHtml()}
       <button class="btn icon" data-act="exrefresh" title="Làm mới" aria-label="Làm mới">${ICONS.refresh}</button></div></div>`;
   // KPI row
   h += `<div class="ex-kpis">

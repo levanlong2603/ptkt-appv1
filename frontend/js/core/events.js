@@ -41,7 +41,7 @@ main.addEventListener("click", e => {
   else if(a==="imp-json") document.getElementById("impFile").click();
 });
 main.addEventListener("keydown", e => { if((e.key==="Enter"||e.key===" ") && e.target.matches("[data-act][tabindex]")){ e.preventDefault(); e.target.click(); } });
-main.addEventListener("change", e => { if(e.target.id==="impFile" && e.target.files[0]){ importBackup(e.target.files[0]); e.target.value=""; return; } if(e.target.dataset.act==="pickme"){ S.me=e.target.value; store("me",S.me); render(); } });
+main.addEventListener("change", e => { if(e.target.id==="impFile" && e.target.files[0]){ importBackup(e.target.files[0]); e.target.value=""; return; } if(e.target.dataset.act==="pickme"){ S.me=e.target.value; store("me",S.me); render(); } else if(e.target.dataset.act==="scopemode"){ S.scopeMode=e.target.value; render(); } });
 main.addEventListener("input", e => {
   const a = e.target.dataset.act;
   if(a==="pq"){ S.planQuery=e.target.value; const pos=e.target.selectionStart; render(); const el=main.querySelector('[data-act="pq"]'); if(el){ el.focus(); el.setSelectionRange(pos,pos); } }

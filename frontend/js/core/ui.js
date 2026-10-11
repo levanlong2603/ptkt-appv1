@@ -192,6 +192,24 @@ function weekNav(){
     ${isNow?"":'<button class="btn" data-act="wk" data-d="0">Tuần này</button>'}</div>`;
 }
 function typeDot(t){ return `<span class="tdot" style="background:${TYPE_COLOR[t]||"var(--grey)"}"></span>`; }
+/* "Cá nhân"/"Tổng thể": dùng chung cho Dashboard/Tổng quan dự án/Tải tuần – những trang trước đây nhân
+   viên luôn thấy dữ liệu CẢ PHÒNG, không tự thu hẹp về riêng mình được như trưởng phòng/phó phòng/admin
+   (đã có ô "Tôi là" ở thanh bên để làm việc này). Chỉ hiện nút này cho nhân viên (!S.canEdit) có gắn
+   nhân sự (staff_name) – không có gì để lọc riêng nếu tài khoản chưa gắn nhân sự. */
+function scopeToggleHtml(){
+  if(S.canEdit || !(S.user && S.user.staff_name)) return "";
+  S.scopeMode = S.scopeMode || "all";
+  return `<select class="inp" data-act="scopemode" style="width:auto; flex:none" aria-label="Phạm vi xem">
+    <option value="all" ${S.scopeMode==="all"?"selected":""}>Tổng thể</option>
+    <option value="personal" ${S.scopeMode==="personal"?"selected":""}>Cá nhân</option>
+  </select>`;
+}
+/* simAs dùng chung cho Dashboard/Tổng quan dự án/Tải tuần: trưởng phòng/phó phòng/admin thu hẹp qua "Tôi
+   là" ở thanh bên; nhân viên thu hẹp qua nút Cá nhân/Tổng thể (scopeToggleHtml() ở trên, S.scopeMode). */
+function effectiveSimAs(){
+  if(S.canEdit) return (S.me && S.me!=="__all__") ? S.me : null;
+  return (S.scopeMode==="personal" && S.user && S.user.staff_name) ? S.user.staff_name : null;
+}
 
 
 
