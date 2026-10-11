@@ -63,23 +63,36 @@ body.side-collapsed .side-head{left:0; right:0; display:flex; justify-content:ce
 /* Thu gọn ẩn luôn nhãn nhóm đầu tiên (nav-grp) nên không còn gì chừa chỗ cho nút nổi phía trên – đẩy
    danh sách menu xuống dưới nút để không bị đè lên nút Dashboard đầu tiên */
 body.side-collapsed .nav{margin-top:34px}
-body.side-collapsed .nav-grp,
-body.side-collapsed .nav button span:not(.nav-badge),
 body.side-collapsed .side-foot label,
 body.side-collapsed .side-foot select,
 body.side-collapsed .conn span,
 body.side-collapsed .userbox-info,
 body.side-collapsed .userbox .acts{display:none}
-body.side-collapsed .nav button{justify-content:center; padding:9px 0}
+/* Icon giữ nguyên "vị trí tâm" khi thu/mở: thay vì justify-content:center (đổi hẳn cách canh, giật cục),
+   dùng padding trái/phải bằng nhau quanh icon – padding tự chuyển mượt theo transition bên dưới, không
+   nhảy khung. gap cũng tắt dần về 0 (không còn chữ) thay vì mất đột ngột. */
+body.side-collapsed .nav button{padding:9px 13px; gap:0}
 body.side-collapsed .nav-badge{position:absolute; top:2px; right:2px; margin:0; padding:2px 5px}
 body.side-collapsed .nav button{position:relative}
 body.side-collapsed .userbox-row{justify-content:center}
 body.side-collapsed .conn{justify-content:center}
-.nav-grp{padding:12px 12px 6px; font-size:11px; font-weight:700; color:var(--side-grp-ink); text-transform:uppercase; letter-spacing:.04em}
+/* max-height (có mốc cố định, không phải "auto") thay vì height/display:none – height:auto↔0 không
+   transition mượt được (nhảy cục một phát), còn max-height có 2 mốc số cụ thể thì chuyển mượt. Chữ ẩn
+   bằng color:transparent (không phải opacity trên cả khối) để riêng viền border-top vẫn hiện được làm
+   đường kẻ phân cách khi thu gọn, không bị mờ theo chữ. */
+.nav-grp{padding:12px 12px 6px; font-size:11px; font-weight:700; color:var(--side-grp-ink); text-transform:uppercase; letter-spacing:.04em; white-space:nowrap; overflow:hidden; max-height:34px; border-top:2px solid transparent;
+  transition:max-height .15s ease, padding .15s ease, margin .15s ease, color .15s ease, border-color .15s ease}
 .nav-grp:first-child{padding-top:4px; padding-right:32px}
+body.side-collapsed .nav-grp:first-child{max-height:0; padding:0; margin:0; border-color:transparent}
+/* Các nhãn nhóm sau (vd "CÀI ĐẶT") không ẩn hẳn khi thu gọn – chỉ ẩn chữ, giữ lại thành 1 đường kẻ phân
+   cách mảnh giữa các nhóm icon, để vẫn phân biệt được "Dashboard & Quản lý" với "Cài đặt" dù không còn
+   đọc được chữ (ảnh chụp người dùng gửi cho thấy icon thu gọn dồn liền một cụm, khó biết ranh giới). */
+body.side-collapsed .nav-grp:not(:first-child){max-height:0; padding:0; margin:11px 12px; color:transparent; border-color:rgba(255,255,255,.18)}
 .nav{display:flex; flex-direction:column; gap:1px}
-.nav button{all:unset; cursor:pointer; display:flex; align-items:center; gap:10px; padding:9px 10px; border-radius:8px; font-size:14px; color:var(--side-ink); border-left:3px solid transparent}
+.nav button{all:unset; cursor:pointer; display:flex; align-items:center; gap:10px; padding:9px 10px; border-radius:8px; font-size:14px; color:var(--side-ink); border-left:3px solid transparent; transition:padding .15s ease, gap .15s ease}
 .nav button:hover{background:var(--side-hover-bg); color:var(--side-hover-ink)}
+.nav button span:not(.nav-badge){overflow:hidden; white-space:nowrap; opacity:1; max-width:160px; transition:opacity .1s ease, max-width .15s ease}
+body.side-collapsed .nav button span:not(.nav-badge){opacity:0; max-width:0}
 .nav button[aria-current="page"]{background:var(--side-active-bg); color:var(--side-active-ink); font-weight:600; border-left-color:var(--side-active-bar)}
 .nav button:focus-visible{outline:2px solid var(--focus)}
 .nav svg{width:18px; height:18px; flex:none; opacity:.9; color:var(--side-icon)}
