@@ -3,6 +3,7 @@
 /* ================= VIEW: weekly input ================= */
 function viewInput(){
   const w = S.week;
+  S.wkMode = S.wkMode || "tasks"; // "tasks" (bảng đầu việc) | "journal" (Nhật ký tuần, xem worklog.js)
   let h = `<div class="head"><div><h1>Việc trong tuần</h1></div>${weekNav()}</div>`;
   if(S.me==="__all__") return h + viewInputAll(w);
   if(!S.me && S.user && !isFullRole(S.user.role)) return h + `<section class="panel"><div class="empty"><b>Tài khoản chưa gắn với nhân sự</b>Nhờ trưởng phòng vào Cài đặt → Tài khoản đăng nhập để gắn tài khoản của bạn với tên nhân sự.</div></section>`;
@@ -19,8 +20,12 @@ function viewInput(){
     <div><div class="small muted">Người nhập</div><div style="font-weight:700; font-size:17px">${esc(S.me)}</div></div>
     <div><div class="small muted">Workload tuần</div><div style="font-weight:700; font-size:17px">${fmt1(L.wl)} <span class="muted small">/ ${fmt1(st.cap)} điểm</span></div></div>
     <div><div class="small muted">Mức sử dụng</div><div style="font-weight:700; font-size:17px; color:${u>1?"var(--bad)":u>=.8?"var(--warn)":"var(--ok)"}">${L.es.length?pct(u):"–"}</div></div>
-    <div class="toolbar" style="margin-left:auto">${locked?"":`<button class="btn" data-act="copyprev" ${canCopy?"":"disabled"} title="${canCopy?"Chép các việc chưa xong của tuần trước":"Tuần trước không có việc dở dang"}">Chép việc dở dang từ tuần trước</button>
-    <button class="btn primary" data-act="addentry">+ Thêm việc</button>`}</div></div></section>`;
+    <div class="toolbar" style="margin-left:auto">
+    ${S.wkMode==="journal" ? `<button class="btn" data-act="wkback">← Quay lại tổng quan</button>` : `
+    <button class="btn" data-act="wkjournal" title="Ghi chú tự do việc đã làm trong tuần, dạng nhật ký – không ảnh hưởng dữ liệu/báo cáo khác">Nhật ký tuần</button>
+    ${locked?"":`<button class="btn" data-act="copyprev" ${canCopy?"":"disabled"} title="${canCopy?"Chép các việc chưa xong của tuần trước":"Tuần trước không có việc dở dang"}">Chép việc dở dang từ tuần trước</button>
+    <button class="btn primary" data-act="addentry">+ Thêm việc</button>`}`}</div></div></section>`;
+  if(S.wkMode==="journal") return h + worklogPanelHtml();
   if(locked) h += `<p class="small muted" style="margin:-8px 0 14px">Tuần ${isoWeek(w)} đã qua, chỉ trưởng phòng mới sửa được dữ liệu tuần này.</p>`;
   if(!L.es.length) return h + `<section class="panel"><div class="empty"><b>Chưa có việc nào trong tuần ${isoWeek(w)}</b>${locked?"":"Thêm việc bạn làm trong tuần, hoặc chép các việc dở dang từ tuần trước."}</div></section>`;
   return h + `<section class="panel tbl-wrap"><table style="table-layout:fixed"><thead><tr><th style="width:20%">Đầu việc</th><th style="width:20%">Việc đã làm</th><th style="width:8%; text-align:center">Giờ</th><th style="width:10%; text-align:center">Workload</th><th style="width:14%">Trạng thái cuối tuần</th><th style="width:12%">Ma sát</th><th style="width:16%">Vướng / cần hỗ trợ</th></tr></thead><tbody>${inputTreeRows(L.es, locked)}</tbody></table></section>
