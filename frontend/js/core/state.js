@@ -7,5 +7,5 @@ const S = {
   view: store("view") || "exec", period:"week", exPr:"Tất cả",
   week: mondayOf(todayISO()),
   me: store("me") || "",
-  typeFilter:"Đang triển khai", openProject:null, planSel:null, planQuery:""
+  typeFilter:"Đang triển khai", openProject:null, planSel:null, planQuery:"", dashQuery:""
 };

@@ -11,8 +11,12 @@ function viewDash(){
   const soon = allT.filter(t=>t.warns.some(w=>w[1]==="Sắp đến hạn"));
   const stuck = allT.filter(t=>OPEN.has(t.status) && (t.status==="Đang vướng"||(t.ms||0)>=1));
   const running = t => P.filter(p=>p.type===t && (p._prog==null || p._prog<1)).length;
-  let h = `<div class="head"><h1>Tổng quan dự án</h1>
-    <div class="chips" role="group" aria-label="Lọc theo loại">${PLAN_FILTERS.map(f=>`<button class="chip-btn" data-act="tf" data-t="${esc(f.key)}" aria-pressed="${S.typeFilter===f.key}">${esc(f.label)}</button>`).join("")}</div></div>`;
+  const q = (S.dashQuery||"").toLowerCase();
+  let h = `<div class="head"><div><h1>Tổng quan dự án</h1></div>
+    <div class="head-ctl">
+      <div class="chips" role="group" aria-label="Lọc theo loại">${PLAN_FILTERS.map(f=>`<button class="chip-btn" data-act="tf" data-t="${esc(f.key)}" aria-pressed="${S.typeFilter===f.key}">${esc(f.label)}</button>`).join("")}</div>
+      <input class="inp" type="search" placeholder="Tìm dự án" style="width:180px" data-act="dashq" value="${esc(S.dashQuery||"")}" aria-label="Tìm dự án">
+    </div></div>`;
   h += `<div class="band">
     <div class="stat"><div class="v">${running("Triển khai")}</div><div class="l">${typeDot("Triển khai")}Dự án triển khai đang chạy</div></div>
     <div class="stat"><div class="v">${running("Thầu")}</div><div class="l">${typeDot("Thầu")}Gói thầu đang làm</div></div>
@@ -23,9 +27,9 @@ function viewDash(){
   for(const f of PLAN_FILTERS){
     if(f.key==="Tất cả") continue;
     if(S.typeFilter!=="Tất cả" && S.typeFilter!==f.key) continue;
-    const ps = P.filter(p=>planMatchFilter(p, f.key)).sort((a,b)=>(b._stuck-a._stuck) || (b._late-a._late) || a.name.localeCompare(b.name,"vi"));
+    const ps = P.filter(p=>planMatchFilter(p, f.key) && (!q || p.name.toLowerCase().includes(q))).sort((a,b)=>(b._stuck-a._stuck) || (b._late-a._late) || a.name.localeCompare(b.name,"vi"));
     left += `<section class="panel"><div class="panel-h"><h2>${typeDot(f.type)}${esc(f.label)} <span class="muted small">· ${ps.length}</span></h2></div>`;
-    if(!ps.length) left += `<div class="empty">Chưa có ${f.label.toLowerCase()} nào. Thêm ở mục Kế hoạch dự án.</div>`;
+    if(!ps.length) left += `<div class="empty">${q?`Không có ${f.label.toLowerCase()} nào khớp “${esc(S.dashQuery)}”.`:`Chưa có ${f.label.toLowerCase()} nào. Thêm ở mục Kế hoạch dự án.`}</div>`;
     for(const p of ps){
       const open = S.openProject===p.id;
       left += `<div class="prow" data-act="openp" data-id="${esc(p.id)}" role="button" tabindex="0" aria-expanded="${open}">

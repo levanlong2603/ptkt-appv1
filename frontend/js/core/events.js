@@ -46,4 +46,5 @@ main.addEventListener("input", e => {
   const a = e.target.dataset.act;
   if(a==="pq"){ S.planQuery=e.target.value; const pos=e.target.selectionStart; render(); const el=main.querySelector('[data-act="pq"]'); if(el){ el.focus(); el.setSelectionRange(pos,pos); } }
   else if(a==="exq"){ S.exQ=e.target.value; const pos=e.target.selectionStart; render(); const el=main.querySelector('[data-act="exq"]'); if(el){ el.focus(); el.setSelectionRange(pos,pos); } }
+  else if(a==="dashq"){ S.dashQuery=e.target.value; const pos=e.target.selectionStart; render(); const el=main.querySelector('[data-act="dashq"]'); if(el){ el.focus(); el.setSelectionRange(pos,pos); } }
 });
