@@ -313,10 +313,14 @@ app.get("/api/audit", auth, adminOnly, A(async (req, res) => {
 }));
 
 /* --- quản lý tài khoản (trưởng phòng/phó phòng) ---
-   Vai trò "admin" (tài khoản hệ thống) không tạo/sửa được qua các route này — chỉ qua
-   `npm run user -- create` ở máy chủ — và bị ẩn khỏi danh sách GET để không hiện ở Cài đặt. */
+   Vai trò "admin" (tài khoản hệ thống) không TẠO được qua các route này — chỉ qua
+   `npm run user -- create` ở máy chủ. Tài khoản admin chỉ ẩn khỏi Cài đặt với người xem là
+   trưởng phòng/phó phòng (head/deputy) — người đang đăng nhập bằng chính tài khoản admin thì
+   vẫn thấy và sửa được đầy đủ (kể cả các tài khoản admin khác), xem canSeeAdmin bên dưới. */
 app.get("/api/users", auth, adminOnly, A(async (req, res) => {
-  res.json((await store.listUsers()).filter(u => u.role !== "admin").map(publicUser));
+  const rows = await store.listUsers();
+  const visible = req.user.role === "admin" ? rows : rows.filter(u => u.role !== "admin");
+  res.json(visible.map(publicUser));
 }));
 app.post("/api/users", auth, adminOnly, A(async (req, res) => {
   const { username, password, display_name, staff_name, role } = req.body || {};
@@ -330,10 +334,12 @@ app.post("/api/users", auth, adminOnly, A(async (req, res) => {
 }));
 app.patch("/api/users/:id", auth, adminOnly, A(async (req, res) => {
   const u = await store.getUserById(Number(req.params.id));
-  if (!u || u.role === "admin") return res.status(404).json({ error: "Không tìm thấy tài khoản" });
+  if (!u || (u.role === "admin" && req.user.role !== "admin")) return res.status(404).json({ error: "Không tìm thấy tài khoản" });
   const b = req.body || {};
   const role = b.role ?? u.role, active = b.active === undefined ? u.active : (b.active ? 1 : 0);
-  if (!["head", "deputy", "member"].includes(role)) return res.status(400).json({ error: "Vai trò không hợp lệ" });
+  // Chỉ tài khoản admin mới gán/giữ được role "admin" cho người khác; trưởng phòng/phó phòng không được.
+  const allowedRoles = req.user.role === "admin" ? ["admin", "head", "deputy", "member"] : ["head", "deputy", "member"];
+  if (!allowedRoles.includes(role)) return res.status(400).json({ error: "Vai trò không hợp lệ" });
   if (FULL_ROLES.has(u.role) && (!FULL_ROLES.has(role) || !active) && (await store.countActiveAdmins()) <= 1)
     return res.status(400).json({ error: "Phải còn ít nhất một tài khoản trưởng phòng/phó phòng đang hoạt động" });
   let tv = u.token_version, hash = u.pass_hash;

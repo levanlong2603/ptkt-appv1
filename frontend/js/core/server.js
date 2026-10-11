@@ -148,10 +148,14 @@ function userForm(u){
       ...(isNew ? [{key:"username", label:"Tên đăng nhập (chữ không dấu, số, . _ -)", type:"text", required:true}] : []),
       {key:"display_name", label:"Tên hiển thị", type:"text", required:true},
       {key:"staff_name", label:"Gắn với nhân sự (để nhập theo tuần)", type:"select", options:[["",""],...M.staff.map(s=>[s.name,s.name])]},
-      /* Vai trò "admin" (hệ thống/khởi tạo CSDL) không hiện ở đây – chỉ tạo được bằng
-         `npm run user -- create` ở máy chủ, máy chủ cũng từ chối nếu gửi role="admin" qua form này. */
-      {key:"role", label:"Vai trò", type:"seg", options:[["member","Nhân viên"],["deputy","Phó phòng"],["head","Trưởng phòng"]],
-        hint:v=>isFullRole(v)?"Toàn quyền: sửa mọi dự án, cài đặt, tài khoản và dữ liệu của mọi người.":"Nhập theo tuần cho chính mình; sửa dự án/đầu việc nếu là người tạo hoặc là TM/SE của dự án (gắn qua “Gắn với nhân sự” bên dưới); xem toàn bộ báo cáo."},
+      /* Vai trò "admin" (hệ thống/khởi tạo CSDL) không phải lựa chọn thường – chỉ tạo mới được bằng
+         `npm run user -- create` ở máy chủ (máy chủ từ chối nếu POST role="admin" qua form này). Chỉ
+         hiện thêm lựa chọn "Admin" khi đang SỬA đúng một tài khoản vốn đã là admin (và chỉ tài khoản
+         admin khác mới mở được form này ra, vì S.users đã lọc theo quyền người xem ở server) – để sửa
+         các trường khác (mật khẩu, trạng thái...) của nó mà không bị mất lựa chọn đang chọn dở. */
+      {key:"role", label:"Vai trò", type:"seg",
+        options:[["member","Nhân viên"],["deputy","Phó phòng"],["head","Trưởng phòng"],...(v.role==="admin"?[["admin","Admin"]]:[])],
+        hint:v=>v==="admin"?"Tài khoản hệ thống, toàn quyền – quản lý qua dòng lệnh ở máy chủ.":isFullRole(v)?"Toàn quyền: sửa mọi dự án, cài đặt, tài khoản và dữ liệu của mọi người.":"Nhập theo tuần cho chính mình; sửa dự án/đầu việc nếu là người tạo hoặc là TM/SE của dự án (gắn qua “Gắn với nhân sự” bên dưới); xem toàn bộ báo cáo."},
       ...(isNew ? [] : [{key:"active", label:"Trạng thái", type:"seg", options:[[true,"Đang hoạt động"],[false,"Khoá"]]}]),
       {key:"pw", label: isNew ? "Mật khẩu (ít nhất 8 ký tự)" : "Đặt mật khẩu mới (để trống nếu không đổi)", type:"password", required:isNew}
     ],
