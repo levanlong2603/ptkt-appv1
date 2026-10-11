@@ -16,17 +16,22 @@ ACTIONS["exinfo"] = t => {
   if(g.startsWith("task:")){
     const [pid, tid] = g.slice(5).split("|"); const p = M.pById.get(pid); const tk = p && p._tasks.find(x=>x.id===tid);
     if(p && tk){
-      openInfo(p, tk, {label:"Đi đến xử lý", onClick:()=>{
+      /* Nhân viên chỉ có nút "Đi đến xử lý" nếu là dự án của mình (người tạo hoặc TM/SE – canManageProject()),
+         vì vào dự án người khác cũng chỉ xem được (taskForm tự chuyển view-only), nút đó vô nghĩa với họ.
+         Trưởng phòng/phó phòng/admin (S.canEdit) luôn có nút, không giới hạn theo dự án. */
+      const canGo = S.canEdit || canManageProject(p);
+      openInfo(p, tk, canGo ? {label:"Đi đến xử lý", onClick:()=>{
         S.view="plan"; S.planSel=pid; S.typeFilter="Tất cả"; store("view",S.view); render();
         const p2=M.pById.get(pid); const tk2=p2&&p2._tasks.find(x=>x.id===tid); if(p2&&tk2) taskForm(p2, tk2);
-      }});
+      }} : null);
       return;
     }
   }
   if(g.startsWith("p:")){
     const pid = g.slice(2); const p = M.pById.get(pid);
+    const canGo = S.canEdit || (p && canManageProject(p));
     openForm({title:"Dự án", subtitle:a.project, values:{}, fields:[], readOnly:true,
-      extraBtn:{label:"Đi đến xử lý", onClick:()=>{ S.view="plan"; S.planSel=pid; S.typeFilter="Tất cả"; store("view",S.view); render(); }},
+      extraBtn: canGo ? {label:"Đi đến xử lý", onClick:()=>{ S.view="plan"; S.planSel=pid; S.typeFilter="Tất cả"; store("view",S.view); render(); }} : undefined,
       info:`<h3 style="margin-bottom:12px">${esc(a.title)}</h3><div class="kv"><dt>Dự án</dt><dd>${esc(a.project)}</dd><dt>Người phụ trách</dt><dd>${esc(a.person)}</dd>
       <dt>Tình trạng</dt><dd>${esc(a.desc)}</dd>${p?`<dt>Tiến độ</dt><dd>${pct(p._prog)}</dd>`:""}</div>`});
     return;
