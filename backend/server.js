@@ -31,22 +31,32 @@ if (JWT_SECRET.length < 32) {
 }
 
 /*
+ * VAI TRÒ TÀI KHOẢN: 4 cấp admin > head (Trưởng phòng) > deputy (Phó phòng) > member (Nhân viên).
+ *   - "admin": tài khoản HỆ THỐNG, tạo lúc khởi tạo CSDL (chỉ qua `npm run user -- create`, không tạo/sửa
+ *     được qua giao diện/API), không bắt buộc gắn tên hiển thị/nhân sự thật, và KHÔNG hiện trong danh sách
+ *     "Tài khoản đăng nhập" ở Cài đặt (xem GET /api/users bên dưới).
+ *   - "head"/"deputy": vai trò thật của người trong phòng (Trưởng phòng/Phó phòng), tạo/sửa được qua Cài
+ *     đặt như trước đây.
+ * Hiện tại cả 3 vai trò admin/head/deputy đều TOÀN QUYỀN như nhau (FULL_ROLES bên dưới) – chưa phân biệt,
+ * sẽ giới hạn dần quyền của head/deputy sau này mà không cần đổi lại cấu trúc vai trò.
+ *
  * QUY TẮC GHI DỮ LIỆU THEO TỪNG BỘ SƯU TẬP (collection)
  * Thêm module mới cần lưu dữ liệu → thêm 1 dòng vào đây.
- *   "admin"       : chỉ trưởng phòng được ghi/xoá
+ *   "admin"       : chỉ tài khoản toàn quyền (FULL_ROLES) được ghi/xoá
  *   "member"      : mọi tài khoản đã đăng nhập được ghi/xoá
- *   "own-week"    : trưởng phòng ghi tất cả; nhân viên chỉ ghi dữ liệu tuần của chính mình, và chỉ
+ *   "own-week"    : tài khoản toàn quyền ghi tất cả; nhân viên chỉ ghi dữ liệu tuần của chính mình, và chỉ
  *                   ghi được tuần hiện tại (theo lịch máy chủ) trở đi — tuần cũ đã khoá với nhân viên
- *   "own-project" : trưởng phòng ghi tất cả (kể cả tạo dự án mới). Nhân viên: sửa dự án và
+ *   "own-project" : tài khoản toàn quyền ghi tất cả (kể cả tạo dự án mới). Nhân viên: sửa dự án và
  *                   đầu việc (PUT) nếu là người tạo (created_by, máy chủ ghi, không nhận từ
  *                   client) HOẶC là TM (owner)/SE của dự án (so khớp staff_name của tài khoản);
  *                   XOÁ cả dự án (DELETE) thì chỉ người tạo mới được, kể cả là TM/SE.
- *                   Riêng "Đánh giá khi hoàn thành" (task.eval) chỉ trưởng phòng ghi được;
+ *                   Riêng "Đánh giá khi hoàn thành" (task.eval) chỉ tài khoản toàn quyền ghi được;
  *                   nhân viên gửi gì cũng bị máy chủ giữ nguyên giá trị cũ (xem route PUT /api/doc/projects/:id)
  *   "own"         : ai cũng tạo mới được (PUT lên id chưa tồn tại); sửa/xoá thì chỉ người tạo
- *                   (created_by, máy chủ ghi) hoặc trưởng phòng mới được.
+ *                   (created_by, máy chủ ghi) hoặc tài khoản toàn quyền mới được.
  * Mọi tài khoản đã đăng nhập đều ĐỌC được tất cả.
  */
+const FULL_ROLES = new Set(["admin", "head", "deputy"]);
 const RULES = {
   config: "admin",          // config/staff (nhân sự), config/catalog (đầu việc chuẩn)
   projects: "own-project",  // projects/<mã dự án>  (thông tin dự án + đầu việc)
@@ -112,7 +122,7 @@ const auth = A(async (req, res, next) => {
   }
   req.user = u; next();
 });
-const adminOnly = (req, res, next) => req.user.role === "admin" ? next() : res.status(403).json({ error: "Chỉ trưởng phòng được thực hiện" });
+const adminOnly = (req, res, next) => FULL_ROLES.has(req.user.role) ? next() : res.status(403).json({ error: "Chỉ trưởng phòng/phó phòng được thực hiện" });
 function setSession(res, u) {
   const token = jwt.sign({ uid: u.id, tv: u.token_version }, JWT_SECRET, { expiresIn: `${SESSION_DAYS}d` });
   res.cookie(COOKIE, token, { httpOnly: true, sameSite: "lax", secure: COOKIE_SECURE, maxAge: SESSION_DAYS * 864e5, path: "/" });
@@ -174,7 +184,7 @@ function mondayOfToday() {
 /* op: "write" (PUT, gồm cả thêm/sửa/xoá đầu việc bên trong) | "delete" (DELETE, xoá cả dự án) */
 function canWrite(user, coll, id, body, existing, op = "write") {
   const rule = RULES[coll];
-  if (user.role === "admin") return true;
+  if (FULL_ROLES.has(user.role)) return true;
   if (rule === "member") return true;
   if (rule === "own-project") {
     if (!existing) return false; // dự án mới chỉ trưởng phòng tạo được
@@ -211,7 +221,7 @@ app.put("/api/doc/:coll/:id", auth, A(async (req, res) => {
     // Đánh giá khi hoàn thành (task.eval) và Ghi chú của trưởng phòng (task.note) chỉ trưởng phòng
     // được ghi; nhân viên gửi gì cũng giữ nguyên giá trị cũ (ẩn/khoá ô nhập ở giao diện chỉ là gợi ý,
     // quyền thật sự phải chặn ở đây)
-    if (req.user.role !== "admin" && exBody) {
+    if (!FULL_ROLES.has(req.user.role) && exBody) {
       const exTasks = new Map((exBody.tasks || []).map(t => [t.id, t]));
       for (const t of body.tasks || []) {
         const ex = exTasks.get(t.id) || {};
@@ -246,7 +256,7 @@ app.patch("/api/doc/projects/:id/task-pt", auth, A(async (req, res) => {
   const task = (body.tasks || []).find(t => t.id === taskId);
   if (!task) return res.status(404).json({ error: "Không tìm thấy đầu việc" });
   const u = req.user;
-  const allowed = u.role === "admin" || body.created_by === u.username
+  const allowed = FULL_ROLES.has(u.role) || body.created_by === u.username
     || (u.staff_name && (body.owner === u.staff_name || body.se === u.staff_name))
     || (u.staff_name && (task.owner === u.staff_name || task.collab === u.staff_name));
   if (!allowed) return res.status(403).json({ error: "Bạn không có quyền sửa đầu việc này" });
@@ -302,15 +312,17 @@ app.get("/api/audit", auth, adminOnly, A(async (req, res) => {
   res.json(rows);
 }));
 
-/* --- quản lý tài khoản (trưởng phòng) --- */
+/* --- quản lý tài khoản (trưởng phòng/phó phòng) ---
+   Vai trò "admin" (tài khoản hệ thống) không tạo/sửa được qua các route này — chỉ qua
+   `npm run user -- create` ở máy chủ — và bị ẩn khỏi danh sách GET để không hiện ở Cài đặt. */
 app.get("/api/users", auth, adminOnly, A(async (req, res) => {
-  res.json((await store.listUsers()).map(publicUser));
+  res.json((await store.listUsers()).filter(u => u.role !== "admin").map(publicUser));
 }));
 app.post("/api/users", auth, adminOnly, A(async (req, res) => {
   const { username, password, display_name, staff_name, role } = req.body || {};
   if (!/^[A-Za-z0-9._-]{3,40}$/.test(String(username || ""))) return res.status(400).json({ error: "Tên đăng nhập 3–40 ký tự, chỉ gồm chữ không dấu, số, dấu . _ -" });
   if (String(password || "").length < 8) return res.status(400).json({ error: "Mật khẩu phải có ít nhất 8 ký tự" });
-  if (!["admin", "member"].includes(role)) return res.status(400).json({ error: "Vai trò không hợp lệ" });
+  if (!["head", "deputy", "member"].includes(role)) return res.status(400).json({ error: "Vai trò không hợp lệ" });
   if (await store.getUserByUsername(username)) return res.status(400).json({ error: "Tên đăng nhập đã tồn tại" });
   const id = await store.createUser({ username, pass_hash: bcrypt.hashSync(String(password), 10), display_name: String(display_name || username), staff_name: staff_name || null, role });
   audit(req.user, "user-create", username);
@@ -318,12 +330,12 @@ app.post("/api/users", auth, adminOnly, A(async (req, res) => {
 }));
 app.patch("/api/users/:id", auth, adminOnly, A(async (req, res) => {
   const u = await store.getUserById(Number(req.params.id));
-  if (!u) return res.status(404).json({ error: "Không tìm thấy tài khoản" });
+  if (!u || u.role === "admin") return res.status(404).json({ error: "Không tìm thấy tài khoản" });
   const b = req.body || {};
   const role = b.role ?? u.role, active = b.active === undefined ? u.active : (b.active ? 1 : 0);
-  if (!["admin", "member"].includes(role)) return res.status(400).json({ error: "Vai trò không hợp lệ" });
-  if (u.role === "admin" && (role !== "admin" || !active) && (await store.countActiveAdmins()) <= 1)
-    return res.status(400).json({ error: "Phải còn ít nhất một tài khoản trưởng phòng đang hoạt động" });
+  if (!["head", "deputy", "member"].includes(role)) return res.status(400).json({ error: "Vai trò không hợp lệ" });
+  if (FULL_ROLES.has(u.role) && (!FULL_ROLES.has(role) || !active) && (await store.countActiveAdmins()) <= 1)
+    return res.status(400).json({ error: "Phải còn ít nhất một tài khoản trưởng phòng/phó phòng đang hoạt động" });
   let tv = u.token_version, hash = u.pass_hash;
   if (role !== u.role) tv++;   // đổi vai trò: buộc đăng nhập lại để nhận quyền mới
   if (b.password) {

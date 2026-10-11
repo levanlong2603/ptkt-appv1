@@ -32,35 +32,41 @@ async function staffNames() {
   catch (e) { return []; }
 }
 
+const ROLE_LABEL = { admin: "Admin (hệ thống)", head: "Trưởng phòng", deputy: "Phó phòng", member: "Nhân viên" };
 async function create() {
   console.log("\n=== TẠO TÀI KHOẢN ===");
   const username = await ask("Tên đăng nhập (chữ không dấu, số, . _ -), ví dụ: trp.kythuat : ");
   if (!/^[A-Za-z0-9._-]{3,40}$/.test(username)) throw new Error("Tên đăng nhập không hợp lệ.");
-  const display = await ask("Tên hiển thị (ví dụ: Nguyễn Văn A): ") || username;
-  // Không có giá trị mặc định: phải gõ rõ 1 hoặc 2 (tránh tạo nhầm trưởng phòng khi bấm Enter)
+  // Không có giá trị mặc định: phải gõ rõ 1 số cụ thể (tránh tạo nhầm tài khoản toàn quyền khi bấm Enter)
   let roleIn = "";
-  while (roleIn !== "1" && roleIn !== "2") roleIn = await ask("Vai trò – gõ 1 = Trưởng phòng (admin), 2 = Nhân viên (member): ");
-  const role = roleIn === "2" ? "member" : "admin";
-  if (role === "admin") {
-    const ok = await ask('Tài khoản TRƯỞNG PHÒNG có toàn quyền. Gõ "dong y" để xác nhận (Enter để huỷ): ');
+  while (!["1", "2", "3", "4"].includes(roleIn))
+    roleIn = await ask("Vai trò – gõ 1 = Admin hệ thống, 2 = Trưởng phòng, 3 = Phó phòng, 4 = Nhân viên: ");
+  const role = { "1": "admin", "2": "head", "3": "deputy", "4": "member" }[roleIn];
+  if (role !== "member") {
+    const ok = await ask(`Tài khoản "${ROLE_LABEL[role]}" có TOÀN QUYỀN. Gõ "dong y" để xác nhận (Enter để huỷ): `);
     if (ok !== "dong y") throw new Error("Đã huỷ tạo tài khoản.");
   }
-  const names = await staffNames();
-  if (names.length) { console.log("Danh sách nhân sự hiện có:"); names.forEach((n, i) => console.log(`  ${i + 1}. ${n}`)); }
-  const st = await ask(`Gắn với nhân sự số mấy (Enter để bỏ qua${role === "member" ? " – nhân viên NÊN gắn" : ""}): `);
-  const staff = st && names[Number(st) - 1] ? names[Number(st) - 1] : null;
+  // "admin" là tài khoản hệ thống/khởi tạo CSDL: không cần tên hiển thị riêng hay gắn nhân sự thật.
+  let display = username, staff = null;
+  if (role !== "admin") {
+    display = await ask("Tên hiển thị (ví dụ: Nguyễn Văn A): ") || username;
+    const names = await staffNames();
+    if (names.length) { console.log("Danh sách nhân sự hiện có:"); names.forEach((n, i) => console.log(`  ${i + 1}. ${n}`)); }
+    const st = await ask(`Gắn với nhân sự số mấy (Enter để bỏ qua${role === "member" ? " – nhân viên NÊN gắn" : ""}): `);
+    staff = st && names[Number(st) - 1] ? names[Number(st) - 1] : null;
+  }
   const p1 = await askHidden("Mật khẩu (ít nhất 8 ký tự): ");
   const p2 = await askHidden("Nhập lại mật khẩu: ");
   if (p1.length < 8) throw new Error("Mật khẩu quá ngắn.");
   if (p1 !== p2) throw new Error("Hai lần nhập mật khẩu không khớp.");
   if (await store.getUserByUsername(username)) throw new Error("Tên đăng nhập đã tồn tại.");
   await store.createUser({ username, pass_hash: bcrypt.hashSync(p1, 10), display_name: display, staff_name: staff, role });
-  console.log(`\n✔ Đã tạo tài khoản "${username}" (${role === "admin" ? "Trưởng phòng" : "Nhân viên"}${staff ? ", gắn với " + staff : ""}).`);
+  console.log(`\n✔ Đã tạo tài khoản "${username}" (${ROLE_LABEL[role]}${staff ? ", gắn với " + staff : ""}).`);
 }
 async function list() {
   const rows = await store.listUsers();
   if (!rows.length) return console.log("Chưa có tài khoản nào.");
-  console.table(rows.map(r => ({ "Tên đăng nhập": r.username, "Tên hiển thị": r.display_name, "Nhân sự": r.staff_name || "", "Vai trò": r.role, "Hoạt động": r.active ? "có" : "khoá" })));
+  console.table(rows.map(r => ({ "Tên đăng nhập": r.username, "Tên hiển thị": r.display_name, "Nhân sự": r.staff_name || "", "Vai trò": ROLE_LABEL[r.role] || r.role, "Hoạt động": r.active ? "có" : "khoá" })));
 }
 async function resetPassword() {
   const username = await ask("Tên đăng nhập cần đặt lại mật khẩu: ");

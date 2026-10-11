@@ -15,9 +15,9 @@ function renderNav(){
   const ub = document.getElementById("userBox");
   if(S.user){ ub.hidden = false;
     const initials = avatarInitials(S.user.display_name);
-    ub.innerHTML = `<div class="userbox-row"><div class="avatar">${esc(initials)}</div><div class="userbox-info"><b>${esc(S.user.display_name)}</b><span>${S.user.role==="admin"?"Trưởng phòng":"Nhân viên"}</span></div></div><div class="acts"><button data-uact="out">${ICONS.logout}Đăng xuất</button></div>`; }
+    ub.innerHTML = `<div class="userbox-row"><div class="avatar">${esc(initials)}</div><div class="userbox-info"><b>${esc(S.user.display_name)}</b><span>${esc(ROLE_LABEL[S.user.role]||"Nhân viên")}</span></div></div><div class="acts"><button data-uact="out">${ICONS.logout}Đăng xuất</button></div>`; }
   const sel = document.getElementById("meSel");
-  const isAdmin = !!(S.user && S.user.role==="admin");
+  const isAdmin = !!(S.user && S.canEdit);
   sel.disabled = !!(S.user && !isAdmin);
   const names = S.staff.map(s=>s.name);
   /* "Tất cả" chỉ dành cho trưởng phòng: xem gộp dữ liệu mọi người thay vì theo một cá nhân.

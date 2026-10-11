@@ -51,7 +51,7 @@ function createMariaStore() {
         pass_hash VARCHAR(100) NOT NULL,
         display_name VARCHAR(200) NOT NULL,
         staff_name VARCHAR(200) NULL,
-        role ENUM('admin','member') NOT NULL,
+        role ENUM('admin','head','deputy','member') NOT NULL,
         active TINYINT NOT NULL DEFAULT 1,
         token_version INT NOT NULL DEFAULT 0,
         created_at BIGINT NOT NULL
@@ -64,6 +64,10 @@ function createMariaStore() {
         path VARCHAR(255) NULL,
         INDEX idx_audit_ts (ts)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`);
+      /* Nâng cấp CSDL cũ (tạo trước khi có 2 vai trò "head"/"deputy"): CREATE TABLE IF NOT EXISTS ở trên
+         không tự mở rộng ENUM của bảng users đã tồn tại sẵn – phải ALTER riêng. An toàn chạy lại mỗi lần
+         khởi động (không đổi gì nếu ENUM đã đúng). */
+      await q(`ALTER TABLE users MODIFY role ENUM('admin','head','deputy','member') NOT NULL`);
     },
 
     /* ---- tài liệu ---- */
@@ -110,8 +114,8 @@ function createMariaStore() {
       const keys = Object.keys(f); if (!keys.length) return;
       await q(`UPDATE users SET ${keys.map(k => `${k}=?`).join(", ")} WHERE id=?`, [...keys.map(k => f[k]), id]);
     },
-    async countActiveAdmins() { return Number((await q("SELECT COUNT(*) c FROM users WHERE role='admin' AND active=1"))[0].c); },
-    async countAdmins() { return Number((await q("SELECT COUNT(*) c FROM users WHERE role='admin'"))[0].c); },
+    async countActiveAdmins() { return Number((await q("SELECT COUNT(*) c FROM users WHERE role IN ('admin','head','deputy') AND active=1"))[0].c); },
+    async countAdmins() { return Number((await q("SELECT COUNT(*) c FROM users WHERE role IN ('admin','head','deputy')"))[0].c); },
     async countUsers() { return Number((await q("SELECT COUNT(*) c FROM users"))[0].c); },
 
     /* ---- nhật ký ---- */
@@ -150,9 +154,23 @@ function createSqliteStore(file) {
         CREATE INDEX IF NOT EXISTS idx_docs_collection ON docs(collection);
         CREATE TABLE IF NOT EXISTS users(id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT NOT NULL UNIQUE COLLATE NOCASE,
           pass_hash TEXT NOT NULL, display_name TEXT NOT NULL, staff_name TEXT,
-          role TEXT NOT NULL CHECK (role IN ('admin','member')), active INTEGER NOT NULL DEFAULT 1,
+          role TEXT NOT NULL CHECK (role IN ('admin','head','deputy','member')), active INTEGER NOT NULL DEFAULT 1,
           token_version INTEGER NOT NULL DEFAULT 0, created_at INTEGER NOT NULL);
         CREATE TABLE IF NOT EXISTS audit(id INTEGER PRIMARY KEY AUTOINCREMENT, ts INTEGER NOT NULL, username TEXT, action TEXT NOT NULL, path TEXT);`);
+      /* Nâng cấp CSDL cũ (tạo trước khi có 2 vai trò "head"/"deputy"): SQLite không ALTER được ràng buộc
+         CHECK trực tiếp, phải dựng lại bảng users theo ràng buộc mới rồi chép dữ liệu qua. Chỉ chạy khi
+         bảng users hiện có vẫn còn ràng buộc cũ (an toàn chạy lại nhiều lần, không làm gì nếu đã nâng cấp). */
+      const def = one("SELECT sql FROM sqlite_master WHERE type='table' AND name='users'");
+      if (def && def.sql && def.sql.includes("'admin','member'")) {
+        db.exec(`
+          CREATE TABLE users_new(id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT NOT NULL UNIQUE COLLATE NOCASE,
+            pass_hash TEXT NOT NULL, display_name TEXT NOT NULL, staff_name TEXT,
+            role TEXT NOT NULL CHECK (role IN ('admin','head','deputy','member')), active INTEGER NOT NULL DEFAULT 1,
+            token_version INTEGER NOT NULL DEFAULT 0, created_at INTEGER NOT NULL);
+          INSERT INTO users_new SELECT * FROM users;
+          DROP TABLE users;
+          ALTER TABLE users_new RENAME TO users;`);
+      }
     },
     async countDocs() { return one("SELECT COUNT(*) AS c FROM docs").c; },
     async getDocs(coll, weekGte) {
@@ -190,8 +208,8 @@ function createSqliteStore(file) {
       const keys = Object.keys(f); if (!keys.length) return;
       run(`UPDATE users SET ${keys.map(k => `${k}=?`).join(", ")} WHERE id=?`, ...keys.map(k => f[k]), id);
     },
-    async countActiveAdmins() { return one("SELECT COUNT(*) c FROM users WHERE role='admin' AND active=1").c; },
-    async countAdmins() { return one("SELECT COUNT(*) c FROM users WHERE role='admin'").c; },
+    async countActiveAdmins() { return one("SELECT COUNT(*) c FROM users WHERE role IN ('admin','head','deputy') AND active=1").c; },
+    async countAdmins() { return one("SELECT COUNT(*) c FROM users WHERE role IN ('admin','head','deputy')").c; },
     async countUsers() { return one("SELECT COUNT(*) c FROM users").c; },
     async audit(username, action, p) { run("INSERT INTO audit(ts,username,action,path) VALUES(?,?,?,?)", Date.now(), username || null, action, p || null); },
     async insertAuditRaw(a) { run("INSERT INTO audit(id,ts,username,action,path) VALUES(?,?,?,?,?)", a.id, a.ts, a.username, a.action, a.path); },

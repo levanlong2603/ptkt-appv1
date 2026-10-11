@@ -1,6 +1,15 @@
 "use strict";
 /* Hằng số: loại dự án, trạng thái, nguyên nhân ma sát, biểu tượng, menu + bảng đăng ký mở rộng */
 /* ================= constants ================= */
+/* Vai trò tài khoản: admin (hệ thống/khởi tạo CSDL, ẩn khỏi Cài đặt) > head (Trưởng phòng) >
+   deputy (Phó phòng) > member (Nhân viên). Hiện admin/head/deputy đều toàn quyền như nhau (FULL_ROLES),
+   khớp với FULL_ROLES ở backend/server.js – sẽ tách quyền riêng cho từng vai trò sau. "admin" không có
+   nhãn hiển thị ở đây vì không bao giờ xuất hiện trên giao diện (máy chủ đã lọc khỏi GET /api/users). */
+const FULL_ROLES = new Set(["admin","head","deputy"]);
+const isFullRole = r => FULL_ROLES.has(r);
+/* "admin" chỉ dùng cho nhãn hiển thị CỦA CHÍNH phiên đăng nhập đó (vd trong userbox) – không xuất hiện
+   trong danh sách chọn ở form tài khoản vì máy chủ đã ẩn hẳn khỏi GET /api/users. */
+const ROLE_LABEL = {admin:"Admin", head:"Trưởng phòng", deputy:"Phó phòng", member:"Nhân viên"};
 const TYPES = ["Triển khai", "Thầu", "Nội bộ"];
 const TYPE_COLOR = {"Triển khai":"var(--teal)","Thầu":"var(--indigo)","Nội bộ":"var(--grey)"};
 /* Bộ lọc dự án dùng chung cho Kế hoạch dự án & Tổng quan dự án (S.typeFilter) – tách Triển khai thành Đang triển khai / Hoàn thành */

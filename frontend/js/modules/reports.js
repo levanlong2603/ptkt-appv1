@@ -29,6 +29,22 @@ function rpInit(){
     pjProject:"", pjPtype:"Tất cả", pjKind:"week", pjAnchor:S.week,
     ovKind:"week", ovAnchor:S.week, ovPtype:"Tất cả"};
 }
+/* Vướng mắc tại đúng thời điểm tuần w (không phải lượt nhập "mới nhất tính tới hiện tại" như t.nn/model.js):
+   duyệt mọi lượt nhập của đúng đầu việc đó, theo thứ tự tuần tăng dần, tính TỚI HẾT tuần w – ghi chú nào
+   nhập sau thì đè ghi chú trước ("mang sang" các tuần sau nếu tuần đó không nhập lại), hễ gặp lượt đánh dấu
+   Hoàn thành/Hủy thì coi như đã giải quyết, xoá sạch về rỗng (không mang tiếp các ghi chú trước đó sang nữa)
+   dù đúng lượt đó có nhập thêm ghi chú (Hoàn thành luôn thắng). Nhờ duyệt tới đúng tuần w (không phải tuần
+   hiện tại) nên xem báo cáo của một tuần cũ vẫn ra đúng vướng mắc tại thời điểm tuần đó, không bị đè bởi
+   các tuần sau này. */
+function rpIssueAt(pid, tid, w){
+  const list = M.entries.filter(e=>e.projectId===pid && e.taskId===tid && e.week<=w).sort((a,b)=>a.week.localeCompare(b.week));
+  let note = "";
+  for(const e of list){
+    if(e.status==="Hoàn thành" || e.status==="Hủy"){ note = ""; continue; }
+    if(e.note) note = e.note;
+  }
+  return note;
+}
 /* ----- xây dữ liệu báo cáo: dùng chung cho cả xem trước lẫn xuất file, để luôn khớp nhau ----- */
 function rpBuildWeek(){
   const w = S.week, type = S.rp.wkType, staff = S.rp.wkStaff;
@@ -52,8 +68,10 @@ function rpBuildWeek(){
       phaseCode, phase: phaseName,
       name: t ? planShortName(t.dv) : "(đầu việc đã xoá)",
       detail: e.work || "", deadline: t ? t.deadline : null, status: e.status || "",
-      /* Vướng mắc chỉ lấy ghi chú (e.note) – Nguyên nhân (e.nn) giờ đi cùng Ma sát, không ghép chung nữa. */
-      issue: e.note || ""
+      /* Vướng mắc tính TẠI ĐÚNG TUẦN w đang xem (mang sang từ tuần trước nếu tuần này chưa hoàn thành và
+         không nhập lại), không chỉ lấy ghi chú của riêng lượt nhập tuần này – xem rpIssueAt() ở trên.
+         Nguyên nhân (e.nn) giờ đi cùng Ma sát, không ghép chung với Vướng mắc nữa. */
+      issue: rpIssueAt(e.projectId, e.taskId, w)
     };
   }).sort((a,b) => a.person.localeCompare(b.person,"vi") || a.projectName.localeCompare(b.projectName,"vi") || a.phaseCode.localeCompare(b.phaseCode,"vi"));
   const cols1 = showPerson
@@ -509,9 +527,6 @@ function rpProjectHtml(){
   return h;
 }
 function viewReports(){
-  /* Tạm khoá với tài khoản nhân viên — chỉ trưởng phòng dùng được ở giai đoạn này */
-  if(!S.canEdit) return `<div class="head"><div><h1>Báo cáo</h1></div></div>
-    <section class="panel"><div class="empty"><b>Tính năng đang phát triển</b>Trang Báo cáo hiện đang hoàn thiện, chỉ dành cho trưởng phòng.</div></section>`;
   rpInit();
   let h = `<div class="head"><div><h1>Báo cáo</h1></div></div>`;
   h += `<div class="rp-tabs" role="tablist">
