@@ -99,9 +99,10 @@ function kpiPeriodNav(){
       <button class="btn ghost icon" data-act="kpinav" data-d="1" aria-label="Kỳ sau">›</button></div></div>`;
 }
 function viewKpi(){
-  /* Tạm khoá với tài khoản nhân viên — chỉ trưởng phòng dùng được ở giai đoạn này */
-  if(!S.canEdit) return `<div class="head"><div><h1>KPI &amp; Năng lực</h1></div></div>
-    <section class="panel"><div class="empty"><b>Tính năng đang phát triển</b>Trang KPI &amp; Năng lực hiện đang hoàn thiện, chỉ dành cho trưởng phòng.</div></section>`;
+  /* Đang phát triển – chỉ tài khoản admin (hệ thống) xem được ở giai đoạn này, kể cả trưởng phòng/phó
+     phòng cũng chưa thấy (khác các trang khác, dùng S.canEdit); mở rộng dần khi hoàn thiện. */
+  if(!(S.user && S.user.role==="admin")) return `<div class="head"><div><h1>KPI &amp; Năng lực</h1></div></div>
+    <section class="panel"><div class="empty"><b>Tính năng đang phát triển</b>Trang KPI &amp; Năng lực hiện đang hoàn thiện, sắp ra mắt.</div></section>`;
   kpiInit();
   if(S.kpi.sel) return kpiDetailView();
   const info = kpiPeriodInfo(S.kpi.anchor, S.kpi.kind);
