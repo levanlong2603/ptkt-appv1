@@ -142,40 +142,56 @@ async function loadUsers(){
 }
 function userForm(u){
   const isNew = !u;
+  /* Nhân viên chỉ mở được form này cho ĐÚNG tài khoản của chính mình (xem usersPanel() – các dòng khác
+     không gắn data-act nữa); không quản lý (canManage=false) thì chỉ còn 3 trường an toàn (tên đăng
+     nhập/tên hiển thị/mật khẩu) – ẩn hẳn Gắn với nhân sự/Vai trò/Trạng thái, khớp đúng những trường máy
+     chủ chấp nhận cho tự sửa (xem PATCH /api/users/:id). */
+  const canManage = S.canEdit;
   const v = u ? {...u, pw:""} : {username:"", display_name:"", staff_name:"", role:"member", active:true, pw:""};
   openForm({title: isNew ? "Tạo tài khoản" : "Sửa tài khoản", subtitle: isNew ? "" : u.username, values:v,
     fields:[
       {key:"username", label:"Tên đăng nhập (chữ không dấu, số, . _ -)", type:"text", required:true,
         hint:isNew?"":"Đổi tên đăng nhập sẽ buộc tài khoản này phải đăng nhập lại."},
       {key:"display_name", label:"Tên hiển thị", type:"text", required:true},
-      {key:"staff_name", label:"Gắn với nhân sự (để nhập theo tuần)", type:"select", options:[["",""],...M.staff.map(s=>[s.name,s.name])]},
+      ...(canManage ? [{key:"staff_name", label:"Gắn với nhân sự (để nhập theo tuần)", type:"select", options:[["",""],...M.staff.map(s=>[s.name,s.name])]}] : []),
       /* Vai trò "admin" (hệ thống/khởi tạo CSDL) không phải lựa chọn thường – chỉ tạo mới được bằng
          `npm run user -- create` ở máy chủ (máy chủ từ chối nếu POST role="admin" qua form này). Chỉ
          hiện thêm lựa chọn "Admin" khi đang SỬA đúng một tài khoản vốn đã là admin (và chỉ tài khoản
          admin khác mới mở được form này ra, vì S.users đã lọc theo quyền người xem ở server) – để sửa
-         các trường khác (mật khẩu, trạng thái...) của nó mà không bị mất lựa chọn đang chọn dở. */
-      {key:"role", label:"Vai trò", type:"seg",
-        options:[["member","Nhân viên"],["deputy","Phó phòng"],["head","Trưởng phòng"],...(v.role==="admin"?[["admin","Admin"]]:[])],
-        hint:v=>v==="admin"?"Tài khoản hệ thống, toàn quyền – quản lý qua dòng lệnh ở máy chủ.":isFullRole(v)?"Toàn quyền: sửa mọi dự án, cài đặt, tài khoản và dữ liệu của mọi người.":"Nhập theo tuần cho chính mình; sửa dự án/đầu việc nếu là người tạo hoặc là TM/SE của dự án (gắn qua “Gắn với nhân sự” bên dưới); xem toàn bộ báo cáo."},
-      ...(isNew ? [] : [{key:"active", label:"Trạng thái", type:"seg", options:[[true,"Đang hoạt động"],[false,"Khoá"]]}]),
+         các trường khác (mật khẩu, trạng thái...) của nó mà không bị mất lựa chọn đang chọn dở.
+         Chỉ hiện lựa chọn vai trò ≤ cấp của chính người đang thao tác (ROLE_RANK) – vd Phó phòng không
+         thấy/gán được "Trưởng phòng" cho ai, tránh tự nâng quyền người khác vượt mình. */
+      ...(canManage ? [{key:"role", label:"Vai trò", type:"seg",
+        options:[["member","Nhân viên"],["deputy","Phó phòng"],["head","Trưởng phòng"],...(v.role==="admin"?[["admin","Admin"]]:[])]
+          .filter(o=>ROLE_RANK[o[0]]<=ROLE_RANK[S.user.role]),
+        hint:v=>v==="admin"?"Tài khoản hệ thống, toàn quyền – quản lý qua dòng lệnh ở máy chủ.":isFullRole(v)?"Toàn quyền: sửa mọi dự án, cài đặt, tài khoản và dữ liệu của mọi người.":"Nhập theo tuần cho chính mình; sửa dự án/đầu việc nếu là người tạo hoặc là TM/SE của dự án (gắn qua “Gắn với nhân sự” bên dưới); xem toàn bộ báo cáo."}] : []),
+      ...(canManage && !isNew ? [{key:"active", label:"Trạng thái", type:"seg", options:[[true,"Đang hoạt động"],[false,"Khoá"]]}] : []),
       {key:"pw", label: isNew ? "Mật khẩu (ít nhất 8 ký tự)" : "Đặt mật khẩu mới (để trống nếu không đổi)", type:"password", required:isNew}
     ],
     saveLabel: isNew ? "Tạo tài khoản" : "Lưu",
     onSave: async x => {
       try{
         if(isNew) await S.db.api("POST", "/api/users", {username:x.username, password:x.pw, display_name:x.display_name, staff_name:x.staff_name||null, role:x.role});
-        else await S.db.api("PATCH", `/api/users/${u.id}`, {username:x.username, display_name:x.display_name, staff_name:x.staff_name||null, role:x.role, active:x.active, ...(x.pw?{password:x.pw}:{})});
+        else await S.db.api("PATCH", `/api/users/${u.id}`, {username:x.username, display_name:x.display_name, ...(canManage?{staff_name:x.staff_name||null, role:x.role, active:x.active}:{}), ...(x.pw?{password:x.pw}:{})});
       }catch(e){ throw new Error(e.message || "Không lưu được tài khoản."); }
       toast(isNew ? "Đã tạo tài khoản" : "Đã lưu tài khoản"); S.users = null; loadUsers();
     }});
 }
 function usersPanel(){
-  if(!(S.server && S.canEdit)) return "";
+  /* Danh sách hiện cho MỌI tài khoản đã đăng nhập (kể cả nhân viên) – không chỉ S.canEdit nữa. */
+  if(!(S.server && S.user)) return "";
   if(S.users == null){ loadUsers(); return `<section class="panel" style="margin-bottom:18px"><div class="panel-h"><h2>Tài khoản đăng nhập</h2></div><div class="empty">Đang tải…</div></section>`; }
-  return `<section class="panel" style="margin-bottom:18px"><div class="panel-h"><h2>Tài khoản đăng nhập</h2><button class="btn primary" data-act="adduser">+ Tài khoản</button></div>
+  return `<section class="panel" style="margin-bottom:18px"><div class="panel-h"><h2>Tài khoản đăng nhập</h2>${S.canEdit?'<button class="btn primary" data-act="adduser">+ Tài khoản</button>':""}</div>
     <div class="tbl-wrap"><table><thead><tr><th>Tên đăng nhập</th><th>Tên hiển thị</th><th>Gắn với nhân sự</th><th>Vai trò</th><th>Trạng thái</th></tr></thead><tbody>
-    ${S.users.map(u=>`<tr class="click" data-act="edituser" data-id="${u.id}" tabindex="0"><td class="cell-main">${esc(u.username)}</td><td>${esc(u.display_name)}</td><td>${esc(u.staff_name||"–")}</td>
-      <td>${isFullRole(u.role)?`<span class="pill info">${esc(ROLE_LABEL[u.role]||u.role)}</span>`:'<span class="pill mute">Nhân viên</span>'}</td><td>${u.active?'<span class="pill ok">Hoạt động</span>':'<span class="pill bad">Khoá</span>'}</td></tr>`).join("")}
+    ${S.users.map(u=>{
+      /* Trưởng phòng/phó phòng/admin (S.canEdit): sửa được tài khoản cấp ≤ mình (ROLE_RANK). Nhân viên:
+         không quản lý ai, chỉ mở được ĐÚNG dòng của chính mình (để tự đổi tên đăng nhập/hiển thị/mật
+         khẩu – xem userForm()). Máy chủ cũng chặn y hệt, đây chỉ ẩn thao tác cho khỏi bấm vào rồi bị từ
+         chối. */
+      const can = S.canEdit ? ROLE_RANK[u.role]<=ROLE_RANK[S.user.role] : u.id===S.user.id;
+      return `<tr ${can?`class="click" data-act="edituser" data-id="${u.id}" tabindex="0"`:""}><td class="cell-main">${esc(u.username)}</td><td>${esc(u.display_name)}</td><td>${esc(u.staff_name||"–")}</td>
+      <td>${isFullRole(u.role)?`<span class="pill info">${esc(ROLE_LABEL[u.role]||u.role)}</span>`:'<span class="pill mute">Nhân viên</span>'}</td><td>${u.active?'<span class="pill ok">Hoạt động</span>':'<span class="pill bad">Khoá</span>'}</td></tr>`;
+    }).join("")}
     </tbody></table></div><div class="panel-b small muted">Nhân viên cần được “gắn với nhân sự” để nhập theo tuần. Nhân viên chỉ sửa được dữ liệu tuần của chính mình và các dự án do mình tạo.</div></section>`;
 }
 document.getElementById("userBox").addEventListener("click", e => { const b = e.target.closest("[data-uact]"); if(!b) return; if(b.dataset.uact==="pw") passwordForm(); else logout(); });

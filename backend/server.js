@@ -57,6 +57,12 @@ if (JWT_SECRET.length < 32) {
  * Mọi tài khoản đã đăng nhập đều ĐỌC được tất cả.
  */
 const FULL_ROLES = new Set(["admin", "head", "deputy"]);
+/* Thứ bậc để kiểm soát việc QUẢN LÝ TÀI KHOẢN (không liên quan RULES/canWrite ở trên – 3 vai trò
+   admin/head/deputy vẫn toàn quyền ngang nhau với dữ liệu dự án/tuần...): một tài khoản chỉ xem/sửa
+   được tài khoản khác có cấp ≤ cấp của chính mình (admin > head > deputy > member). "admin" ẩn hẳn khỏi
+   Cài đặt với người xem cấp thấp hơn (xử lý riêng ở GET /api/users), còn head/deputy/member hiển thị đủ
+   cho nhau nhưng không sửa được tài khoản cấp cao hơn mình. */
+const ROLE_RANK = { admin: 4, head: 3, deputy: 2, member: 1 };
 const RULES = {
   config: "admin",          // config/staff (nhân sự), config/catalog (đầu việc chuẩn)
   projects: "own-project",  // projects/<mã dự án>  (thông tin dự án + đầu việc)
@@ -312,12 +318,13 @@ app.get("/api/audit", auth, adminOnly, A(async (req, res) => {
   res.json(rows);
 }));
 
-/* --- quản lý tài khoản (trưởng phòng/phó phòng) ---
-   Vai trò "admin" (tài khoản hệ thống) không TẠO được qua các route này — chỉ qua
-   `npm run user -- create` ở máy chủ. Tài khoản admin chỉ ẩn khỏi Cài đặt với người xem là
-   trưởng phòng/phó phòng (head/deputy) — người đang đăng nhập bằng chính tài khoản admin thì
-   vẫn thấy và sửa được đầy đủ (kể cả các tài khoản admin khác), xem canSeeAdmin bên dưới. */
-app.get("/api/users", auth, adminOnly, A(async (req, res) => {
+/* --- quản lý tài khoản ---
+   Danh sách (GET) mở cho MỌI tài khoản đã đăng nhập (kể cả nhân viên) – chỉ ẩn riêng tài khoản "admin"
+   (hệ thống) với người xem không phải admin. Tạo mới (POST) vẫn chỉ trưởng phòng/phó phòng/admin.
+   Sửa (PATCH): trưởng phòng/phó phòng/admin sửa được tài khoản cấp ≤ mình (ROLE_RANK); nhân viên chỉ
+   sửa được ĐÚNG tài khoản của chính mình, và chỉ 3 trường an toàn (tên đăng nhập/tên hiển thị/mật khẩu)
+   – không tự đổi được vai trò/trạng thái/nhân sự gắn (tránh tự nâng quyền hoặc đổi danh tính). */
+app.get("/api/users", auth, A(async (req, res) => {
   const rows = await store.listUsers();
   const visible = req.user.role === "admin" ? rows : rows.filter(u => u.role !== "admin");
   res.json(visible.map(publicUser));
@@ -326,20 +333,28 @@ app.post("/api/users", auth, adminOnly, A(async (req, res) => {
   const { username, password, display_name, staff_name, role } = req.body || {};
   if (!/^[A-Za-z0-9._-]{3,40}$/.test(String(username || ""))) return res.status(400).json({ error: "Tên đăng nhập 3–40 ký tự, chỉ gồm chữ không dấu, số, dấu . _ -" });
   if (String(password || "").length < 8) return res.status(400).json({ error: "Mật khẩu phải có ít nhất 8 ký tự" });
-  if (!["head", "deputy", "member"].includes(role)) return res.status(400).json({ error: "Vai trò không hợp lệ" });
+  // Không tạo được tài khoản cấp cao hơn chính mình (và "admin" luôn chỉ tạo được qua CLI, không qua đây)
+  if (!["head", "deputy", "member"].includes(role) || ROLE_RANK[role] > ROLE_RANK[req.user.role])
+    return res.status(400).json({ error: "Vai trò không hợp lệ" });
   if (await store.getUserByUsername(username)) return res.status(400).json({ error: "Tên đăng nhập đã tồn tại" });
   const id = await store.createUser({ username, pass_hash: bcrypt.hashSync(String(password), 10), display_name: String(display_name || username), staff_name: staff_name || null, role });
   audit(req.user, "user-create", username);
   res.json(publicUser(await store.getUserById(id)));
 }));
-app.patch("/api/users/:id", auth, adminOnly, A(async (req, res) => {
+app.patch("/api/users/:id", auth, A(async (req, res) => {
   const u = await store.getUserById(Number(req.params.id));
-  if (!u || (u.role === "admin" && req.user.role !== "admin")) return res.status(404).json({ error: "Không tìm thấy tài khoản" });
+  if (!u) return res.status(404).json({ error: "Không tìm thấy tài khoản" });
+  const isSelf = u.id === req.user.id;
+  // "Quản lý được" = trưởng phòng/phó phòng/admin sửa tài khoản cấp ≤ mình (bao hàm admin: chỉ chính
+  // admin mới đủ cấp sửa tài khoản admin khác). Nhân viên không quản lý được ai, kể cả chính mình theo
+  // nghĩa này — chỉ có nhánh "tự sửa" riêng (isSelf) bên dưới, giới hạn 3 trường an toàn.
+  const canManage = FULL_ROLES.has(req.user.role) && ROLE_RANK[u.role] <= ROLE_RANK[req.user.role];
+  if (!isSelf && !canManage) return res.status(403).json({ error: "Bạn không có quyền sửa tài khoản này" });
   const b = req.body || {};
-  const role = b.role ?? u.role, active = b.active === undefined ? u.active : (b.active ? 1 : 0);
-  // Chỉ tài khoản admin mới gán/giữ được role "admin" cho người khác; trưởng phòng/phó phòng không được.
-  const allowedRoles = req.user.role === "admin" ? ["admin", "head", "deputy", "member"] : ["head", "deputy", "member"];
-  if (!allowedRoles.includes(role)) return res.status(400).json({ error: "Vai trò không hợp lệ" });
+  const role = canManage ? (b.role ?? u.role) : u.role;
+  const active = canManage ? (b.active === undefined ? u.active : (b.active ? 1 : 0)) : u.active;
+  const staffName = canManage ? ((b.staff_name ?? u.staff_name) || null) : u.staff_name;
+  if (!(role in ROLE_RANK) || ROLE_RANK[role] > ROLE_RANK[req.user.role]) return res.status(400).json({ error: "Vai trò không hợp lệ" });
   if (FULL_ROLES.has(u.role) && (!FULL_ROLES.has(role) || !active) && (await store.countActiveAdmins()) <= 1)
     return res.status(400).json({ error: "Phải còn ít nhất một tài khoản trưởng phòng/phó phòng đang hoạt động" });
   const username = b.username === undefined ? u.username : String(b.username).trim();
@@ -355,7 +370,7 @@ app.patch("/api/users/:id", auth, adminOnly, A(async (req, res) => {
     hash = bcrypt.hashSync(String(b.password), 10); tv++;
   }
   if (!active && u.active) tv++;
-  await store.updateUser(u.id, { username, display_name: String(b.display_name ?? u.display_name), staff_name: (b.staff_name ?? u.staff_name) || null, role, active, pass_hash: hash, token_version: tv });
+  await store.updateUser(u.id, { username, display_name: String(b.display_name ?? u.display_name), staff_name: staffName, role, active, pass_hash: hash, token_version: tv });
   audit(req.user, "user-update", u.username);
   res.json(publicUser(await store.getUserById(u.id)));
 }));

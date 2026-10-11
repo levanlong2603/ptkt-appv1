@@ -7,6 +7,10 @@
    nhãn hiển thị ở đây vì không bao giờ xuất hiện trên giao diện (máy chủ đã lọc khỏi GET /api/users). */
 const FULL_ROLES = new Set(["admin","head","deputy"]);
 const isFullRole = r => FULL_ROLES.has(r);
+/* Thứ bậc quản lý tài khoản (khớp ROLE_RANK ở backend/server.js): không sửa được tài khoản/gán được vai
+   trò cao hơn cấp của chính mình. Không liên quan quyền ghi dữ liệu dự án/tuần (vẫn ngang nhau ở 3 vai
+   trò toàn quyền, xem FULL_ROLES) – chỉ áp dụng cho trang Cài đặt → Tài khoản đăng nhập. */
+const ROLE_RANK = {admin:4, head:3, deputy:2, member:1};
 /* "admin" chỉ dùng cho nhãn hiển thị CỦA CHÍNH phiên đăng nhập đó (vd trong userbox) – không xuất hiện
    trong danh sách chọn ở form tài khoản vì máy chủ đã ẩn hẳn khỏi GET /api/users. */
 const ROLE_LABEL = {admin:"Admin", head:"Trưởng phòng", deputy:"Phó phòng", member:"Nhân viên"};
