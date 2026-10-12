@@ -170,8 +170,8 @@ function entryForm(entry, person){
         /* Chỉ để ước lượng/tham khảo – không tham gia công thức tính tải nữa (xem hours bên dưới). */
         hint:v=>v?QM_HINT[v]:"Chọn mức ước lượng gần đúng nhất, chỉ để tham khảo."},
       {key:"hours", label:"Thời gian thực hiện (giờ thật)", type:"number", min:0.5, max:32, step:0.5, required:true, half:true,
-        hint:"Số giờ thật bạn đã làm cho đúng đầu việc này trong tuần, có thể nhập lẻ 0,5 giờ."},
-      {key:"pt", label:"Độ phức tạp (để trống = hệ số trung tính ×1)", type:"seg", options:[[null,"Mặc định"],...[1,2,3,4,5].map(n=>[n,String(n)])],
+        hint:"Số giờ dự kiến làm trong tuần cho đầu việc này, có thể nhập lẻ 0,5 giờ."},
+      {key:"pt", label:"Độ phức tạp", type:"seg", options:[[null,"Mặc định"],...[1,2,3,4,5].map(n=>[n,String(n)])],
         /* Nhân vào Thời gian thực hiện để ra tải – đồng thời vẫn đồng bộ Độ phức tạp vừa chọn về đúng đầu
            việc trong Kế hoạch dự án khi lưu (xem onSave bên dưới), để dùng chung cho ước lượng kế hoạch. */
         hint:(v,vals)=>{
