@@ -18,15 +18,19 @@
    base.css) – cột hẹp mà nhãn dài (vd "Người phụ trách") cần xuống dòng thay vì tràn/đẩy lệch cột khác */
 .rp-sec-xl thead th{background:#D7E8C7; color:#1A1A1A; font-weight:700; border-bottom:1px solid #B9D6A0; text-align:center; white-space:normal; vertical-align:middle}
 .rp-sec-xl tbody td:first-child{text-align:center}
-/* Kẻ ô đủ 4 cạnh kiểu lưới Excel (mặc định .tbl-wrap chỉ có viền ngang dưới mỗi dòng, không có viền dọc) */
-.rp-sec-xl th,.rp-sec-xl td{border-right:1px solid var(--line-2)}
+/* Kẻ ô đủ 4 cạnh kiểu lưới Excel (mặc định .tbl-wrap chỉ có viền ngang dưới mỗi dòng, không có viền dọc).
+   overflow:hidden trên từng ô: nội dung không word-wrap (pill trạng thái) vẫn có thể rộng hơn vài px so
+   với cột ở màn hình hẹp dù đã có min-width – clip gọn trong đúng ô thay vì tràn đè sang cột bên cạnh. */
+.rp-sec-xl th,.rp-sec-xl td{border-right:1px solid var(--line-2); overflow:hidden}
 .rp-sec-xl th:last-child,.rp-sec-xl td:last-child{border-right:0}
 /* .rp-sec-grn ("Danh sách đầu việc" ở Báo cáo dự án): cùng kiểu không thanh tiêu đề + viền lưới như
    .rp-sec-xl ở trên, chỉ khác màu đầu cột (xanh lá nhạt kiểu mẫu Excel của phòng thay vì vàng) */
 .rp-sec-grn .tbl-wrap{border-top:1px solid var(--line); border-radius:8px; overflow:auto}
-.rp-sec-grn table{min-width:960px}
+/* 1200px: đủ chỗ cho cột hẹp nhất (Deadline theo HĐ/Trạng thái thực hiện, không tự xuống dòng) không bị
+   overflow:hidden (bên dưới) cắt mất chữ – 960px trước đó vẫn còn cắt "20/10/2026" thành "20/10/202". */
+.rp-sec-grn table{min-width:1200px}
 .rp-sec-grn thead th{background:#D7E8C7; color:#1A1A1A; font-weight:700; border-bottom:1px solid #B9D6A0; text-align:center; white-space:normal; vertical-align:middle}
-.rp-sec-grn th,.rp-sec-grn td{border-right:1px solid var(--line-2)}
+.rp-sec-grn th,.rp-sec-grn td{border-right:1px solid var(--line-2); overflow:hidden}
 .rp-sec-grn th:last-child,.rp-sec-grn td:last-child{border-right:0}
 /* Toàn trang Báo cáo: cột số liệu căn giữa (không căn phải như mặc định .num ở base.css) */
 .rp-sec td.num,.rp-sec th.num{text-align:center}

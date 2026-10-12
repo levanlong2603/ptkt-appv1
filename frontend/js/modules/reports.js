@@ -531,10 +531,16 @@ function rpWeekRowsHtml(report){
      (dùng để chụp #rp-print khi xuất PDF) không hiểu được computed style của color-mix() (vẫn giữ nguyên
      dạng hàm khi đọc qua getComputedStyle, không phải màu rgb cuối cùng) nên sẽ báo lỗi xuất PDF nếu dùng. */
   const td = (content, span, tone) => span===0 ? "" : `<td class="cell-main" rowspan="${span}" style="vertical-align:top${tone?`; background:var(--${tone}-soft)`:""}">${content}</td>`;
+  /* Bề rộng cột: Deadline theo HĐ/Trạng thái thực hiện không tự xuống dòng (ngày tháng, pill) nên cần đủ
+     px tối thiểu mới không bị cắt chữ (overflow:hidden ở reports.css) – tăng % 2 cột này + bớt ở Chi tiết
+     thực hiện/Dự án (vốn luôn xuống dòng bình thường, hẹp hơn chút không sao). Nhánh !showPerson trước đây
+     cộng lại chỉ ra 94% (thiếu "Người thực hiện" 9% nhưng Dự án chỉ bù lên 16%, không bù đủ) khiến bảng
+     chừa khoảng trắng thừa bên phải – giờ cộng đủ 100% ở cả 2 nhánh. */
+  const W = report.showPerson ? [10,12,9,12,16,9,10,11,11] : [15,10,13,18,10,11,12,11];
   return `<div class="rp-sec rp-sec-grn">
     <div class="tbl-wrap"><table style="table-layout:fixed"><thead><tr>
-      ${report.showPerson?'<th style="width:9%">Người thực hiện</th>':""}<th style="width:${report.showPerson?13:16}%">Dự án</th><th style="width:10%">Hạng mục</th><th style="width:13%">Đầu việc</th>
-      <th style="width:18%">Chi tiết thực hiện</th><th style="width:9%">Deadline theo HĐ</th><th style="width:10%">Trạng thái thực hiện</th><th style="width:9%">Vướng mắc</th><th style="width:9%">Hướng giải quyết</th>
+      ${report.showPerson?`<th style="width:${W[0]}%">Người thực hiện</th>`:""}<th style="width:${report.showPerson?W[1]:W[0]}%">Dự án</th><th style="width:${report.showPerson?W[2]:W[1]}%">Hạng mục</th><th style="width:${report.showPerson?W[3]:W[2]}%">Đầu việc</th>
+      <th style="width:${report.showPerson?W[4]:W[3]}%">Chi tiết thực hiện</th><th style="width:${report.showPerson?W[5]:W[4]}%">Deadline theo HĐ</th><th style="width:${report.showPerson?W[6]:W[5]}%">Trạng thái thực hiện</th><th style="width:${report.showPerson?W[7]:W[6]}%">Vướng mắc</th><th style="width:${report.showPerson?W[8]:W[7]}%">Hướng giải quyết</th>
     </tr></thead>
     <tbody>${rows.map((r,i) => {
       const spPerson = report.showPerson ? rpSpan(rows, i, ["person"]) : null;
