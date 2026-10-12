@@ -24,8 +24,15 @@ function rpEnsurePdf(){ return rpPdfReady || (rpPdfReady = rpLoadScript("https:/
    các dự án" – không có bảng tải nhân sự). Không còn "mẫu báo cáo" lồng trong tab nữa – mỗi tab chỉ có
    đúng 1 nội dung. */
 function rpInit(){
+  /* Mặc định ô "Nhân sự" ở Báo cáo tuần tự chọn sẵn đúng người đang xem, đỡ phải tự chọn lại mỗi lần vào:
+     trưởng phòng/phó phòng/admin đang chọn 1 người cụ thể ở "Tôi là" (không phải "— Tất cả —") thì theo
+     đúng người đó (đồng bộ tiếp khi đổi "Tôi là" – xem events.js); nhân viên có gắn nhân sự thì theo đúng
+     tên mình. Vẫn đổi lại "— Tất cả nhân sự —" được bình thường nếu muốn xem người khác. */
+  const defStaff = S.canEdit
+    ? ((S.me && S.me!=="__all__") ? S.me : "__all__")
+    : ((S.user && S.user.staff_name) ? S.user.staff_name : "__all__");
   if(!S.rp) S.rp = {tab:"week", busy:"", exportOpen:false,
-    wkType:"", wkStaff:"__all__", wkView:"input",
+    wkType:"", wkStaff:defStaff, wkView:"input",
     pjProject:"", pjPtype:"Tất cả", pjKind:"week", pjAnchor:S.week,
     ovKind:"week", ovAnchor:S.week, ovPtype:"Tất cả"};
 }
@@ -46,7 +53,46 @@ function rpIssueAt(pid, tid, w){
   return note;
 }
 /* ----- xây dữ liệu báo cáo: dùng chung cho cả xem trước lẫn xuất file, để luôn khớp nhau ----- */
+/* "Nhật ký tuần" dùng nguồn dữ liệu khác hẳn (S.worklogs, không phải M.entries) nên tách riêng khỏi
+   rpBuildWeek() – gọi từ đó khi S.rp.wkView==="journal". Bảng chéo Nhân sự × Ngày giống hệt bảng xem
+   trước (rpWeekJournalHtml()), xuất được cả Excel/PDF giờ đã cho phép (trước đây ẩn hẳn nút Xuất báo cáo
+   ở chế độ này vì chưa có sheet nào). */
+function rpBuildWeekJournal(){
+  const w = S.week, staffSel = S.rp.wkStaff;
+  const byPerson = new Map();
+  for(const doc of (S.worklogs||[])){
+    if(doc.week!==w) continue;
+    if(staffSel!=="__all__" && doc.person!==staffSel) continue;
+    const m = new Map((doc.days||[]).map(d=>[d.date, (d.text||"").trim()]));
+    if([...m.values()].some(Boolean)) byPerson.set(doc.person, m);
+  }
+  const names = [...byPerson.keys()].sort((a,b)=>a.localeCompare(b,"vi"));
+  const satDate = addDays(w,5), sunDate = addDays(w,6);
+  const showSat = names.some(n=>byPerson.get(n).get(satDate));
+  const showSun = names.some(n=>byPerson.get(n).get(sunDate));
+  const dates = [0,1,2,3,4].map(i=>addDays(w,i));
+  if(showSat) dates.push(satDate);
+  if(showSun) dates.push(sunDate);
+  const dateCols = dates.map(d=>`${WL_DAY_LABEL[parse(d).getDay()]} ${dm(d)}`);
+  const cols = ["Nhân sự", ...dateCols];
+  const rows = names.map(n => {
+    const m = byPerson.get(n);
+    const o = {"Nhân sự": n};
+    dates.forEach((d,i) => { o[dateCols[i]] = m.get(d) || ""; });
+    return o;
+  });
+  const staffLabel = staffSel==="__all__" ? "Tất cả nhân sự" : staffSel;
+  const titleLine = "Nhật ký tuần";
+  const period = `Tuần ${isoWeek(w)} (${dm(w)} – ${dmy(addDays(w,6))})`;
+  return {
+    title:titleLine, scope:staffLabel, period,
+    filename:slug(`${titleLine} – ${period}`),
+    showPerson:true, rows:[],
+    sheets:[{name:"Nhật ký", cols:cols.map(h=>({header:h,key:h})), rows}]
+  };
+}
 function rpBuildWeek(){
+  if(S.rp.wkView==="journal") return rpBuildWeekJournal();
   const w = S.week, type = S.rp.wkType, staff = S.rp.wkStaff;
   const typeLabel = type ? type : "Tất cả loại";
   const staffLabel = staff==="__all__" ? "Tất cả nhân sự" : staff;
@@ -524,10 +570,10 @@ function rpWeekToolbar(report){
 }
 function rpWeekContent(report){
   const view = S.rp.wkView||"input";
-  /* "Nhật ký tuần" chỉ xem trên màn hình (bảng chéo nhân sự × ngày từ S.worklogs) – không có trong
-     report.sheets (rpBuildWeek() không đụng tới worklog, xem worklog.js) nên không xuất Excel/PDF được,
-     ẩn nút Xuất báo cáo khi đang ở chế độ này. */
-  const canExport = view!=="journal" && report.sheets.some(sh=>sh.rows.length) && !S.rp.busy;
+  /* "Nhật ký tuần" giờ xuất được Excel/PDF như 2 chế độ còn lại – report (rpBuildWeekJournal()) có sẵn
+     sheet "Nhật ký" (bảng chéo nhân sự × ngày, từ S.worklogs) đúng kiểu rpExportExcel()/rpExportPdf() đã
+     hỗ trợ sẵn, không cần sửa gì thêm ở 2 hàm đó. */
+  const canExport = report.sheets.some(sh=>sh.rows.length) && !S.rp.busy;
   let h = `<section class="panel" style="margin-bottom:14px; overflow:visible"><div class="panel-b" style="display:flex; align-items:center; gap:14px">
     <div style="display:flex; align-items:center; gap:14px; flex:1; min-width:0; overflow-x:auto; padding:2px">
       <div class="seg-in" role="group" aria-label="Nội dung xem" style="flex:none">

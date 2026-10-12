@@ -41,7 +41,13 @@ main.addEventListener("click", e => {
   else if(a==="imp-json") document.getElementById("impFile").click();
 });
 main.addEventListener("keydown", e => { if((e.key==="Enter"||e.key===" ") && e.target.matches("[data-act][tabindex]")){ e.preventDefault(); e.target.click(); } });
-main.addEventListener("change", e => { if(e.target.id==="impFile" && e.target.files[0]){ importBackup(e.target.files[0]); e.target.value=""; return; } if(e.target.dataset.act==="pickme"){ S.me=e.target.value; store("me",S.me); render(); } else if(e.target.dataset.act==="scopemode"){ S.scopeMode=e.target.value; render(); } });
+main.addEventListener("change", e => { if(e.target.id==="impFile" && e.target.files[0]){ importBackup(e.target.files[0]); e.target.value=""; return; } if(e.target.dataset.act==="pickme"){ S.me=e.target.value; store("me",S.me);
+    /* Đổi "Tôi là" thì đồng bộ luôn ô "Nhân sự" ở Báo cáo tuần (nếu đã từng mở Báo cáo trong phiên này) –
+       giống đúng cách Dashboard/Tổng quan dự án/Tải tuần tự thu hẹp theo "Tôi là" (effectiveSimAs()), tránh
+       phải tự chọn lại 2 nơi. Chỉ set khi S.rp đã có (rpInit() đã chạy) – reports.js nạp sau nên không gọi
+       rpInit() thẳng ở đây được. */
+    if(S.rp) S.rp.wkStaff = (S.me && S.me!=="__all__") ? S.me : "__all__";
+    render(); } else if(e.target.dataset.act==="scopemode"){ S.scopeMode=e.target.value; render(); } });
 main.addEventListener("input", e => {
   const a = e.target.dataset.act;
   if(a==="pq"){ S.planQuery=e.target.value; const pos=e.target.selectionStart; render(); const el=main.querySelector('[data-act="pq"]'); if(el){ el.focus(); el.setSelectionRange(pos,pos); } }
