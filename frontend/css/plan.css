@@ -7,3 +7,30 @@
 .grp-row:hover td{background:var(--hover)}
 .grp-row.lvl1 td{padding-top:6px; padding-bottom:6px}
 .grp-row.lvl1 b{font-weight:600; color:var(--ink-2); font-size:12.5px}
+/* Bảng đầu việc ở Kế hoạch dự án (planDetail(), plan.js): khoá chiều cao + cuộn riêng cả ngang lẫn dọc
+   (không đẩy giãn cả trang), tiêu đề cột luôn dính nhờ th{position:sticky; top:0} (base.css) – sticky bám
+   theo đúng ancestor cuộn gần nhất, ở đây là .plan-tbl-scroll thay vì cuộn trang như mọi bảng khác. */
+/* −/%/+ gộp chung 1 khung bo tròn, giống kiểu .ex-wk (dashboard.css) – không còn 3 ô rời + nút "100%" */
+.plan-zoom{display:flex; align-items:center; gap:2px; background:var(--surface); border:1px solid var(--line); border-radius:9px; padding:3px; flex:none}
+.plan-zoom button{all:unset; cursor:pointer; padding:5px 9px; border-radius:6px; font-size:15px; font-weight:700; line-height:1; color:var(--ink)}
+.plan-zoom button:hover{background:var(--hover)}
+.plan-zoom-lb{min-width:34px; text-align:center; font-size:12.5px; font-weight:600; color:var(--ink-2)}
+/* height cố định (không phải max-height): dự án ít đầu việc thì bảng ngắn hơn 520px, thanh cuộn ngang khi
+   đó nằm ngay sau dòng cuối cùng thay vì ở mép dưới khung – rất khó tìm/dò ra. height cố định giữ khung
+   luôn đúng 520px, thanh cuộn ngang (nếu bảng rộng hơn khung) luôn nằm cố định ở mép dưới khung đó. */
+.plan-tbl-scroll{height:520px; overflow:auto; border-radius:10px}
+/* .tbl-wrap bên trong (.rp-sec-grn, reports.css) có sẵn overflow:auto riêng để cuộn ngang – nếu giữ
+   nguyên, nó sẽ trở thành "ancestor cuộn gần nhất" của th{position:sticky} VÀ là nơi thật sự xử lý cuộn
+   ngang (cao theo đúng nội dung, không cố định – đúng lỗi "thanh cuộn nằm cuối bảng"), thay vì
+   .plan-tbl-scroll đang cuộn cả 2 chiều ở khung ngoài cố định. Phải tắt hẳn overflow ở khung trong thì
+   .plan-tbl-scroll mới thật sự nhận trách nhiệm cuộn. .rp-sec-grn .tbl-wrap (reports.css) nạp SAU file
+   này trong index.html nên cùng độ ưu tiên (2 class) sẽ đè ngược lại – phải tăng độ ưu tiên lên 3 class
+   (thêm .plan-tbl-scroll lặp hoặc .pdetail) để chắc chắn thắng bất kể thứ tự nạp CSS. */
+.pdetail .plan-tbl-scroll .tbl-wrap{overflow:visible}
+/* 11 cột (thêm Thực hiện/Ưu tiên/Cảnh báo vào cuối so với bảng Báo cáo dự án gốc 8 cột) cần rộng hơn
+   min-width chung của .rp-sec-grn table (1200px, đủ cho 8 cột) – ghi đè riêng, không ảnh hưởng bảng ở
+   Báo cáo dự án (vẫn dùng .rp-sec-grn table mặc định, không có class .plan-report-tbl).
+   ".rp-sec-grn table" (reports.css) có 1 lớp + 1 thẻ = độ ưu tiên CAO HƠN ".plan-report-tbl" (chỉ 1 lớp),
+   nên dù nạp trước hay sau vẫn luôn thua – phải viết thành 2 lớp lồng nhau (.plan-tbl-scroll
+   .plan-report-tbl) để độ ưu tiên cao hơn hẳn, thắng chắc chắn bất kể thứ tự nạp CSS. */
+.plan-tbl-scroll .plan-report-tbl{min-width:1500px}

@@ -60,18 +60,73 @@ function planContent(){
   if(!body) body = `<section class="panel"><div class="empty"><b>${ps.length?"Không có dự án nào trong bộ lọc này":"Chưa có dự án"}</b>${!ps.length ? (S.canEdit?`“${esc(S.me)}” chưa được gán làm TM hoặc SE của dự án nào. Đổi “Tôi là” thành “— Tất cả —” để xem hết, hoặc bấm “+ Dự án mới” để tạo.`:"Bạn chưa được gán làm TM hoặc SE của dự án nào. Xem toàn bộ dự án (chỉ xem) ở tab \"Tổng quan\".") : ""}</div></section>`;
   return h + body;
 }
-/* Bảng đầu việc đầy đủ, xổ ra ngay dưới dòng dự án khi bấm vào (giống cách mở rộng ở Tổng quan dự án) */
+/* Bảng đầu việc đầy đủ, xổ ra ngay dưới dòng dự án khi bấm vào (giống cách mở rộng ở Tổng quan dự án).
+   Khung bảng khoá chiều cao + cuộn riêng cả ngang lẫn dọc (giống bảng Excel/Báo cáo đóng băng tiêu đề),
+   không đẩy giãn cả trang nữa; kèm nút thu/phóng (S.planZoom, %) qua CSS zoom – phóng to để đọc dễ hơn ở
+   màn hình lớn, thu nhỏ để nhìn được nhiều cột hơn mà không phải cuộn ngang liên tục. */
 function planDetail(p){
+  const zoom = S.planZoom || 100;
   let out = `<div class="pdetail">
     <div class="row2" style="margin:12px 0 14px"><div><div class="small muted" style="margin-bottom:4px">Mốc hợp đồng</div><div class="note">${esc(p.milestones||"–")}</div></div>
       <div><div class="small muted" style="margin-bottom:4px">Tình hình / vướng mắc chung</div><div class="note">${esc(p.situation||"–")}</div></div></div>
-    ${canManageProject(p)?`<div class="toolbar" style="margin-bottom:12px">${canDeleteProject(p)?`<button class="btn danger" data-act="delp" data-id="${esc(p.id)}">Xoá dự án</button>`:""}<button class="btn" data-act="editp" data-id="${esc(p.id)}">Sửa thông tin</button><button class="btn primary" data-act="addtask" data-id="${esc(p.id)}">+ Đầu việc</button></div>`:""}`;
-  const rows = planTreeRows(p, {cols:9});
-  out += `<div class="tbl-wrap panel"><table style="table-layout:fixed"><thead><tr><th style="width:22%">Đầu việc</th><th style="width:10%">Phụ trách</th><th style="width:10%">Thực hiện</th><th style="width:9%">Deadline HĐ</th><th style="width:6%; text-align:center">WL</th><th style="width:7%; text-align:center">Ưu tiên</th><th style="width:11%">Trạng thái</th><th style="width:14%">Cập nhật mới nhất</th><th style="width:11%">Cảnh báo</th></tr></thead>
-    <tbody>${rows||`<tr><td colspan="9"><div class="empty">Dự án chưa có đầu việc.${canManageProject(p)?" Bấm “+ Đầu việc”.":""}</div></td></tr>`}</tbody></table></div>
+    <div class="toolbar" style="margin-bottom:12px; justify-content:space-between">
+      <div class="toolbar" style="gap:8px">${canManageProject(p)?`${canDeleteProject(p)?`<button class="btn danger" data-act="delp" data-id="${esc(p.id)}">Xoá dự án</button>`:""}<button class="btn" data-act="editp" data-id="${esc(p.id)}">Sửa thông tin</button><button class="btn primary" data-act="addtask" data-id="${esc(p.id)}">+ Đầu việc</button>`:""}</div>
+      <div class="plan-zoom">
+        <button type="button" data-act="planzoom" data-d="-10" title="Thu nhỏ" aria-label="Thu nhỏ">−</button>
+        <span class="plan-zoom-lb">${zoom}%</span>
+        <button type="button" data-act="planzoom" data-d="10" title="Phóng to" aria-label="Phóng to">+</button>
+      </div>
+    </div>`;
+  const rows = planReportRows(p);
+  out += `<div class="plan-tbl-scroll"><div class="rp-sec rp-sec-grn" style="zoom:${zoom}%"><div class="tbl-wrap"><table class="plan-report-tbl" style="table-layout:fixed">
+      <thead><tr><th style="width:3%">STT</th><th style="width:9%">Hạng mục</th><th style="width:11%">Đầu việc</th><th style="width:9%">Thực hiện</th><th style="width:14%">Chi tiết thực hiện</th>
+        <th style="width:8%">Deadline theo HĐ</th><th style="width:5%; text-align:center">Ưu tiên</th><th style="width:9%">Trạng thái thực hiện</th><th style="width:11%">Vướng mắc</th><th style="width:13%">Hướng giải quyết</th>
+        <th style="width:8%">Cảnh báo</th></tr></thead>
+      <tbody>${rows||`<tr><td colspan="11"><div class="empty">Dự án chưa có đầu việc.${canManageProject(p)?" Bấm “+ Đầu việc”.":""}</div></td></tr>`}</tbody>
+    </table></div></div></div>
     <p class="small muted" style="margin:8px 0 0">Bấm vào một đầu việc để xem chi tiết${S.canEdit?", sửa hoặc đánh giá khi hoàn thành":""}.</p></div>`;
   return out;
 }
+/* Bảng đầu việc đúng khuôn Báo cáo dự án (reports.js: rpProjectContent()) – STT/Hạng mục gộp ô theo nhóm,
+   luôn hiện phẳng hết (không gấp/mở theo nhánh như planTreeRows() nữa, hợp với khung cuộn cố định ở trên).
+   "Vướng mắc" = t.lastNote (ghi chú người làm ở lượt nhập tuần gần nhất); "Hướng giải quyết" = t.note (ghi
+   chú của trưởng phòng) – đúng 2 nguồn dữ liệu CLAUDE.md đã quy định, không lẫn nhau. Mỗi dòng vẫn
+   data-act="task" để bấm mở form sửa/đánh giá như trước, không đổi hành vi, chỉ đổi cách trình bày cột. */
+function planReportRows(p){
+  const order = new Map(p._phases.map((ph,i)=>[ph.code,i]));
+  /* t.phase (model.js, phaseOf(t.dv)) là MÃ hạng mục ("01","02"...), không phải tên hiển thị – tra lại
+     đúng tên qua p._phases (giống cách reports.js/rpBuildWeek() đang làm), không hiện thẳng mã. */
+  const nameOf = new Map(p._phases.map(ph=>[ph.code, ph.name]));
+  const tasks = [...p._tasks].sort((a,b)=>(order.get(a.phase)??999)-(order.get(b.phase)??999));
+  let out = "", i = 0, stt = 0;
+  while(i<tasks.length){
+    const phase = tasks[i].phase;
+    let span = 1; while(i+span<tasks.length && tasks[i+span].phase===phase) span++;
+    stt++;
+    const phaseName = nameOf.get(phase) || phase || "Khác";
+    for(let j=0;j<span;j++){
+      const t = tasks[i+j], idle = t.status==="Chưa bắt đầu";
+      out += `<tr class="click${idle?" tr-idle":""}" data-act="task" data-id="${esc(t.id)}" tabindex="0" title="${esc(t.dv)}">
+        ${j===0?`<td class="small muted" rowspan="${span}" style="vertical-align:top; text-align:center">${stt}</td><td class="cell-main" rowspan="${span}" style="vertical-align:top">${esc(phaseName)}</td>`:""}
+        <td class="cell-main" style="vertical-align:top">${esc(planShortName(t.dv))}</td>
+        <td class="small" style="vertical-align:top">${t.doers.length?t.doers.map(esc).join(", "):"–"}</td>
+        <td class="small" style="white-space:pre-wrap; vertical-align:top">${t.detail?esc(t.detail):'<span class="muted">–</span>'}</td>
+        <td style="vertical-align:top">${t.deadline?dmy(t.deadline):"–"}</td>
+        <td style="vertical-align:top; text-align:center">${t.pr?`<span class="pill ${t.pr==="P1"?"bad":"mute"}">${esc(t.pr)}</span>`:"–"}</td>
+        <td style="vertical-align:top">${stPill(t.status)}</td>
+        <td class="small" style="white-space:pre-wrap; vertical-align:top">${t.lastNote?esc(t.lastNote):'<span class="muted">–</span>'}</td>
+        <td class="small" style="white-space:pre-wrap; vertical-align:top">${t.note?esc(t.note):'<span class="muted">–</span>'}</td>
+        <td style="vertical-align:top">${warnPills(t.warns)}${t.ontime===true?' <span class="pill ok">Đúng hạn</span>':t.ontime===false?' <span class="pill bad">Trễ hạn</span>':""}${t.status==="Hoàn thành"&&!(t.eval&&t.eval.dat)&&S.canEdit?' <span class="pill info">Chờ đánh giá</span>':""}</td></tr>`;
+    }
+    i += span;
+  }
+  return out;
+}
+/* Thu/phóng bảng đầu việc: bước 10%, giới hạn 60–150% – data-d="0" (nút "100%") luôn đưa thẳng về mặc định. */
+ACTIONS["planzoom"] = el => {
+  S.planZoom = Math.min(150, Math.max(60, (S.planZoom||100)+(+el.dataset.d)));
+  render();
+};
 /* ----- Cây đầu việc: hạng mục (theo mã đầu việc) → nhánh con (tuỳ chọn) → đầu việc ----- */
 /* Trạng thái gấp/mở chỉ lưu trong bộ nhớ trang */
 /* Mặc định đóng hết; bấm dòng để mở, trạng thái được nhớ trong phiên */
