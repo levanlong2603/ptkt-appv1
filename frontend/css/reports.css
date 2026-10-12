@@ -9,7 +9,11 @@
    các .rp-sec khác (đã bỏ theo yêu cầu), nên bảng cần viền đủ 4 cạnh + bo đủ 4 góc thay vì chỉ bo dưới.
    Đầu cột đồng bộ màu xanh lá nhạt giống bảng "Danh sách đầu việc" ở Báo cáo dự án (.rp-sec-grn bên dưới),
    không còn tô vàng riêng nữa. */
-.rp-sec-xl .tbl-wrap{border-top:1px solid var(--line); border-radius:8px; overflow:hidden}
+/* overflow:auto (không phải hidden) + min-width trên <table>: màn hình hẹp/zoom cao trước đây ép
+   table-layout:fixed co cột tới mức chữ vỡ từng ký tự, pill trạng thái (không word-wrap) tràn đè lên cột
+   bên cạnh. Giờ bảng giữ bề rộng tối thiểu hợp lý, hẹp hơn thì cuộn ngang thay vì co vỡ chữ. */
+.rp-sec-xl .tbl-wrap{border-top:1px solid var(--line); border-radius:8px; overflow:auto}
+.rp-sec-xl table{min-width:880px}
 /* white-space:normal + text-align:center để ghi đè mặc định (th{white-space:nowrap; text-align:left} ở
    base.css) – cột hẹp mà nhãn dài (vd "Người phụ trách") cần xuống dòng thay vì tràn/đẩy lệch cột khác */
 .rp-sec-xl thead th{background:#D7E8C7; color:#1A1A1A; font-weight:700; border-bottom:1px solid #B9D6A0; text-align:center; white-space:normal; vertical-align:middle}
@@ -19,7 +23,8 @@
 .rp-sec-xl th:last-child,.rp-sec-xl td:last-child{border-right:0}
 /* .rp-sec-grn ("Danh sách đầu việc" ở Báo cáo dự án): cùng kiểu không thanh tiêu đề + viền lưới như
    .rp-sec-xl ở trên, chỉ khác màu đầu cột (xanh lá nhạt kiểu mẫu Excel của phòng thay vì vàng) */
-.rp-sec-grn .tbl-wrap{border-top:1px solid var(--line); border-radius:8px; overflow:hidden}
+.rp-sec-grn .tbl-wrap{border-top:1px solid var(--line); border-radius:8px; overflow:auto}
+.rp-sec-grn table{min-width:960px}
 .rp-sec-grn thead th{background:#D7E8C7; color:#1A1A1A; font-weight:700; border-bottom:1px solid #B9D6A0; text-align:center; white-space:normal; vertical-align:middle}
 .rp-sec-grn th,.rp-sec-grn td{border-right:1px solid var(--line-2)}
 .rp-sec-grn th:last-child,.rp-sec-grn td:last-child{border-right:0}
