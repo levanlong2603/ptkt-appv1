@@ -5,10 +5,24 @@
    Xoá cả dự án thì chặt hơn: chỉ người tạo hoặc trưởng phòng, xem canDeleteProject bên dưới. */
 function canManageProject(p){ return !!p && (S.canEdit || (!!S.user && (p.created_by === S.user.username || projectAssigned(p, S.user.staff_name)))); }
 function canDeleteProject(p){ return !!p && (S.canEdit || (!!S.user && p.created_by === S.user.username)); }
-function viewPlan(){
+/* Kế hoạch dự án giờ là 1 tab bên trong màn "Dự án" (gộp chung với Tổng quan, xem project-overview.js:
+   viewProject()) thay vì màn riêng – tách thanh công cụ (planToolbar, đặt lên hàng tiêu đề "Dự án" chung)
+   khỏi phần nội dung (planContent, đặt dưới hàng tab), đúng kiểu đã làm cho Báo cáo (reports.js). */
+function planToolbar(){
+  /* Trang này tự lọc theo "Tôi là" riêng (S.me đọc thẳng ở planContent(), không qua effectiveSimAs()),
+     nên ô kỳ và dropdown Cá nhân/Tổng thể ở đây CHƯA có tác dụng lọc gì, chỉ thêm cho đồng bộ giao diện
+     (đã xác nhận với người dùng), dùng chung S.week/S.period/periodInfo()/exnav/exper/exrefresh với
+     Dashboard/tab Tổng quan nên đổi kỳ ở đâu cũng khớp nơi khác. */
+  const kind = S.period || "week", per = periodInfo(S.week, kind);
+  return `<div class="ex-wk"><button data-act="exnav" data-d="-1" aria-label="Kỳ trước">‹</button><div class="lb">${esc(per.label)}</div><button data-act="exnav" data-d="1" aria-label="Kỳ sau">›</button></div>
+    <div class="ex-seg" role="group" aria-label="Kỳ báo cáo">${[["week","Tuần"],["month","Tháng"],["quarter","Quý"]].map(([k,l])=>`<button data-act="exper" data-k="${k}" aria-pressed="${kind===k}">${l}</button>`).join("")}</div>
+    ${scopeToggleHtml(true)}
+    <button class="btn icon" data-act="exrefresh" title="Làm mới" aria-label="Làm mới">${ICONS.refresh}</button>`;
+}
+function planContent(){
   /* Góc nhìn theo "Tôi là": chọn một người (kể cả khi tài khoản là trưởng phòng) thì chỉ thấy dự án
      người đó là TM (phụ trách) hoặc SE. Chọn "Tất cả" (chỉ trưởng phòng chọn được) hoặc chưa gắn với
-     ai thì thấy mọi dự án. Muốn xem toàn bộ dự án của phòng mà không đổi "Tôi là" thì vào Tổng quan dự án. */
+     ai thì thấy mọi dự án. Muốn xem toàn bộ dự án của phòng mà không đổi "Tôi là" thì sang tab Tổng quan. */
   const ps = (!S.me || S.me==="__all__") ? M.projects : M.projects.filter(p=>projectAssigned(p, S.me));
   const filt = S.typeFilter || "Tất cả";
   const q = S.planQuery.toLowerCase();
@@ -22,20 +36,7 @@ function viewPlan(){
     S.planAutoOpened[filt] = true;
   }
   const chips = `<div class="chips" role="group" aria-label="Lọc dự án">${PLAN_FILTERS.map(f=>`<button class="chip-btn" data-act="tf" data-t="${esc(f.key)}" aria-pressed="${filt===f.key}">${esc(f.label)}</button>`).join("")}</div>`;
-  /* Thanh điều khiển giống hệt Tổng quan dự án (ô kỳ + Tuần/Tháng/Quý + Tổng thể/Cá nhân + làm mới) –
-     trang này tự lọc theo "Tôi là" riêng (S.me đọc thẳng ở trên, không qua effectiveSimAs()), nên ô kỳ và
-     dropdown Cá nhân/Tổng thể ở đây CHƯA có tác dụng lọc gì, chỉ thêm cho đồng bộ giao diện (đã xác nhận
-     với người dùng), dùng chung S.week/S.period/periodInfo()/exnav/exper/exrefresh với Dashboard/Tổng
-     quan dự án nên đổi kỳ ở trang nào cũng khớp trang kia. */
-  const kind = S.period || "week", per = periodInfo(S.week, kind);
-  let h = `<div class="head"><div><h1>Kế hoạch dự án</h1></div>
-    <div class="ex-ctl">
-      <div class="ex-wk"><button data-act="exnav" data-d="-1" aria-label="Kỳ trước">‹</button><div class="lb">${esc(per.label)}</div><button data-act="exnav" data-d="1" aria-label="Kỳ sau">›</button></div>
-      <div class="ex-seg" role="group" aria-label="Kỳ báo cáo">${[["week","Tuần"],["month","Tháng"],["quarter","Quý"]].map(([k,l])=>`<button data-act="exper" data-k="${k}" aria-pressed="${kind===k}">${l}</button>`).join("")}</div>
-      ${scopeToggleHtml(true)}
-      <button class="btn icon" data-act="exrefresh" title="Làm mới" aria-label="Làm mới">${ICONS.refresh}</button>
-    </div></div>`;
-  h += `<div class="head-ctl" style="margin-bottom:16px">${chips}
+  let h = `<div class="head-ctl" style="margin-bottom:16px">${chips}
       <input class="inp" type="search" placeholder="Tìm dự án" style="width:180px" data-act="pq" value="${esc(S.planQuery)}" aria-label="Tìm dự án">
       ${S.canEdit?'<button class="btn primary" data-act="newp">+ Dự án mới</button>':""}</div>`;
   let body = "";
@@ -56,7 +57,7 @@ function viewPlan(){
     }
     body += `</section>`;
   }
-  if(!body) body = `<section class="panel"><div class="empty"><b>${ps.length?"Không có dự án nào trong bộ lọc này":"Chưa có dự án"}</b>${!ps.length ? (S.canEdit?`“${esc(S.me)}” chưa được gán làm TM hoặc SE của dự án nào. Đổi “Tôi là” thành “— Tất cả —” để xem hết, hoặc bấm “+ Dự án mới” để tạo.`:"Bạn chưa được gán làm TM hoặc SE của dự án nào. Xem toàn bộ dự án (chỉ xem) ở mục Tổng quan dự án.") : ""}</div></section>`;
+  if(!body) body = `<section class="panel"><div class="empty"><b>${ps.length?"Không có dự án nào trong bộ lọc này":"Chưa có dự án"}</b>${!ps.length ? (S.canEdit?`“${esc(S.me)}” chưa được gán làm TM hoặc SE của dự án nào. Đổi “Tôi là” thành “— Tất cả —” để xem hết, hoặc bấm “+ Dự án mới” để tạo.`:"Bạn chưa được gán làm TM hoặc SE của dự án nào. Xem toàn bộ dự án (chỉ xem) ở tab \"Tổng quan\".") : ""}</div></section>`;
   return h + body;
 }
 /* Bảng đầu việc đầy đủ, xổ ra ngay dưới dòng dự án khi bấm vào (giống cách mở rộng ở Tổng quan dự án) */
@@ -241,5 +242,3 @@ function openInfo(p, t, extraBtn){
     <dt>Ghi chú TrP</dt><dd>${esc(t.note||"–")}</dd></div>`});
 }
 
-
-VIEW_RENDER.plan = viewPlan;

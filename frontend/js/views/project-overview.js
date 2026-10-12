@@ -1,10 +1,35 @@
 "use strict";
-/* Màn hình: dashboard */
-/* ================= VIEW: dashboard ================= */
-function viewDash(){
+/* Màn hình: Dự án – gộp "Tổng quan dự án" (chỉ xem) và "Kế hoạch dự án" (quản trị, plan.js) thành 1 mục
+   menu "Dự án" với 2 tab ngang hàng (S.projTab, dùng chung .rp-tabs với Báo cáo – reports.js). Tách thanh
+   công cụ (toolbar, lên hàng tiêu đề chung) khỏi nội dung từng tab (content), đúng kiểu reports.js:
+   viewReports(). Giữ nguyên 2 bộ lọc/trạng thái độc lập của 2 tab (S.dashQuery/S.typeFilter cho Tổng quan,
+   S.planQuery/S.me cho Kế hoạch – xem plan.js) – gộp giao diện, không gộp cơ chế lọc dữ liệu. */
+function viewProject(){
+  S.projTab = S.projTab || "overview";
+  const toolbar = S.projTab==="plan" ? planToolbar() : dashToolbar();
+  let h = `<div class="head"><div><h1>Dự án</h1></div><div class="ex-ctl">${toolbar}</div></div>`;
+  h += `<div class="rp-tabs" role="tablist">
+    <button type="button" role="tab" data-act="projtab" data-t="overview" aria-selected="${S.projTab==="overview"}">Tổng quan</button>
+    <button type="button" role="tab" data-act="projtab" data-t="plan" aria-selected="${S.projTab==="plan"}">Kế hoạch dự án</button>
+  </div>`;
+  h += S.projTab==="plan" ? planContent() : dashContent();
+  return h;
+}
+ACTIONS["projtab"] = el => { S.projTab = el.dataset.t; render(); };
+/* Thanh điều khiển giống hệt Dashboard (ô kỳ + Tuần/Tháng/Quý + Tổng thể/Cá nhân + làm mới) – tab này
+   chưa dùng kỳ để lọc gì, chỉ thêm sẵn cho đồng bộ giao diện, dùng chung S.week/S.period/periodInfo()/
+   exnav/exper (exec-dashboard.js, events.js) với Dashboard nên đổi kỳ ở đâu cũng khớp nơi khác. */
+function dashToolbar(){
+  const kind = S.period || "week", per = periodInfo(S.week, kind);
+  return `<div class="ex-wk"><button data-act="exnav" data-d="-1" aria-label="Kỳ trước">‹</button><div class="lb">${esc(per.label)}</div><button data-act="exnav" data-d="1" aria-label="Kỳ sau">›</button></div>
+    <div class="ex-seg" role="group" aria-label="Kỳ báo cáo">${[["week","Tuần"],["month","Tháng"],["quarter","Quý"]].map(([k,l])=>`<button data-act="exper" data-k="${k}" aria-pressed="${kind===k}">${l}</button>`).join("")}</div>
+    ${scopeToggleHtml()}
+    <button class="btn icon" data-act="exrefresh" title="Làm mới" aria-label="Làm mới">${ICONS.refresh}</button>`;
+}
+function dashContent(){
   /* Trưởng phòng/phó phòng/admin chọn một người cụ thể ở "Tôi là" (không phải "Tất cả") → chỉ thấy dự án
      người đó là TM/SE, như đang xem thay họ. Nhân viên tự đăng nhập: mặc định vẫn thấy cả phòng, nhưng có
-     thể tự bật "Cá nhân" (nút scopeToggleHtml() cạnh tiêu đề) để thu hẹp về đúng dự án của mình. */
+     thể tự bật "Cá nhân" (nút scopeToggleHtml() ở toolbar chung) để thu hẹp về đúng dự án của mình. */
   const simAs = effectiveSimAs();
   const P = M.projects.filter(p => p.type!=="Nội bộ" && (!simAs || projectAssigned(p, simAs)));
   const allT = M.tasks.filter(t=>t.p.type!=="Nội bộ" && (!simAs || projectAssigned(t.p, simAs)));
@@ -13,18 +38,7 @@ function viewDash(){
   const stuck = allT.filter(t=>OPEN.has(t.status) && (t.status==="Đang vướng"||(t.ms||0)>=1));
   const running = t => P.filter(p=>p.type===t && (p._prog==null || p._prog<1)).length;
   const q = (S.dashQuery||"").toLowerCase();
-  /* Thanh điều khiển giống hệt Dashboard (ô kỳ + Tuần/Tháng/Quý + Tổng thể/Cá nhân + làm mới) – trang này
-     chưa dùng kỳ để lọc gì, chỉ thêm sẵn cho đồng bộ giao diện, dùng chung S.week/S.period/periodInfo()/
-     exnav/exper (exec-dashboard.js, events.js) với Dashboard nên đổi kỳ ở trang nào cũng khớp trang kia. */
-  const kind = S.period || "week", per = periodInfo(S.week, kind);
-  let h = `<div class="head"><div><h1>Tổng quan dự án</h1></div>
-    <div class="ex-ctl">
-      <div class="ex-wk"><button data-act="exnav" data-d="-1" aria-label="Kỳ trước">‹</button><div class="lb">${esc(per.label)}</div><button data-act="exnav" data-d="1" aria-label="Kỳ sau">›</button></div>
-      <div class="ex-seg" role="group" aria-label="Kỳ báo cáo">${[["week","Tuần"],["month","Tháng"],["quarter","Quý"]].map(([k,l])=>`<button data-act="exper" data-k="${k}" aria-pressed="${kind===k}">${l}</button>`).join("")}</div>
-      ${scopeToggleHtml()}
-      <button class="btn icon" data-act="exrefresh" title="Làm mới" aria-label="Làm mới">${ICONS.refresh}</button>
-    </div></div>`;
-  h += `<div class="head-ctl" style="margin-bottom:16px">
+  let h = `<div class="head-ctl" style="margin-bottom:16px">
       <div class="chips" role="group" aria-label="Lọc theo loại">${PLAN_FILTERS.map(f=>`<button class="chip-btn" data-act="tf" data-t="${esc(f.key)}" aria-pressed="${S.typeFilter===f.key}">${esc(f.label)}</button>`).join("")}</div>
       <input class="inp" type="search" placeholder="Tìm dự án" style="width:180px" data-act="dashq" value="${esc(S.dashQuery||"")}" aria-label="Tìm dự án">
     </div>`;
@@ -40,7 +54,7 @@ function viewDash(){
     if(S.typeFilter!=="Tất cả" && S.typeFilter!==f.key) continue;
     const ps = P.filter(p=>planMatchFilter(p, f.key) && (!q || p.name.toLowerCase().includes(q))).sort((a,b)=>(b._stuck-a._stuck) || (b._late-a._late) || a.name.localeCompare(b.name,"vi"));
     left += `<section class="panel"><div class="panel-h"><h2>${typeDot(f.type)}${esc(f.label)} <span class="muted small">· ${ps.length}</span></h2></div>`;
-    if(!ps.length) left += `<div class="empty">${q?`Không có ${f.label.toLowerCase()} nào khớp “${esc(S.dashQuery)}”.`:`Chưa có ${f.label.toLowerCase()} nào. Thêm ở mục Kế hoạch dự án.`}</div>`;
+    if(!ps.length) left += `<div class="empty">${q?`Không có ${f.label.toLowerCase()} nào khớp “${esc(S.dashQuery)}”.`:`Chưa có ${f.label.toLowerCase()} nào. Thêm ở tab "Kế hoạch dự án".`}</div>`;
     for(const p of ps){
       const open = S.openProject===p.id;
       left += `<div class="prow" data-act="openp" data-id="${esc(p.id)}" role="button" tabindex="0" aria-expanded="${open}">
@@ -71,4 +85,4 @@ function projectDetail(p){
 }
 
 
-VIEW_RENDER.dash = viewDash;
+VIEW_RENDER.dash = viewProject;

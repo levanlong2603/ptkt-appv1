@@ -15,7 +15,7 @@ button,input,select,textarea{font:inherit; color:inherit}
 *::-webkit-scrollbar-track{background:transparent}
 *::-webkit-scrollbar-thumb{background:var(--line); border-radius:3px}
 *::-webkit-scrollbar-thumb:hover{background:var(--ink-3)}
-.app{display:grid; grid-template-columns:228px minmax(0,1fr); height:calc(100% - var(--header-h)); margin-top:var(--header-h); transition:grid-template-columns .15s ease}
+.app{display:grid; grid-template-columns:196px minmax(0,1fr); height:calc(100% - var(--header-h)); margin-top:var(--header-h); transition:grid-template-columns .15s ease}
 @media (min-width:861px){ body.side-collapsed .app{grid-template-columns:60px minmax(0,1fr)} }
 main,.page,.stack,.grid2>*,.split>*,.prow,.prow>*,.lrow,.lrow>*,.me-sum>*,.toolbar>*{min-width:0}
 /* ---------- topbar (header cố định) ---------- */
@@ -51,7 +51,7 @@ main,.page,.stack,.grid2>*,.split>*,.prow,.prow>*,.lrow,.lrow>*,.me-sum>*,.toolb
 /* ---------- sidebar ---------- */
 .side{background:var(--side); color:var(--side-ink); display:flex; flex-direction:column; padding:14px 10px 16px; position:sticky; top:var(--header-h); height:calc(100vh - var(--header-h)); overflow:auto; border-right:1px solid var(--side-line); transition:width .15s ease}
 /* Đặt đè lên hàng của nhãn nhóm đầu tiên (.nav-grp:first-child) thay vì chiếm riêng 1 hàng phía trên */
-.side-head{position:absolute; top:14px; right:10px; z-index:1}
+.side-head{position:absolute; top:14px; right:4px; z-index:1}
 .side-toggle{all:unset; cursor:pointer; width:22px; height:22px; border-radius:6px; display:flex; align-items:center; justify-content:center; color:var(--side-icon); flex:none}
 .side-toggle:hover{background:var(--side-hover-bg); color:var(--side-hover-ink)}
 .side-toggle:focus-visible{outline:2px solid var(--focus)}
@@ -91,7 +91,7 @@ body.side-collapsed .nav-grp:not(:first-child){max-height:0; padding:0; margin:0
 .nav{display:flex; flex-direction:column; gap:1px}
 .nav button{all:unset; cursor:pointer; display:flex; align-items:center; gap:10px; padding:9px 10px; border-radius:8px; font-size:14px; color:var(--side-ink); border-left:3px solid transparent; transition:padding .15s ease, gap .15s ease}
 .nav button:hover{background:var(--side-hover-bg); color:var(--side-hover-ink)}
-.nav button span:not(.nav-badge){overflow:hidden; white-space:nowrap; opacity:1; max-width:160px; transition:opacity .1s ease, max-width .15s ease}
+.nav button span:not(.nav-badge){overflow:hidden; white-space:nowrap; text-overflow:ellipsis; opacity:1; max-width:160px; transition:opacity .1s ease, max-width .15s ease}
 body.side-collapsed .nav button span:not(.nav-badge){opacity:0; max-width:0}
 .nav button[aria-current="page"]{background:var(--side-active-bg); color:var(--side-active-ink); font-weight:600; border-left-color:var(--side-active-bar)}
 .nav button:focus-visible{outline:2px solid var(--focus)}

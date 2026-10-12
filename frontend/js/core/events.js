@@ -11,11 +11,11 @@ main.addEventListener("click", e => {
   if(a==="exrefresh"){ render(); toast("Đã làm mới"); return; }
   if(a==="expr"){ S.exPr = t.dataset.p; render(); return; }
   if(a==="golo"){ S.view="load"; store("view","load"); render(); return; }
-  if(a==="godash"){ S.view="dash"; store("view","dash"); render(); return; }
+  if(a==="godash"){ S.view="dash"; S.projTab="overview"; store("view","dash"); render(); return; }
   if(a==="wk"){ const d=+t.dataset.d; S.week = d===0 ? mondayOf(todayISO()) : addDays(S.week, d); render(); }
   else if(a==="tf"){ S.typeFilter=t.dataset.t; render(); }
   else if(a==="openp"){ S.openProject = S.openProject===t.dataset.id ? null : t.dataset.id; render(); }
-  else if(a==="goplan"){ S.planSel=t.dataset.id; S.typeFilter="Tất cả"; S.view="plan"; store("view","plan"); render(); }
+  else if(a==="goplan"){ S.planSel=t.dataset.id; S.typeFilter="Tất cả"; S.view="dash"; S.projTab="plan"; store("view","dash"); render(); }
   else if(a==="dashtask"){ const p=M.pById.get(t.dataset.pid); const tk=p&&p._tasks.find(x=>x.id===t.dataset.id); if(p&&tk) openInfo(p, tk); }
   else if(a==="addentry") entryForm(null);
   else if(a==="editentry"){ const person=t.dataset.person||S.me; const doc=weekDoc(S.week,person); const en=doc&&(doc.entries||[]).find(x=>x.id===t.dataset.id); if(en) entryForm(en, person); }

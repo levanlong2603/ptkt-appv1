@@ -72,12 +72,15 @@ const ICONS = {
   eye:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 12s3.8-7 10-7 10 7 10 7-3.8 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>',
   eyeOff:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3l18 18"/><path d="M10.6 5.2A10.6 10.6 0 0 1 12 5c6.2 0 10 7 10 7a16.3 16.3 0 0 1-3.2 4"/><path d="M6.6 6.6C3.7 8.4 2 12 2 12s3.8 7 10 7c1.4 0 2.6-.3 3.7-.8"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>'
 };
+/* "dash" gộp chung "Tổng quan dự án" + "Kế hoạch dự án" (2 tab trong 1 màn – xem project-overview.js:
+   viewProject()/plan.js) từ khi có yêu cầu gộp 2 mục menu, không còn mục "plan" riêng nữa. Giữ nguyên id
+   "dash" (không đổi tên) để không phải sửa lại các chỗ đang tham chiếu S.view==="dash"/VIEW_RENDER.dash/
+   VIEWS.findIndex(v=>v.id==="dash") (reports.js chèn "Báo cáo" ngay sau mục này). */
 const VIEWS = [
   {id:"exec", label:"Dashboard", icon:"exec"},
-  {id:"dash", label:"Tổng quan dự án", icon:"dash"},
+  {id:"dash", label:"Dự án", icon:"dash"},
   {id:"load", label:"Tải tuần", icon:"load"},
   {id:"input", label:"Việc trong tuần", icon:"input"},
-  {id:"plan", label:"Kế hoạch dự án", icon:"plan"},
   {sep:true},
   {id:"settings", label:"Cài đặt", icon:"set"},
   {id:"help", label:"Hướng dẫn", icon:"help"}
