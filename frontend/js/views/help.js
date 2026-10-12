@@ -33,10 +33,14 @@ const HELP_DEFAULT = `
 function helpSanitize(html){
   /* Chỉ FULL_ROLES ghi được config/help (RULES.config="admin" ở server.js) nên không coi là dữ liệu
      "không tin cậy" như input công khai – vẫn lọc bớt các thẻ/thuộc tính nguy hiểm cho chắc (phòng khi
-     dán nhầm nội dung có script từ nơi khác), không dùng esc() vì cố ý cho phép thẻ định dạng (b/h2/h3/p). */
+     dán nhầm nội dung có script từ nơi khác), không dùng esc() vì cố ý cho phép thẻ định dạng (b/h2/h3/p).
+     Lọc thêm style="..."/class="..." trên mọi thẻ: dán nội dung từ nơi khác (Word, trang xem Markdown...)
+     hay kèm style nội tuyến (font-weight, font-family riêng của nguồn) – giữ lại sẽ đè lên định dạng
+     b/h2/h3/p của ô soạn thảo, có thể làm cả đoạn hiện in đậm dù không bấm "In đậm" ở đoạn đó. */
   return String(html||"")
     .replace(/<\/?(script|iframe|object|embed|style|link|meta|form)[^>]*>/gi, "")
     .replace(/\son\w+\s*=\s*"[^"]*"/gi, "").replace(/\son\w+\s*=\s*'[^']*'/gi, "")
+    .replace(/\s(?:style|class)\s*=\s*"[^"]*"/gi, "").replace(/\s(?:style|class)\s*=\s*'[^']*'/gi, "")
     .replace(/javascript:/gi, "");
 }
 function viewHelp(){
@@ -72,6 +76,23 @@ ACTIONS["helpsave"] = async () => {
 /* Thanh công cụ thao tác trên vùng chọn (selection) của ô contenteditable – phải chặn mousedown trước để
    khỏi mất selection khi bấm nút (nút lấy focus làm contenteditable mất selection trước khi click chạy). */
 document.getElementById("main").addEventListener("mousedown", e => { if(e.target.closest('[data-act="hcmd"]')) e.preventDefault(); });
+/* Dán vào ô soạn thảo: giữ lại cấu trúc tiêu đề/in đậm (h2/h3/b/p...) nếu nguồn dán có (Word, trang xem
+   Markdown...), nhưng bỏ hết style/class nội tuyến và mọi thẻ khác ngoài danh sách cho phép – nguồn dán
+   thường kèm style riêng (font-weight, font-family khác của trang nguồn) đè lên toàn bộ đoạn văn, khiến cả
+   đoạn hiện in đậm dù chỉ vài chữ trong đó thật sự là <b> (xem thêm ghi chú ở helpSanitize()). Không có
+   HTML trong clipboard (dán text thuần) thì tự tách thành từng đoạn <p> theo dòng trống. */
+function helpCleanPaste(html){
+  return helpSanitize(html).replace(/<(?!\/?(h2|h3|p|b|strong|i|em|ul|ol|li|br|div)\b)[^>]+>/gi, "");
+}
+document.getElementById("main").addEventListener("paste", e => {
+  const ed = e.target.closest && e.target.closest("#helpEditor");
+  if(!ed) return;
+  e.preventDefault();
+  const cd = e.clipboardData || window.clipboardData;
+  const html = cd.getData("text/html"), text = cd.getData("text/plain");
+  const out = html ? helpCleanPaste(html) : text.split(/\n{2,}/).map(b => `<p>${esc(b).replace(/\n/g,"<br>")}</p>`).join("");
+  document.execCommand("insertHTML", false, out);
+});
 ACTIONS["hcmd"] = el => {
   const ed = document.getElementById("helpEditor"); if(!ed) return;
   ed.focus();
