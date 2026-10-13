@@ -38,4 +38,4 @@
    ".rp-sec-grn table" (reports.css) có 1 lớp + 1 thẻ = độ ưu tiên CAO HƠN ".plan-report-tbl" (chỉ 1 lớp),
    nên dù nạp trước hay sau vẫn luôn thua – phải viết thành 2 lớp lồng nhau (.plan-tbl-scroll
    .plan-report-tbl) để độ ưu tiên cao hơn hẳn, thắng chắc chắn bất kể thứ tự nạp CSS. */
-.plan-tbl-scroll .plan-report-tbl{min-width:1620px}
+.plan-tbl-scroll .plan-report-tbl{min-width:1690px}

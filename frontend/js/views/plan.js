@@ -84,17 +84,18 @@ function planDetail(p, full){
       <div><div class="small muted" style="margin-bottom:4px">Tình hình / vướng mắc chung</div><div class="note">${esc(p.situation||"–")}</div></div></div>`:""}`;
   const rows = planReportRows(p);
   out += `<div class="plan-tbl-scroll"><div class="rp-sec rp-sec-grn" style="zoom:${zoom}%"><div class="tbl-wrap"><table class="plan-report-tbl" style="table-layout:fixed">
-      <thead><tr><th style="width:3%">STT</th><th style="width:8%">Hạng mục</th><th style="width:11%">Đầu việc</th><th style="width:8%">Phụ trách</th><th style="width:8%">Thực hiện</th><th style="width:13%">Chi tiết thực hiện</th>
-        <th style="width:8%">Deadline theo HĐ</th><th style="width:5%; text-align:center">Ưu tiên</th><th style="width:9%">Trạng thái thực hiện</th><th style="width:10%">Vướng mắc</th><th style="width:10%">Hướng giải quyết</th>
+      <thead><tr><th style="width:3%">STT</th><th style="width:8%">Hạng mục</th><th style="width:10%">Đầu việc</th><th style="width:8%">Phụ trách</th><th style="width:8%">Thực hiện</th><th style="width:12%">Chi tiết thực hiện</th>
+        <th style="width:8%">Deadline theo HĐ</th><th style="width:4%; text-align:center" title="Workload kế hoạch (giờ) = Quy mô × Độ phức tạp">WL</th><th style="width:5%; text-align:center">Ưu tiên</th><th style="width:9%">Trạng thái thực hiện</th><th style="width:9%">Vướng mắc</th><th style="width:9%">Hướng giải quyết</th>
         <th style="width:7%">Cảnh báo</th></tr></thead>
-      <tbody>${rows||`<tr><td colspan="12"><div class="empty">Dự án chưa có đầu việc.${canManageProject(p)?" Bấm “+ Đầu việc”.":""}</div></td></tr>`}</tbody>
+      <tbody>${rows||`<tr><td colspan="13"><div class="empty">Dự án chưa có đầu việc.${canManageProject(p)?" Bấm “+ Đầu việc”.":""}</div></td></tr>`}</tbody>
     </table></div></div></div>
     <p class="small muted" style="margin:8px 0 0">Bấm vào một đầu việc để xem chi tiết${S.canEdit?", sửa hoặc đánh giá khi hoàn thành":""}.</p></div>`;
   return out;
 }
 /* Bảng đầu việc đúng khuôn Báo cáo dự án (reports.js: rpProjectContent()) – STT/Hạng mục gộp ô theo nhóm,
    luôn hiện phẳng hết (không gấp/mở theo nhánh), hợp với khung cuộn cố định ở trên.
-   "Vướng mắc" = t.lastNote (ghi chú người làm ở lượt nhập tuần gần nhất); "Hướng giải quyết" = t.note (ghi
+   "WL" = t.wl (model.js: workload kế hoạch = Quy mô × Độ phức tạp, thiếu Quy mô thì "–") – cột có ở bảng cũ,
+   thêm lại ngay trước "Ưu tiên". "Vướng mắc" = t.lastNote (ghi chú người làm ở lượt nhập tuần gần nhất); "Hướng giải quyết" = t.note (ghi
    chú của trưởng phòng) – đúng 2 nguồn dữ liệu CLAUDE.md đã quy định, không lẫn nhau. Mỗi dòng
    data-act="task" kèm data-pid để bấm mở form sửa/đánh giá (events.js) – phải mang theo mã dự án vì bảng
    này hiện ở cả tab Kế hoạch (S.planSel) lẫn trang riêng của dự án (S.openProject). */
@@ -119,6 +120,7 @@ function planReportRows(p){
         <td class="small" style="vertical-align:top">${t.doers.length?t.doers.map(esc).join(", "):"–"}</td>
         <td class="small" style="white-space:pre-wrap; vertical-align:top">${t.detail?esc(t.detail):'<span class="muted">–</span>'}</td>
         <td style="vertical-align:top">${t.deadline?dmy(t.deadline):"–"}</td>
+        <td style="vertical-align:top; text-align:center">${fmt1(t.wl)}</td>
         <td style="vertical-align:top; text-align:center">${t.pr?`<span class="pill ${t.pr==="P1"?"bad":"mute"}">${esc(t.pr)}</span>`:"–"}</td>
         <td style="vertical-align:top">${stPill(t.status)}</td>
         <td class="small" style="white-space:pre-wrap; vertical-align:top">${t.lastNote?esc(t.lastNote):'<span class="muted">–</span>'}</td>
