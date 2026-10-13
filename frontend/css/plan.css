@@ -19,6 +19,11 @@
    đó nằm ngay sau dòng cuối cùng thay vì ở mép dưới khung – rất khó tìm/dò ra. height cố định giữ khung
    luôn đúng 520px, thanh cuộn ngang (nếu bảng rộng hơn khung) luôn nằm cố định ở mép dưới khung đó. */
 .plan-tbl-scroll{height:520px; overflow:auto; border-radius:10px}
+/* Trang riêng của 1 dự án (projectPage(), project-overview.js): khối planDetail() nằm trong panel riêng
+   chứ không xổ dưới dòng dự án, nên bỏ viền đứt/nền tách khối; khung bảng cao gần hết phần nhìn thấy của
+   trang (trừ thanh đầu trang + hàng nút phía trên + dòng chú thích phía dưới) thay vì 520px. */
+.pdetail.full{border-top:0; background:transparent; padding-top:6px}
+.pdetail.full .plan-tbl-scroll{height:max(420px, calc(100vh - var(--header-h) - 150px))}
 /* .tbl-wrap bên trong (.rp-sec-grn, reports.css) có sẵn overflow:auto riêng để cuộn ngang – nếu giữ
    nguyên, nó sẽ trở thành "ancestor cuộn gần nhất" của th{position:sticky} VÀ là nơi thật sự xử lý cuộn
    ngang (cao theo đúng nội dung, không cố định – đúng lỗi "thanh cuộn nằm cuối bảng"), thay vì
@@ -27,10 +32,10 @@
    này trong index.html nên cùng độ ưu tiên (2 class) sẽ đè ngược lại – phải tăng độ ưu tiên lên 3 class
    (thêm .plan-tbl-scroll lặp hoặc .pdetail) để chắc chắn thắng bất kể thứ tự nạp CSS. */
 .pdetail .plan-tbl-scroll .tbl-wrap{overflow:visible}
-/* 11 cột (thêm Thực hiện/Ưu tiên/Cảnh báo vào cuối so với bảng Báo cáo dự án gốc 8 cột) cần rộng hơn
+/* 12 cột (thêm Phụ trách/Thực hiện/Ưu tiên/Cảnh báo so với bảng Báo cáo dự án gốc 8 cột) cần rộng hơn
    min-width chung của .rp-sec-grn table (1200px, đủ cho 8 cột) – ghi đè riêng, không ảnh hưởng bảng ở
    Báo cáo dự án (vẫn dùng .rp-sec-grn table mặc định, không có class .plan-report-tbl).
    ".rp-sec-grn table" (reports.css) có 1 lớp + 1 thẻ = độ ưu tiên CAO HƠN ".plan-report-tbl" (chỉ 1 lớp),
    nên dù nạp trước hay sau vẫn luôn thua – phải viết thành 2 lớp lồng nhau (.plan-tbl-scroll
    .plan-report-tbl) để độ ưu tiên cao hơn hẳn, thắng chắc chắn bất kể thứ tự nạp CSS. */
-.plan-tbl-scroll .plan-report-tbl{min-width:1500px}
+.plan-tbl-scroll .plan-report-tbl{min-width:1620px}

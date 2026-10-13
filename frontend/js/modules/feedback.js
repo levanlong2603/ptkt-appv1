@@ -34,27 +34,31 @@ function viewFeedback(){
         ${S.canEdit?"":`<span class="pill ${FB_STATUS_CLS[status]||"mute"}">${esc(status)}</span>`}
         <span class="small muted" style="margin-left:auto">${f.createdAt?dmy(f.createdAt.slice(0,10)):"–"}</span></div>
       <p style="white-space:pre-wrap; margin:10px 0 0">${esc(f.text||"")}</p>
-      <div class="toolbar" style="margin-top:10px; justify-content:space-between">${S.canEdit?statusUI:"<div></div>"}${mine?`<button class="btn danger" data-act="delfeedback" data-id="${esc(f.id)}">Xoá</button>`:""}</div>
+      <div class="toolbar" style="margin-top:10px; justify-content:space-between">${S.canEdit?statusUI:"<div></div>"}${mine?`<div class="toolbar"><button class="btn" data-act="editfeedback" data-id="${esc(f.id)}">Sửa</button><button class="btn danger" data-act="delfeedback" data-id="${esc(f.id)}">Xoá</button></div>`:""}</div>
       </div></section>`;
   }).join("");
   return h;
 }
-function feedbackForm(){
-  openForm({title:"Gửi góp ý", subtitle: S.me || (S.user && S.user.display_name) || "",
-    values:{type:"Nhận xét", text:""},
+/* f = góp ý đang sửa (bỏ trống = gửi mới). Sửa chỉ đổi loại/nội dung; gửi kèm lại status hiện có vì PUT ghi
+   đè cả tài liệu (person/created_by/createdAt thì máy chủ tự giữ nguyên, xem server.js). */
+function feedbackForm(f){
+  openForm({title: f ? "Sửa góp ý" : "Gửi góp ý", subtitle: f ? (f.person||"") : (S.me || (S.user && S.user.display_name) || ""),
+    values:{type: f ? (f.type||"Nhận xét") : "Nhận xét", text: f ? (f.text||"") : ""},
     fields:[
       {key:"type", label:"Loại góp ý", type:"seg", options:FB_TYPES.map(t=>[t,t])},
       {key:"text", label:"Nội dung", type:"textarea", required:true, hint:()=>"Nhận xét về trải nghiệm dùng app, hoặc đề xuất tính năng/cải tiến cụ thể."}
     ],
-    saveLabel:"Gửi góp ý",
+    saveLabel: f ? "Lưu thay đổi" : "Gửi góp ý",
     onSave: async v => {
       if(!v.text.trim()) throw new Error("Nhập nội dung góp ý.");
-      await write("feedback/"+uid("fb"), {type:v.type, text:v.text.trim()});
-      toast("Đã gửi góp ý");
+      if(f) await write("feedback/"+f.id, {type:v.type, text:v.text.trim(), ...(f.status?{status:f.status}:{})});
+      else await write("feedback/"+uid("fb"), {type:v.type, text:v.text.trim()});
+      toast(f ? "Đã lưu góp ý" : "Đã gửi góp ý");
     }
   });
 }
 ACTIONS["addfeedback"] = () => feedbackForm();
+ACTIONS["editfeedback"] = el => { const f = S.feedback.find(x=>x.id===el.dataset.id); if(f) feedbackForm(f); };
 ACTIONS["delfeedback"] = async el => { if(!confirm("Xoá góp ý này?")) return; await remove("feedback/"+el.dataset.id); toast("Đã xoá"); };
 /* Đổi trạng thái xử lý – chỉ trưởng phòng bấm được (nút chỉ render khi S.canEdit, xem viewFeedback()).
    Gửi lại nguyên type/text hiện có vì PUT /api/doc/:coll/:id ghi đè toàn bộ tài liệu, không merge từng field. */

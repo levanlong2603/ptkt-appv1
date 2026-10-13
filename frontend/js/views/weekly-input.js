@@ -135,14 +135,21 @@ function entryForm(entry, person){
   const remainH = Math.max(0, Math.round((stH.cap-totalWl)*10)/10);
   const budgetH = Math.max(0, Math.round((stH.cap-otherWl)*10)/10);
   /* Nhân viên chỉ chọn được dự án mình là TM/SE, hoặc có đầu việc được giao/phối hợp; trưởng phòng không giới hạn.
-     Ẩn dự án đã hoàn thành 100%, trừ khi đó là dự án của dòng đang sửa (giữ lại để không mất dữ liệu) */
-  const assigned = p => S.canEdit || projectAssigned(p, who) || (p.tasks||[]).some(t=>t.owner===who || t.collab===who);
+     Riêng dự án loại Nội bộ ("Việc chung của phòng": hỗ trợ, đào tạo, việc khác) mở cho MỌI tài khoản – đó
+     là nơi ghi việc ngoài dự án của bất kỳ ai, không gán TM/SE/người làm cho riêng ai nên nếu lọc theo
+     phân công thì nhân viên không bao giờ chọn được.
+     Ẩn dự án đã hoàn thành 100%, trừ khi đó là dự án của dòng đang sửa (giữ lại để không mất dữ liệu) – không
+     áp dụng cho Nội bộ: đầu việc ở đó dùng lặp lại hằng tuần, "Hoàn thành" chỉ là trạng thái của lượt nhập
+     gần nhất chứ không phải dự án đã đóng. */
+  const internal = p => p.type==="Nội bộ";
+  const assigned = p => S.canEdit || internal(p) || projectAssigned(p, who) || (p.tasks||[]).some(t=>t.owner===who || t.collab===who);
+  const closed = p => planIsDone(p) && !internal(p);
   /* Gom theo loại dự án (Triển khai/Thầu/Nội bộ) bằng optgroup, để phân biệt rõ Thầu với dự án triển khai
      thay vì liệt kê lẫn lộn một danh sách phẳng. */
   const projOpts = (() => {
-    const list = M.projects.filter(p=>(p.tasks||[]).length && (assigned(p) || p.id===e.projectId) && (!planIsDone(p) || p.id===e.projectId));
+    const list = M.projects.filter(p=>(p.tasks||[]).length && (assigned(p) || p.id===e.projectId) && (!closed(p) || p.id===e.projectId));
     const byType = new Map();
-    for(const p of list){ if(!byType.has(p.type)) byType.set(p.type, []); byType.get(p.type).push([p.id, p.name+(planIsDone(p)?" (đã hoàn thành)":"")]); }
+    for(const p of list){ if(!byType.has(p.type)) byType.set(p.type, []); byType.get(p.type).push([p.id, p.name+(closed(p)?" (đã hoàn thành)":"")]); }
     return TYPES.filter(t=>byType.has(t)).map(t=>({group:t, options:byType.get(t)}));
   })();
   /* Xem được tất cả đầu việc của dự án (kể cả đã xong/huỷ), gom theo hạng mục */
@@ -156,7 +163,7 @@ function entryForm(entry, person){
       groups.get(code).items.push(t);
     }
     return [...groups.values()].sort((a,b)=>(order.get(a.code)??999)-(order.get(b.code)??999) || a.code.localeCompare(b.code))
-      .map(g => ({group:(g.code?g.code+". ":"")+(g.name||"Khác"), options:g.items.map(t=>[t.id, planShortName(t.dv)+(OPEN.has(t.status)?"":" ("+t.status+")")])}));
+      .map(g => ({group:(g.code?g.code+". ":"")+(g.name||"Khác"), options:g.items.map(t=>[t.id, planShortName(t.dv)+(OPEN.has(t.status)||internal(p)?"":" ("+t.status+")")])}));
   };
   openForm({
     title: isNew ? "Thêm việc trong tuần" : "Sửa việc trong tuần",
@@ -200,15 +207,20 @@ function entryForm(entry, person){
       const thisWl = Math.round(v.hours*(v.pt?PT_MULT[v.pt]:1)*10)/10;
       if(thisWl>budgetH) throw new Error(`Việc này tính tải ${fmt1(thisWl)}h (giờ × Độ phức tạp), vượt quá phần còn lại dành cho việc này trong tuần (còn ${fmt1(budgetH)}h, sau khi đã trừ các việc khác). Giảm giờ, giảm Độ phức tạp, hoặc giảm bớt việc khác trước.`);
       const doc = weekDoc(S.week, who); const list = doc ? [...(doc.entries||[])] : [];
-      if(list.some(x=>x.id!==v.id && x.projectId===v.projectId && x.taskId===v.taskId))
+      const taskRef = M.taskMap.get(v.projectId+"|"+v.taskId);
+      /* Mỗi đầu việc chỉ 1 dòng/tuần – trừ "Việc khác" của quy trình Nội bộ: mỗi lần chọn là một việc lặt
+         vặt khác nhau (ghi rõ ở "Việc đã làm"), nên được thêm bao nhiêu dòng trong tuần cũng được. */
+      const anyTimes = !!taskRef && internal(taskRef.p) && /Việc khác/.test(taskRef.t.dv);
+      if(!anyTimes && list.some(x=>x.id!==v.id && x.projectId===v.projectId && x.taskId===v.taskId))
         throw new Error("Đầu việc này đã có trong tuần. Bấm vào dòng đó trong bảng để sửa thay vì thêm mới.");
       const i = list.findIndex(x=>x.id===v.id); const clean = {id:v.id, projectId:v.projectId, taskId:v.taskId, work:v.work||"", qm:v.qm, hours:v.hours, pt:v.pt||null, status:v.status||"", ms:v.ms??null, nn:v.nn||"", note:v.note||""};
       if(i>=0) list[i]=clean; else list.push(clean);
       await saveWeek(S.week, who, list); toast(isNew?"Đã thêm việc":"Đã lưu thay đổi");
       /* Nhân viên tự đánh giá Độ phức tạp ngay trong tuần → đồng bộ về đúng đầu việc ở Kế hoạch dự án,
-         không chỉ dùng cho mỗi tuần này. Không chặn việc lưu tuần nếu đồng bộ thất bại (vd không đủ quyền). */
-      const taskRef = M.taskMap.get(v.projectId+"|"+v.taskId);
-      if(v.pt && taskRef && v.pt !== taskRef.t.pt){
+         không chỉ dùng cho mỗi tuần này. Không chặn việc lưu tuần nếu đồng bộ thất bại (vd không đủ quyền).
+         Bỏ qua với dự án Nội bộ: đầu việc ở đó là "rổ" dùng chung cho nhiều việc khác nhau của nhiều người,
+         độ phức tạp chỉ có nghĩa cho riêng lượt nhập này (và nhân viên cũng không có quyền ghi đầu việc đó). */
+      if(v.pt && taskRef && !internal(taskRef.p) && v.pt !== taskRef.t.pt){
         try{ await S.db.api("PATCH", `/api/doc/projects/${v.projectId}/task-pt`, {taskId:v.taskId, pt:v.pt}); }
         catch(e){ toast("Đã lưu việc trong tuần, nhưng không đồng bộ được độ phức tạp vào Kế hoạch dự án."); }
       }

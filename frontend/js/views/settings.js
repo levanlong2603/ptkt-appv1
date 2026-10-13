@@ -20,6 +20,7 @@ function viewSettings(){
     <div class="tbl-wrap"><table style="table-layout:fixed"><thead><tr><th style="width:24%">Họ tên</th><th style="width:13%; text-align:center">Giờ / tuần</th><th style="width:15%; text-align:center">% trừ họp, phát sinh</th><th style="width:14%; text-align:center">Kinh nghiệm (năm)</th><th style="width:16%; text-align:center">Hệ số năng lực</th><th style="width:18%; text-align:center">Capacity (điểm/tuần)</th></tr></thead><tbody>
     ${M.staff.map((s,i)=>`<tr class="${ro?"":"click"}" data-act="${ro?"":"editstaff"}" data-i="${i}" tabindex="0"><td class="cell-main">${esc(s.name)}${s.title?`<div class="small muted">${esc(s.title)}</div>`:""}</td><td style="text-align:center">${s.hours}</td><td style="text-align:center">${Math.round(s.pct*100)}%</td><td style="text-align:center">${s.years||"–"}</td><td style="text-align:center">${fmt1(s.factor)}</td><td style="text-align:center; font-weight:600">${fmt1(s.cap)}</td></tr>`).join("")||'<tr><td colspan="6" class="muted">Chưa có nhân sự.</td></tr>'}
     </tbody></table></div><div class="panel-b small muted">Capacity = Giờ/tuần × (1 − % họp, phát sinh) × Hệ số năng lực. Hệ số năng lực theo kinh nghiệm (gợi ý, trưởng phòng tự chọn): &lt;1 năm → 1 · 1–2 năm → 2 · 2–3 năm → 3 · ≥3 năm → 4.</div></section>`;
+  h += staffOrphanPanel();
   for(const t of TYPES){
     const list = S.catalog.map((c,i)=>({...c,i})).filter(c=>c.type===t);
     h += `<section class="panel" style="margin-bottom:18px"><div class="panel-h"><h2>${typeDot(t)}Quy trình ${t.toLowerCase()} <span class="muted small">· ${list.length} đầu việc chuẩn</span></h2>${ro?"":`<button class="btn" data-act="addcat" data-t="${t}">+ Đầu việc chuẩn</button>`}</div>
@@ -62,14 +63,77 @@ function staffForm(i){
       {key:"years", label:"Số năm kinh nghiệm (chỉ để tham khảo)", type:"number", half:true, hint:()=>"Dùng để gợi ý hệ số năng lực bên cạnh"},
       {key:"factor", label:"Hệ số năng lực", type:"seg", options:[[1,"1"],[2,"2"],[3,"3"],[4,"4"]], half:true, hint:factorHint}],
     onSave: async x => {
-      if(!x.name.trim()) throw new Error("Nhập họ tên.");
-      const list=[...S.staff]; const row={name:x.name.trim(), title:x.title||"", hours:+x.hours||40, pct:(+x.pctV||0)/100, factor:+x.factor||1, years:+x.years||0};
+      const name = x.name.trim(), old = isNew ? null : S.staff[i].name;
+      if(!name) throw new Error("Nhập họ tên.");
+      if(S.staff.some((q,k)=>k!==i && q.name===name)) throw new Error("Đã có nhân sự tên này.");
+      const list=[...S.staff]; const row={name, title:x.title||"", hours:+x.hours||40, pct:(+x.pctV||0)/100, factor:+x.factor||1, years:+x.years||0};
       if(isNew) list.push(row); else list[i]=row;
-      await write("config/staff",{list}); toast("Đã lưu nhân sự");
+      /* Đổi tên: tên là khoá nối dữ liệu (dự án, đầu việc, tuần, nhật ký, tài khoản…) nên phải chuyển hết
+         dữ liệu sang tên mới ở máy chủ TRƯỚC (POST /api/staff/rename, server.js), rồi mới lưu các ô còn lại. */
+      if(old && old!==name){
+        try{ await S.db.api("POST", "/api/staff/rename", {from:old, to:name}); }
+        catch(e){ throw new Error((e && e.message) || "Không đổi được tên nhân sự."); }
+        staffRenamedLocal(old, name);
+      }
+      await write("config/staff",{list}); toast(old && old!==name ? "Đã đổi tên và chuyển dữ liệu sang tên mới" : "Đã lưu nhân sự");
     },
     onDelete: isNew?null: async()=>{ if(!confirm("Xoá nhân sự này?")) return false; const list=S.staff.filter((_,k)=>k!==i); await write("config/staff",{list}); toast("Đã xoá"); }
   });
 }
+/* Sau khi máy chủ đã chuyển dữ liệu from → to: khớp lại các lựa chọn đang giữ tên cũ ở trình duyệt này
+   ("Tôi là", nhân sự gắn với tài khoản đang đăng nhập, bộ lọc Nhân sự ở Báo cáo) và nạp lại danh sách tài khoản. */
+function staffRenamedLocal(from, to){
+  if(S.me===from){ S.me = to; store("me", to); }
+  if(S.user && S.user.staff_name===from) S.user.staff_name = to;
+  if(S.rp && S.rp.wkStaff===from) S.rp.wkStaff = to;
+  S.users = null;
+}
+/* Tên còn nằm trong dữ liệu (TM/SE dự án, phụ trách/thực hiện đầu việc, tuần, nhật ký, tài khoản) nhưng
+   KHÔNG có trong danh sách nhân sự – thường do nhân sự bị đổi tên trước khi có cơ chế chuyển dữ liệu, hoặc
+   đã bị xoá. Những dữ liệu này không còn hiện theo người nào ở Tải tuần/KPI/"Tôi là". */
+function staffOrphans(){
+  const known = new Set(S.staff.map(s=>s.name)), m = new Map();
+  const add = (n, k) => { if(!n || known.has(n)) return; const o = m.get(n) || {name:n, projects:0, tasks:0, weeks:0, users:0}; o[k]++; m.set(n, o); };
+  for(const p of S.projects){
+    if(p.owner===p.se) add(p.owner, "projects"); else { add(p.owner, "projects"); add(p.se, "projects"); }
+    for(const t of p.tasks||[]){ if(t.owner===t.collab) add(t.owner, "tasks"); else { add(t.owner, "tasks"); add(t.collab, "tasks"); } }
+  }
+  for(const w of S.weeks) add(w.person, "weeks");
+  for(const w of S.worklogs||[]) add(w.person, "weeks");
+  for(const u of S.users||[]) add(u.staff_name, "users");
+  return [...m.values()].sort((a,b)=>a.name.localeCompare(b.name,"vi"));
+}
+/* Gợi ý nhân sự tương ứng với 1 tên mồ côi theo kiểu viết tắt quen dùng: tên + chữ đầu của họ và đệm
+   ("Lê Minh Thắng" ↔ "ThangLM"), hoặc cùng tên chỉ khác dấu. Chỉ gợi ý khi có đúng 1 người khớp. */
+function staffGuess(orphan){
+  const flat = n => slug(n).replace(/-/g, "");
+  const code = n => { const w = slug(n).split("-"); return w.length>1 ? w[w.length-1] + w.slice(0,-1).map(x=>x[0]).join("") : w[0]; };
+  const hit = S.staff.filter(s => flat(s.name)===flat(orphan) || flat(s.name)===code(orphan) || code(s.name)===flat(orphan));
+  return hit.length===1 ? hit[0].name : "";
+}
+function staffOrphanPanel(){
+  if(!S.canEdit) return "";
+  const list = staffOrphans(); if(!list.length) return "";
+  const used = o => [o.projects&&`TM/SE ${o.projects} dự án`, o.tasks&&`${o.tasks} đầu việc`, o.weeks&&`${o.weeks} tuần đã nhập`, o.users&&`${o.users} tài khoản`].filter(Boolean).join(" · ");
+  return `<section class="panel" style="margin-bottom:18px"><div class="panel-h"><h2>Dữ liệu chưa gắn với nhân sự nào <span class="muted small">· ${list.length} tên</span></h2></div>
+    <div class="panel-b small muted" style="padding-bottom:0">Các tên dưới đây còn nằm trong dự án, dữ liệu tuần hoặc tài khoản nhưng không có trong danh sách nhân sự ở trên (do đổi tên hoặc xoá nhân sự trước đây), nên dữ liệu của họ không hiện theo người nào. Chọn đúng nhân sự rồi bấm “Chuyển dữ liệu” để gắn lại.</div>
+    <div class="tbl-wrap"><table style="table-layout:fixed"><thead><tr><th style="width:24%">Tên trong dữ liệu</th><th style="width:36%">Đang dùng ở</th><th style="width:24%">Chuyển cho nhân sự</th><th style="width:16%"></th></tr></thead><tbody>
+    ${list.map(o => { const g = staffGuess(o.name); return `<tr><td class="cell-main">${esc(o.name)}</td><td class="small">${esc(used(o))}</td>
+      <td><select class="inp" aria-label="Nhân sự nhận dữ liệu của ${esc(o.name)}"><option value="">— chọn —</option>${S.staff.map(s=>`<option ${s.name===g?"selected":""}>${esc(s.name)}</option>`).join("")}</select></td>
+      <td style="text-align:right"><button class="btn" data-act="staffmove" data-from="${esc(o.name)}">Chuyển dữ liệu</button></td></tr>`; }).join("")}
+    </tbody></table></div></section>`;
+}
+ACTIONS["staffmove"] = async el => {
+  const from = el.dataset.from, to = el.closest("tr").querySelector("select").value;
+  if(!to){ toast("Chọn nhân sự nhận dữ liệu."); return; }
+  if(!confirm(`Chuyển toàn bộ dữ liệu đang gắn với “${from}” sang nhân sự “${to}”?`)) return;
+  el.disabled = true;
+  try{
+    const n = await S.db.api("POST", "/api/staff/rename", {from, to});
+    staffRenamedLocal(from, to);
+    toast(`Đã chuyển sang ${to}: ${n.projects} dự án, ${n.weeks} tuần, ${n.users} tài khoản`);
+  }catch(e){ el.disabled = false; toast((e && e.message) || "Không chuyển được dữ liệu."); }
+};
 function catForm(i, type){
   const isNew = i==null; const c = isNew ? {type, name:"", result:"", evidence:""} : {...S.catalog[i]};
   openForm({title:isNew?"Thêm đầu việc chuẩn":"Sửa đầu việc chuẩn", subtitle:"Quy trình "+c.type.toLowerCase(), values:c,

@@ -3,8 +3,13 @@
    menu "Dự án" với 2 tab ngang hàng (S.projTab, dùng chung .rp-tabs với Báo cáo – reports.js). Tách thanh
    công cụ (toolbar, lên hàng tiêu đề chung) khỏi nội dung từng tab (content), đúng kiểu reports.js:
    viewReports(). Giữ nguyên 2 bộ lọc/trạng thái độc lập của 2 tab (S.dashQuery/S.typeFilter cho Tổng quan,
-   S.planQuery/S.me cho Kế hoạch – xem plan.js) – gộp giao diện, không gộp cơ chế lọc dữ liệu. */
+   S.planQuery/S.me cho Kế hoạch – xem plan.js) – gộp giao diện, không gộp cơ chế lọc dữ liệu.
+   Bấm 1 dự án ở tab Tổng quan → mở trang riêng của dự án đó (S.openProject, projectPage() bên dưới) thay
+   cho cả màn 2 tab, không còn xổ chi tiết tại chỗ. */
 function viewProject(){
+  const cur = S.openProject && M.pById.get(S.openProject);
+  if(cur) return projectPage(cur);
+  S.openProject = null;
   S.projTab = S.projTab || "overview";
   const toolbar = S.projTab==="plan" ? planToolbar() : dashToolbar();
   let h = `<div class="head"><div><h1>Dự án</h1></div><div class="ex-ctl">${toolbar}</div></div>`;
@@ -56,33 +61,40 @@ function dashContent(){
     left += `<section class="panel"><div class="panel-h"><h2>${typeDot(f.type)}${esc(f.label)} <span class="muted small">· ${ps.length}</span></h2></div>`;
     if(!ps.length) left += `<div class="empty">${q?`Không có ${f.label.toLowerCase()} nào khớp “${esc(S.dashQuery)}”.`:`Chưa có ${f.label.toLowerCase()} nào. Thêm ở tab "Kế hoạch dự án".`}</div>`;
     for(const p of ps){
-      const open = S.openProject===p.id;
-      left += `<div class="prow" data-act="openp" data-id="${esc(p.id)}" role="button" tabindex="0" aria-expanded="${open}">
+      left += `<div class="prow" data-act="openp" data-id="${esc(p.id)}" role="button" tabindex="0">
         <div><div class="nm">${esc(p.name)}</div><div class="ow">${esc(p.owner||"Chưa có người phụ trách")}</div></div>
         <div><div class="pct">${pct(p._prog)}</div><div class="pbar"><i style="width:${Math.round((p._prog||0)*100)}%"></i></div></div>
         <div class="next small"><div class="muted">Mốc tiếp theo</div><div style="font-weight:600">${p._next?dmy(p._next):"–"}</div></div>
-        <div class="strip-cell">${strip(p, "dash|"+p.id, "openProject")}</div>
-        <div class="badges">${p._late?`<span class="pill bad">${p._late} quá hạn</span>`:""}${p._stuck?`<span class="pill warn">${p._stuck} vướng</span>`:""}${p._soon?`<span class="pill info">${p._soon} sắp hạn</span>`:""}${!(p.tasks||[]).length?'<span class="pill mute">Chưa có đầu việc</span>':!p._late&&!p._stuck&&!p._soon?'<span class="pill ok">Đúng tiến độ</span>':""}</div>
+        <div class="strip-cell">${strip(p, "openProject")}</div>
+        <div class="badges">${projBadges(p)}</div>
       </div>`;
-      if(open) left += projectDetail(p);
     }
     left += `</section>`;
   }
   return h + left;
 }
-function projectDetail(p){
-  /* data-act="dashtask" → luôn mở xem (openInfo), không bao giờ mở form sửa, kể cả trưởng phòng: Tổng quan dự án chỉ để xem */
-  const dashRow = (t,i,lvl=1) => { const idle = t.status==="Chưa bắt đầu"; return `<tr class="click${idle?" tr-idle":""}" data-act="dashtask" data-pid="${esc(p.id)}" data-id="${esc(t.id)}" tabindex="0" title="${esc(t.dv)}"><td style="padding-left:${10+lvl*32}px"><div class="cell-main">${esc(planShortName(t.dv))}</div>${t.detail&&!idle?`<div class="cell-sub">${esc(t.detail)}</div>`:""}${t.upd?`<div class="cell-sub">${esc(t.upd)}</div>`:""}${t.note?`<div class="cell-sub" style="color:var(--teal-hover)">Ghi chú TrP: ${esc(t.note)}</div>`:""}</td>
-    <td>${esc(t.owner||"–")}</td><td>${t.doers.length?t.doers.map(esc).join(", "):"–"}</td><td>${t.deadline?dmy(t.deadline):"–"}</td><td>${stPill(t.status)}</td>
-    <td>${warnPills(t.warns)}</td></tr>`; };
-  const rows = planTreeRows(p, {scope:"dash|"+p.id, cols:6, row:dashRow, edit:false});
-  return `<div class="pdetail">
-    <div class="row2" style="margin:12px 0">
-      <div><div class="small muted" style="margin-bottom:4px">Mốc hợp đồng</div><div class="note">${esc(p.milestones||"–")}</div></div>
-      <div><div class="small muted" style="margin-bottom:4px">Tình hình / vướng mắc chung</div><div class="note">${esc(p.situation||"–")}</div></div></div>
-    <div class="tbl-wrap panel"><table style="table-layout:fixed"><thead><tr><th style="width:34%">Đầu việc</th><th style="width:14%">Phụ trách</th><th style="width:14%">Thực hiện</th><th style="width:12%">Deadline</th><th style="width:13%">Trạng thái</th><th style="width:13%">Cảnh báo</th></tr></thead><tbody>${rows||'<tr><td colspan="6" class="muted">Chưa có đầu việc.</td></tr>'}</tbody></table></div>
-    <div style="margin-top:10px"><button class="btn" data-act="goplan" data-id="${esc(p.id)}">Mở kế hoạch dự án</button></div></div>`;
+function projBadges(p){
+  return `${p._late?`<span class="pill bad">${p._late} quá hạn</span>`:""}${p._stuck?`<span class="pill warn">${p._stuck} vướng</span>`:""}${p._soon?`<span class="pill info">${p._soon} sắp hạn</span>`:""}${!(p.tasks||[]).length?'<span class="pill mute">Chưa có đầu việc</span>':!p._late&&!p._stuck&&!p._soon?'<span class="pill ok">Đúng tiến độ</span>':""}`;
 }
+/* Trang riêng của 1 dự án: thanh thông tin + nút quay lại kiểu "Việc trong tuần" (.me-sum), bên dưới là
+   đúng khối planDetail() của tab Kế hoạch dự án (bảng đầu việc, thu/phóng, + Đầu việc, Sửa thông tin, Xoá
+   dự án, bấm dòng để sửa/đánh giá) – quyền vẫn do canManageProject()/taskForm() quyết định như ở tab đó,
+   người không có quyền bấm vào dòng chỉ mở được popup xem. */
+function projectPage(p){
+  const cell = (label, val) => `<div><div class="small muted">${label}</div><div style="font-weight:700; font-size:17px">${val}</div></div>`;
+  return `<div class="head"><div><h1>Dự án</h1></div></div>
+    <section class="panel" style="margin-bottom:18px"><div class="panel-b me-sum">
+      ${cell("Dự án", typeDot(p.type)+esc(p.name))}
+      ${cell("Phụ trách", esc(p.owner||"–"))}
+      ${cell("SE", esc(p.se||"–"))}
+      ${cell("Tiến độ", pct(p._prog))}
+      ${cell("Mốc tiếp theo", p._next?dmy(p._next):"–")}
+      <div class="badges">${projBadges(p)}</div>
+      <div class="toolbar" style="margin-left:auto"><button class="btn" data-act="projback">← Quay lại tổng quan</button></div>
+    </div></section>
+    <section class="panel">${planDetail(p, true)}</section>`;
+}
+ACTIONS["projback"] = () => { S.openProject = null; render(); };
 
 
 VIEW_RENDER.dash = viewProject;

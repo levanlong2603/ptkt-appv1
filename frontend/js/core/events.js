@@ -11,26 +11,26 @@ main.addEventListener("click", e => {
   if(a==="exrefresh"){ render(); toast("Đã làm mới"); return; }
   if(a==="expr"){ S.exPr = t.dataset.p; render(); return; }
   if(a==="golo"){ S.view="load"; store("view","load"); render(); return; }
-  if(a==="godash"){ S.view="dash"; S.projTab="overview"; store("view","dash"); render(); return; }
+  if(a==="godash"){ S.view="dash"; S.projTab="overview"; S.openProject=null; store("view","dash"); render(); return; }
   if(a==="wk"){ const d=+t.dataset.d; S.week = d===0 ? mondayOf(todayISO()) : addDays(S.week, d); render(); }
   else if(a==="tf"){ S.typeFilter=t.dataset.t; render(); }
-  else if(a==="openp"){ S.openProject = S.openProject===t.dataset.id ? null : t.dataset.id; render(); }
-  else if(a==="goplan"){ S.planSel=t.dataset.id; S.typeFilter="Tất cả"; S.view="dash"; S.projTab="plan"; store("view","dash"); render(); }
-  else if(a==="dashtask"){ const p=M.pById.get(t.dataset.pid); const tk=p&&p._tasks.find(x=>x.id===t.dataset.id); if(p&&tk) openInfo(p, tk); }
+  else if(a==="openp"){ S.openProject = t.dataset.id; render(); main.scrollTop = 0; }
   else if(a==="addentry") entryForm(null);
   else if(a==="editentry"){ const person=t.dataset.person||S.me; const doc=weekDoc(S.week,person); const en=doc&&(doc.entries||[]).find(x=>x.id===t.dataset.id); if(en) entryForm(en, person); }
   else if(a==="copyprev") copyPrev();
   else if(a==="psel"){ S.planSel = S.planSel===t.dataset.id ? null : t.dataset.id; render(); }
   else if(a==="newp") projectForm(null);
-  else if(a==="editp") projectForm(M.pById.get(S.planSel));
-  else if(a==="addtask") taskForm(M.pById.get(S.planSel), null);
+  /* editp/addtask/delp/task lấy dự án từ chính phần tử được bấm (data-id / data-pid), không đọc S.planSel:
+     khối planDetail() hiện ở cả tab Kế hoạch dự án lẫn trang riêng của dự án (S.openProject). */
+  else if(a==="editp") projectForm(M.pById.get(t.dataset.id));
+  else if(a==="addtask") taskForm(M.pById.get(t.dataset.id), null);
   else if(a==="delp"){
-    const p = M.pById.get(S.planSel);
+    const p = M.pById.get(t.dataset.id);
     if(p && canDeleteProject(p) && confirm(`Xoá dự án “${p.name}” và toàn bộ đầu việc?`)){
-      remove("projects/"+p.id); S.planSel=null; toast("Đã xoá dự án");
+      remove("projects/"+p.id); S.planSel=null; S.openProject=null; toast("Đã xoá dự án");
     }
   }
-  else if(a==="task"){ const p=M.pById.get(S.planSel); const tk=p._tasks.find(x=>x.id===t.dataset.id); taskForm(p, tk); }
+  else if(a==="task"){ const p=M.pById.get(t.dataset.pid); const tk=p&&p._tasks.find(x=>x.id===t.dataset.id); if(tk) taskForm(p, tk); }
   else if(a==="addstaff") staffForm(null);
   else if(a==="editstaff") staffForm(+t.dataset.i);
   else if(a==="addcat") catForm(null, t.dataset.t);

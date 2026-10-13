@@ -26,7 +26,7 @@ function renderNav(){
   const allOpt = isAdmin ? `<option value="__all__" ${S.me==="__all__"?"selected":""}>— Tất cả —</option>` : '<option value="">— chọn tên —</option>';
   sel.innerHTML = allOpt + names.map(n=>`<option ${n===S.me?"selected":""}>${esc(n)}</option>`).join("");
 }
-document.getElementById("nav").addEventListener("click", e => { const b=e.target.closest("button[data-view]"); if(!b) return; S.view=b.dataset.view; store("view",S.view); render(); document.getElementById("main").scrollTop=0; });
+document.getElementById("nav").addEventListener("click", e => { const b=e.target.closest("button[data-view]"); if(!b) return; S.view=b.dataset.view; S.openProject=null; store("view",S.view); render(); document.getElementById("main").scrollTop=0; });
 document.getElementById("meSel").addEventListener("change", e => { S.me=e.target.value; store("me",S.me); render(); });
 
 /* ================= sidebar thu gọn/phóng to ================= */
@@ -147,10 +147,10 @@ function render(){
 /* ================= shared pieces ================= */
 /* Dải hạng mục: thay vì thanh tiến độ, mỗi ô hiện số cảnh báo (quá hạn/vướng/sắp hạn) của hạng mục đó,
    khớp với cột "Cảnh báo" trong bảng đầu việc, để nhìn dải là biết ngay hạng mục nào cần theo dõi.
-   Mỗi ô là một nút: bấm vào sẽ mở dự án (nếu đang đóng) và mở đúng hạng mục đó trong bảng đầu việc bên
-   dưới, đồng thời đóng các hạng mục khác lại (accordion) – scope/selVar phải khớp với tham số truyền cho
-   planTreeRows() và biến state dùng để mở/đóng dự án ở trang gọi strip() (xem ACTIONS["stripgo"]). */
-function strip(p, scope="plan", selVar="planSel"){
+   Mỗi ô là một nút: bấm vào sẽ mở dự án đó – selVar là biến state mà trang gọi strip() dùng để mở dự án
+   ("planSel": xổ bảng tại chỗ ở tab Kế hoạch dự án; "openProject": mở trang riêng của dự án từ tab Tổng
+   quan – xem ACTIONS["stripgo"]). */
+function strip(p, selVar="planSel"){
   if(!p._phases.length) return '<span class="muted small">–</span>';
   return `<div class="strip" role="img" aria-label="Cảnh báo theo giai đoạn">` + p._phases.map(ph => {
     const ts = p._tasks.filter(t=>t.phase===ph.code);
@@ -165,18 +165,15 @@ function strip(p, scope="plan", selVar="planSel"){
     const cls = !ts.length ? "none" : late ? "bad" : (stuck||soon) ? "warn" : "ok";
     const parts = [late&&`${late} quá hạn`, stuck&&`${stuck} vướng`, soon&&`${soon} sắp hạn`].filter(Boolean);
     const tip = `${ph.code}. ${ph.name}: ${!ts.length?"không có đầu việc":parts.length?parts.join(", "):"không có cảnh báo"}`;
-    return `<button type="button" class="seg ${cls}" data-act="stripgo" data-pid="${esc(p.id)}" data-scope="${esc(scope)}" data-code="${esc(ph.code)}" data-selvar="${esc(selVar)}" title="${esc(tip)}"><b>${esc(ph.code)}</b>${n?`<span class="segn">${n}</span>`:""}</button>`;
+    return `<button type="button" class="seg ${cls}" data-act="stripgo" data-pid="${esc(p.id)}" data-selvar="${esc(selVar)}" title="${esc(tip)}"><b>${esc(ph.code)}</b>${n?`<span class="segn">${n}</span>`:""}</button>`;
   }).join("") + `</div>`;
 }
-/* Bấm 1 ô trong strip() → mở dự án đó (nếu đang đóng) và mở đúng hạng mục trong bảng đầu việc, đóng các
-   hạng mục khác lại (accordion) trong cùng dự án. */
+/* Bấm 1 ô trong strip() → mở dự án đó (bảng đầu việc giờ hiện phẳng, không còn hạng mục nào để mở riêng). */
 ACTIONS["stripgo"] = el => {
-  const { pid, scope, code, selvar } = el.dataset;
+  const { pid, selvar } = el.dataset;
   S[selvar] = pid;
-  S.planTog = S.planTog || {};
-  for(const k of Object.keys(S.planTog)) if(k.startsWith(scope+"|grp:")) delete S.planTog[k];
-  S.planTog[scope+"|grp:"+code] = true;
   render();
+  if(selvar==="openProject") document.getElementById("main").scrollTop = 0;
 };
 function stPill(st){
   const c = {"Hoàn thành":"ok","Đang làm":"info","Đang vướng":"bad","Tạm dừng":"mute","Hủy":"mute","Chưa bắt đầu":"mute"}[st]||"mute";

@@ -16,6 +16,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
 const { createStore } = require("./lib/store");
+const { slug, renameStaff } = require("./lib/staff");
 
 /* ---------------- cấu hình (đọc từ file .env) ---------------- */
 const PORT = Number(process.env.PORT) || 3000;
@@ -80,10 +81,6 @@ const ID_RE = /^[A-Za-z0-9_\-.~:@+]{1,200}$/;
 const store = createStore();
 
 /* ---------------- tiện ích ---------------- */
-function slug(s) {
-  return String(s).normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/g, "d").replace(/Đ/g, "D")
-    .toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60) || "x";
-}
 const publicUser = u => ({ id: u.id, username: u.username, display_name: u.display_name, staff_name: u.staff_name, role: u.role, active: !!u.active });
 const audit = (user, action, p) => store.audit(user ? user.username : null, action, p).catch(e => console.error("[audit]", e.message));
 /* bọc route async để lỗi được chuyển về bộ xử lý lỗi chung */
@@ -307,6 +304,13 @@ app.delete("/api/doc/:coll/:id", auth, A(async (req, res) => {
   await store.deleteDoc(p);
   audit(req.user, "delete", p); broadcast(coll);
   res.status(204).end();
+}));
+/* --- đổi tên nhân sự / chuyển dữ liệu sang nhân sự khác (trưởng phòng/phó phòng/admin) – xem lib/staff.js --- */
+app.post("/api/staff/rename", auth, adminOnly, A(async (req, res) => {
+  const r = await renameStaff(store, (req.body || {}).from, (req.body || {}).to, req.user.username);
+  if (r.error) return res.status(r.error.status).json({ error: r.error.message });
+  audit(req.user, "staff-rename", `${r.from} → ${r.to}`.slice(0, 255)); broadcast("*");
+  res.json(r.n);
 }));
 app.get("/api/events", auth, (req, res) => {
   res.writeHead(200, { "Content-Type": "text/event-stream; charset=utf-8", "Cache-Control": "no-cache, no-transform", Connection: "keep-alive", "X-Accel-Buffering": "no" });

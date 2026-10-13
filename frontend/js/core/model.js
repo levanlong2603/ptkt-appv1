@@ -61,8 +61,10 @@ function derive(){
       const upd = la ? [la.work, la.note].filter(Boolean).join(" · ") : "";
       /* Vướng mắc của NGƯỜI LÀM, tách riêng khỏi "Ghi chú của trưởng phòng" (t.note, trường gốc trên task) –
          lấy từ lượt nhập tuần gần nhất (la.note), dùng cho cột "Vướng mắc" ở Báo cáo dự án (reports.js),
-         không lẫn với t.note ("Hướng giải quyết"). */
-      const lastNote = la ? (la.note||"") : "";
+         không lẫn với t.note ("Hướng giải quyết"). Chưa có lượt nhập tuần nào thì dùng vướng mắc ban đầu
+         t.init.note (trường tuỳ chọn, chỉ có ở đầu việc nhập từ Excel – plan-import.js), cùng nguyên tắc
+         với t.init.status/ms/nn ngay phía trên. */
+      const lastNote = la ? (la.note||"") : ((t.init && t.init.note) || "");
       /* "Ngày cập nhật": tuần/ngày nhân viên lưu lần gần nhất, tách riêng khỏi nội dung "Cập nhật" ở trên */
       /* Ngày cập nhật = mốc gần nhất giữa lần nhập theo tuần và lần trưởng phòng/TM/SE sửa trực tiếp đầu việc ở Kế hoạch dự án */
       const weekDate = la ? parse(la.week) : null;
