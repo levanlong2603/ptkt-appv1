@@ -1,7 +1,7 @@
 "use strict";
 /* Đổi tên nhân sự / chuyển dữ liệu sang nhân sự khác – dùng bởi POST /api/staff/rename (server.js).
    Tên nhân sự là khoá nối dữ liệu (không có mã riêng): TM/SE của dự án, phụ trách/thực hiện của đầu việc,
-   person + mã tài liệu của weeks/worklog (`<tuần>__<slug tên>`), kpiNote, staff_name của tài khoản. Chỉ sửa
+   person + mã tài liệu của weeks/worklog (`<tuần>__<slug tên>`), kpiNote/kpiReview, staff_name của tài khoản. Chỉ sửa
    tên trong config/staff thì mọi dữ liệu cũ thành "mồ côi" – hàm này chuyển TẤT CẢ từ tên `from` sang `to`:
      - `from` có trong danh sách nhân sự, `to` chưa có → đổi tên người đó (kèm toàn bộ dữ liệu);
      - `from` không còn trong danh sách (đã bị đổi tên/xoá trước đây), `to` có → gắn dữ liệu mồ côi cho `to`.
@@ -19,7 +19,7 @@ function slug(s) {
 async function renameStaff(store, fromRaw, toRaw, by) {
   const from = String(fromRaw ?? "").trim(), to = String(toRaw ?? "").trim();
   if (!from || !to || from === to || from.length > 120 || to.length > 120) return { error: { status: 400, message: "Tên nhân sự không hợp lệ" } };
-  const n = { staff: 0, projects: 0, weeks: 0, worklog: 0, kpiNote: 0, feedback: 0, users: 0 };
+  const n = { staff: 0, projects: 0, weeks: 0, worklog: 0, kpiNote: 0, kpiReview: 0, feedback: 0, users: 0 };
   const stRaw = await store.getDoc("config/staff"), st = stRaw ? JSON.parse(stRaw) : { list: [] };
   const list = st.list || [], hasFrom = list.some(s => s.name === from), hasTo = list.some(s => s.name === to);
   if (hasFrom && hasTo) return { error: { status: 409, message: `Đã có nhân sự tên “${to}”` } };
@@ -54,12 +54,14 @@ async function renameStaff(store, fromRaw, toRaw, by) {
       n[coll]++;
     }
   }
-  for (const r of await store.getDocs("kpiNote")) { // mã: <kỳ>__<slug tên>
-    const b = JSON.parse(r.body); if (b.person !== from) continue;
-    const suffix = `__${slug(from)}`, id = r.doc_id.endsWith(suffix) ? r.doc_id.slice(0, -suffix.length) + `__${slug(to)}` : r.doc_id;
-    await store.upsertDoc(`kpiNote/${id}`, "kpiNote", id, JSON.stringify({ ...b, person: to }), by);
-    if (id !== r.doc_id) await store.deleteDoc(`kpiNote/${r.doc_id}`);
-    n.kpiNote++;
+  for (const coll of ["kpiNote", "kpiReview"]) { // mã: <kỳ>__<slug tên>
+    for (const r of await store.getDocs(coll)) {
+      const b = JSON.parse(r.body); if (b.person !== from) continue;
+      const suffix = `__${slug(from)}`, id = r.doc_id.endsWith(suffix) ? r.doc_id.slice(0, -suffix.length) + `__${slug(to)}` : r.doc_id;
+      await store.upsertDoc(`${coll}/${id}`, coll, id, JSON.stringify({ ...b, person: to }), by);
+      if (id !== r.doc_id) await store.deleteDoc(`${coll}/${r.doc_id}`);
+      n[coll]++;
+    }
   }
   for (const r of await store.getDocs("feedback")) { // person chỉ là nhãn người gửi – đổi theo cho khớp tên mới
     const b = JSON.parse(r.body); if (b.person !== from) continue;

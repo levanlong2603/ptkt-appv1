@@ -109,3 +109,6 @@ function registerView({id, label, icon, iconSvg, render, position = "main"}){
   if(position === "bottom" || i < 0) VIEWS.push(def); else VIEWS.splice(i, 0, def);
   VIEW_RENDER[id] = render;
 }
+/* Cho máy chủ (Node) dùng lại đúng bảng hệ số workload khi tính KPI lúc chốt kỳ (modules/kpi-calc.js);
+   trên trình duyệt `module` không tồn tại nên dòng này không làm gì. */
+if(typeof module!=="undefined" && module.exports) module.exports = {QM_HOURS, PT_MULT, wlOf};

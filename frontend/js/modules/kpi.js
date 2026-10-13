@@ -1,32 +1,21 @@
 "use strict";
-/* Module mở rộng: KPI & Năng lực – GIAI ĐOẠN 1 (đã thống nhất với trưởng phòng: làm trước phần tính KPI
-   từ dữ liệu thật + danh sách/chi tiết nhân viên; ma trận năng lực đầy đủ, quy trình phê duyệt nhiều cấp
-   và đề xuất khen thưởng chính thức để ở giai đoạn sau, vì cần dữ liệu hoàn toàn mới chưa tồn tại).
-   Phân quyền dùng đúng 2 vai trò sẵn có (Trưởng phòng/Nhân viên) — không thêm vai trò "quản lý"/"người
-   phê duyệt" riêng, theo yêu cầu (hệ thống chỉ có 1 trưởng phòng).
+/* Module mở rộng: KPI & Năng lực.
+   Đang hoàn thiện theo từng bước – hiện CHỈ tài khoản "admin" (hệ thống) xem được, kể cả trưởng phòng/phó
+   phòng cũng chưa thấy (khớp KPI_ROLES ở backend/server.js; khi mở rộng phải sửa cả 2 nơi).
+     Bước 1 (file này): KPI tổng quan – kỳ đánh giá, thẻ số liệu, xu hướng, bảng nhân sự, trạng thái đánh giá.
+     Bước 2: hồ sơ KPI cá nhân theo tab (hiện kpiDetailView() còn bố cục cũ, chưa có lưu/chốt bản đánh giá).
+     Bước 3–4: ma trận năng lực, hồ sơ năng lực.
 
-   Nguồn dữ liệu cho từng tiêu chí (không bịa số liệu — xem rpBuild-style ở modules/reports.js):
-     - Khối lượng công việc   : M.entries (Nhập theo tuần) của người đó trong kỳ, so với Capacity.
-     - Độ khó & đóng góp      : độ phức tạp (pt) trung bình có trọng số workload của các dòng nhập trong kỳ.
-       "Mức đóng góp" khi nhiều người cùng làm 1 đầu việc KHÔNG có dữ liệu % chia tỷ lệ trong hệ thống —
-       tạm dùng chính workload tự nhập của từng người (đã là phần việc riêng họ tự chấm), không chia đều.
-     - Chất lượng công việc   : task.eval.cl ("Đánh giá khi hoàn thành" ở Kế hoạch dự án) của đầu việc họ
-       Phụ trách, hoàn thành trong kỳ.
-     - Tiến độ & cam kết      : t.ontime của đầu việc họ Phụ trách, hoàn thành trong kỳ.
-     - Năng lực & phát triển  : CHƯA CÓ NGUỒN DỮ LIỆU — luôn để trống (null), không tự chấm. Cần dựng ma
-       trận năng lực theo chức danh ở giai đoạn 2 (đã thêm sẵn trường "Chức danh" tuỳ chọn cho nhân sự).
-   KPI tổng chỉ cộng trọng số của các tiêu chí CÓ dữ liệu trong kỳ (không coi thiếu dữ liệu = 0 điểm). */
-const KPI_DEFAULT = {
-  weights: {volume:20, difficulty:20, quality:25, progress:20, capability:15},
-  thresholds: [{min:90,label:"Xuất sắc",cls:"ok"},{min:80,label:"Tốt",cls:"info"},{min:65,label:"Đạt yêu cầu",cls:"warn"},{min:0,label:"Cần cải thiện",cls:"bad"}]
-};
-const KPI_CRIT = [
-  {key:"volume", label:"Khối lượng công việc"},
-  {key:"difficulty", label:"Độ khó & đóng góp"},
-  {key:"quality", label:"Chất lượng công việc"},
-  {key:"progress", label:"Tiến độ & cam kết"},
-  {key:"capability", label:"Năng lực & phát triển"}
-];
+   ĐIỂM KPI không lưu sẵn: tính từ dữ liệu thật mỗi lần xem bằng modules/kpi-calc.js (công thức + nguồn dữ
+   liệu từng tiêu chí ghi ở đầu file đó; máy chủ dùng CHÍNH file đó để tính lại khi chốt). Người đã được
+   CHỐT trong 1 kỳ (kpiReview, status "locked") thì hiển thị đúng bản điểm máy chủ đã lưu lúc chốt, không
+   tính lại theo dữ liệu/cấu hình hiện hành nữa.
+   Trạng thái đánh giá của 1 người trong 1 kỳ: chưa có bản đánh giá → "Chưa đánh giá"; có bản nháp → "Đang
+   đánh giá"; đã chốt → "Đã chốt". Bản đánh giá chỉ ghi qua /api/kpi/review* (backend/lib/kpi.js).
+   Luôn phân biệt "chưa có dữ liệu" (null, hiện "–") với điểm 0. */
+const KPI_DEFAULT = KPI_CALC.DEFAULT, KPI_CRIT = KPI_CALC.CRIT;
+const KPI_STATUS = {none:["Chưa đánh giá","mute"], draft:["Đang đánh giá","info"], locked:["Đã chốt","ok"]};
+const KPI_TREND_N = 6;
 ON_SESSION.push(db => {
   db.collection("config").onSnapshot(snap => {
     const doc = snap.docs.find(d=>d.id==="kpiCriteria");
@@ -37,155 +26,239 @@ ON_SESSION.push(db => {
     S.kpiNotes = snap.docs.map(d=>({...d.data(), id:d.id}));
     schedule();
   });
+  /* Bản đánh giá chỉ vai trò được phép mới đọc được (máy chủ trả 403 cho người khác) – không đăng ký nghe
+     khi không có quyền, và xoá sạch bản đang giữ của phiên trước nếu đổi tài khoản. */
+  S.kpiReviews = [];
+  if(S.user && S.user.role==="admin") db.collection("kpiReview").onSnapshot(snap => {
+    S.kpiReviews = snap.docs.map(d=>({...d.data(), id:d.id}));
+    schedule();
+  }, () => {});
 });
 function kpiInit(){
-  if(!S.kpi) S.kpi = {kind:"month", anchor: mondayOf(todayISO()), q:"", sort:"kpi", dir:-1, sel:null};
+  /* Kỳ mặc định = kỳ chứa thứ Hai của tuần này (tuần được tính vào kỳ theo thứ Hai của nó) */
+  if(!S.kpi) S.kpi = {kind:"month", key:KPI_CALC.periodOf("month", mondayOf(todayISO())).key, q:"", sort:"kpi", dir:-1, sel:null, fRating:"", fStatus:""};
   if(!S.kpiNotes) S.kpiNotes = [];
+  if(!S.kpiReviews) S.kpiReviews = [];
 }
-/* periodInfo()/shiftAnchor() (exec-dashboard.js) đã hỗ trợ week/month/quarter – bổ sung "year" riêng ở
-   đây thay vì sửa file gốc, giữ đúng tinh thần "ưu tiên mở rộng, không sửa lõi". */
-function kpiPeriodInfo(anchor, kind){
-  if(kind!=="year") return periodInfo(anchor, kind);
-  const y = parse(anchor).getFullYear();
-  const weeks = []; let w = mondayOf(iso(new Date(y,0,1)));
-  if(parse(w).getFullYear()!==y) w = addDays(w,7);
-  while(true){ const wd = parse(w); if(wd.getFullYear()!==y) break; weeks.push(w); w = addDays(w,7); }
-  return {weeks, label:`Năm ${y}`, short:"năm"};
+const kpiCriteria = () => S.kpiCriteria || KPI_DEFAULT;
+const kpiPeriod = () => KPI_CALC.periodByKey(S.kpi.kind, S.kpi.key) || KPI_CALC.periodOf(S.kpi.kind, mondayOf(todayISO()));
+/* Dữ liệu dùng chung cho 1 lần vẽ: chỉ mục tính điểm + bảng tra bản đánh giá theo mã */
+function kpiContext(){
+  return {ix: KPI_CALC.prepare({staff:S.staff, projects:S.projects, weeks:S.weeks}), crit: kpiCriteria(),
+    reviews: new Map((S.kpiReviews||[]).map(r=>[r.id, r]))};
 }
-function kpiShiftAnchor(anchor, kind, dir){
-  if(kind!=="year") return shiftAnchor(anchor, kind, dir);
-  const nd = new Date(parse(anchor).getFullYear()+dir, 0, 1);
-  const w = mondayOf(iso(nd)); return parse(w).getFullYear()===nd.getFullYear() ? w : addDays(w,7);
+/* Điểm + trạng thái của 1 người trong 1 kỳ. Đã chốt → dùng bản điểm (và ngưỡng xếp loại) lưu lúc chốt. */
+function kpiRow(c, s, p){
+  const rev = c.reviews.get(KPI_CALC.reviewId(p.kind, p.key, s.name)) || null;
+  const live = KPI_CALC.compute(c.ix, s.name, p.weeks, c.crit);
+  const snap = rev && rev.status==="locked" ? rev.snapshot : null;
+  const scores = snap ? snap.scores : live.scores, kpi = snap ? snap.kpi : live.kpi;
+  return {s, rev, live, scores, kpi, rating: KPI_CALC.rating(kpi, snap ? {thresholds:snap.thresholds} : c.crit),
+    status: !rev ? "none" : rev.status==="locked" ? "locked" : "draft"};
 }
-function kpiLabel(score){
-  if(score==null) return null;
-  const th = (S.kpiCriteria||KPI_DEFAULT).thresholds;
-  for(const t of th) if(score>=t.min) return t;
-  return th[th.length-1];
+const kpiNum = v => v==null ? "–" : v;
+/* Nhãn "Độ khó dự án" – cùng 4 giá trị với ô chọn trong projectForm() (plan.js) */
+const KPI_DIFF = {0.8:"Dễ", 1:"Trung bình", 1.3:"Khó", 1.6:"Cực khó"};
+/* Dự án + đầu việc 1 người thực hiện trong kỳ, gộp ô theo dự án. Bấm 1 dòng mở form đầu việc (taskForm ở plan.js,
+   qua data-act="task" của events.js) để trưởng phòng điền "Đánh giá khi hoàn thành" ngay tại đây. */
+function kpiWorkHtml(groups){
+  const all = groups.flatMap(g=>g.tasks), nDone = all.filter(t=>t.status==="Hoàn thành").length, nPending = all.filter(t=>t.pending).length;
+  const ctr = v => `<td style="text-align:center">${v}</td>`;
+  const rows = groups.map(g => g.tasks.map((t, i) => `<tr class="click${i===0?" kpi-wk-first":""}" data-act="task" data-pid="${esc(g.projectId)}" data-id="${esc(t.id)}">
+      ${i===0?`<td rowspan="${g.tasks.length}" class="kpi-wk-proj"><div class="cell-main">${typeDot(g.type)}${esc(g.project)}</div>
+        <div class="kpi-wk-tags">${g.difficulty!=null && KPI_DIFF[g.difficulty]?`<span class="pill info">Độ khó: ${KPI_DIFF[g.difficulty]}</span>`:'<span class="pill mute">Chưa đặt độ khó</span>'}${g.pRole?`<span class="pill mute">${g.pRole} dự án</span>`:""}</div>
+        <div class="small muted">${g.tasks.length} đầu việc</div></td>`:""}
+      <td class="cell-main">${esc(planShortName(t.dv))}</td>
+      <td style="white-space:nowrap">${[t.owner?"Phụ trách":"", t.doer?"Thực hiện":""].filter(Boolean).join(" · ")}</td>
+      <td style="text-align:center"${t.wlTotal!=null?` title="Cộng dồn ${t.nWeeks} tuần có nhập, từ tuần ${dmy(t.firstWeek)} đến tuần ${dmy(t.lastWeek)}"`:""}>${t.wlTotal!=null ? fmt1(t.wlTotal) : "–"}${t.wlTotal!=null && t.wl!==t.wlTotal ? `<div class="small muted" style="white-space:nowrap">kỳ này ${fmt1(t.wl||0)}</div>` : ""}</td>
+      <td>${stPill(t.status)}</td>
+      ${ctr(t.deadline ? dmy(t.deadline) : "–")}
+      ${ctr(t.ontime===true?'<span class="pill ok">Đúng hạn</span>':t.ontime===false?'<span class="pill bad">Trễ hạn</span>':"–")}
+      ${t.pending ? '<td colspan="3" style="text-align:center"><span class="pill info">Chờ đánh giá</span></td>'
+        : ctr(t.dat ? `<span class="pill ${t.dat==="Đạt"?"ok":t.dat==="Không đạt"?"bad":"warn"}">${esc(t.dat)}</span>` : "–") + ctr(kpiNum(t.cl)) + ctr(kpiNum(t.tc))}
+    </tr>`).join("")).join("");
+  return `<section class="panel" style="margin-bottom:14px"><div class="panel-h"><h2>Dự án và đầu việc thực hiện trong kỳ</h2>
+      <span class="muted small">${groups.length} dự án · ${all.length} đầu việc · ${nDone} đã hoàn thành${nPending?` · ${nPending} chờ đánh giá`:""}</span></div>
+    ${all.length ? `<div class="tbl-wrap"><table class="kpi-wk"><thead><tr><th>Dự án</th><th>Đầu việc</th><th>Vai trò</th><th style="text-align:center">Tổng workload (giờ)</th><th>Trạng thái</th>
+        <th style="text-align:center">Hạn</th><th style="text-align:center">Tiến độ</th><th style="text-align:center">Đạt yêu cầu</th><th style="text-align:center">Chất lượng</th><th style="text-align:center">Tự chủ</th></tr></thead>
+      <tbody>${rows}</tbody></table></div>
+      <div class="panel-b small muted">Gồm đầu việc người này có nhập tuần trong kỳ, và đầu việc họ phụ trách hoặc được giao thực hiện được báo hoàn thành trong kỳ. “Tổng workload” cộng dồn mọi tuần người này đã nhập cho đầu việc, từ tuần đầu tới hết kỳ đang xem (tới tuần hoàn thành nếu việc đã xong) – dòng “kỳ này” là phần rơi vào riêng kỳ. Ba cột cuối lấy từ “Đánh giá khi hoàn thành” của trưởng phòng – bấm vào một dòng để mở đầu việc và đánh giá.</div>`
+    : '<div class="empty"><b>Chưa có đầu việc nào trong kỳ</b>Người này chưa nhập tuần và không có đầu việc nào được báo hoàn thành trong kỳ này.</div>'}
+    </section>`;
 }
-/* ----- tính điểm 1 nhân viên trong 1 kỳ (mảng các tuần thuộc kỳ đó) ----- */
-function kpiCompute(name, weeks){
-  const wset = new Set(weeks);
-  const cap = M.capOf.get(name) || 0;
-  const myEntries = M.entries.filter(e => e.person===name && wset.has(e.week) && e.status!=="Hủy");
-  const wl = myEntries.reduce((a,e)=>a+(e.wl||0),0);
-  const capPeriod = cap * weeks.length;
-  const volume = myEntries.length ? Math.min(100, Math.round(capPeriod ? wl/capPeriod*100 : 0)) : null;
-  let ptWlSum=0, ptSum=0;
-  for(const e of myEntries){
-    const pt = e.pt || (e.ref && e.ref.t.ptE) || null;
-    if(pt && e.wl){ ptWlSum += pt*e.wl; ptSum += e.wl; }
-  }
-  const difficulty = ptSum ? Math.round((ptWlSum/ptSum - 1)/4*100) : null;
-  const myTasks = M.tasks.filter(t => t.owner===name && t.done && wset.has(t.done));
-  const withEval = myTasks.filter(t => t.eval && t.eval.cl!=null);
-  const quality = withEval.length ? Math.round(withEval.reduce((a,t)=>a+(t.eval.cl-1)/4*100,0)/withEval.length) : null;
-  const withOntime = myTasks.filter(t => t.ontime!=null);
-  const progress = withOntime.length ? Math.round(withOntime.filter(t=>t.ontime).length/withOntime.length*100) : null;
-  const scores = {volume, difficulty, quality, progress, capability:null};
-  const weights = (S.kpiCriteria||KPI_DEFAULT).weights;
-  let wsum=0, ssum=0;
-  for(const k of Object.keys(scores)) if(scores[k]!=null){ wsum += weights[k]||0; ssum += scores[k]*(weights[k]||0); }
-  const kpi = wsum ? Math.round(ssum/wsum) : null;
-  return {scores, kpi, wsum, nEntries: myEntries.length, nTasks: myTasks.length, tasks: myTasks};
+
+/* ----- giao diện: KPI tổng quan ----- */
+/* Chọn kỳ nằm ngay trên dòng tiêu đề, cùng kiểu .ex-wk/.ex-seg + nút Làm mới (exrefresh) của Dashboard/Dự án/Báo cáo */
+function kpiPeriodNav(p){
+  return `<div class="ex-wk"><button data-act="kpinav" data-d="-1" aria-label="Kỳ trước">‹</button><div class="lb">${esc(p.label)}</div><button data-act="kpinav" data-d="1" aria-label="Kỳ sau">›</button></div>
+    <div class="ex-seg" role="group" aria-label="Kỳ đánh giá">${[["month","Tháng"],["quarter","Quý"],["year","Năm"]].map(([v,l])=>`<button data-act="kpikind" data-v="${v}" aria-pressed="${p.kind===v}">${l}</button>`).join("")}</div>`;
 }
-/* ----- giao diện ----- */
-function kpiPeriodNav(){
-  const k = S.kpi.kind, info = kpiPeriodInfo(S.kpi.anchor, k);
-  return `<div class="toolbar">
-    <div class="seg-in" role="group" aria-label="Kỳ đánh giá">${[["month","Tháng"],["quarter","Quý"],["year","Năm"]].map(([v,l])=>`<button type="button" data-act="kpikind" data-v="${v}" aria-pressed="${k===v}">${l}</button>`).join("")}</div>
-    <div class="weeknav"><button class="btn ghost icon" data-act="kpinav" data-d="-1" aria-label="Kỳ trước">‹</button>
-      <div class="lbl">${esc(info.label)}</div>
-      <button class="btn ghost icon" data-act="kpinav" data-d="1" aria-label="Kỳ sau">›</button></div></div>`;
+/* Xu hướng KPI trung bình của phòng qua các kỳ liền nhau (1 chuỗi duy nhất nên không cần chú giải).
+   points = [{label, short, v, n, total}] – v=null khi kỳ đó không ai có dữ liệu: bỏ trống, KHÔNG nối đường
+   qua chỗ trống và không vẽ thành 0. Dựng bằng HTML + 1 SVG co giãn theo khung (không dùng thư viện): chấm,
+   nhãn và ô gợi ý là phần tử HTML nên không bị méo khi khung đổi kích thước. Rê chuột/tab vào từng kỳ hiện
+   vạch dọc + số liệu; bảng số liệu ngay bên dưới là bản thay thế cho người không dùng chuột/không nhìn màu. */
+function kpiTrendHtml(points, target){
+  if(!points.some(x=>x.v!=null)) return `<div class="empty"><b>Chưa có dữ liệu để vẽ xu hướng</b>Chưa có ai có điểm KPI trong ${points.length} kỳ gần nhất.</div>`;
+  const n = points.length, x = i => (i+0.5)/n*100;
+  const segs = []; let cur = [];
+  points.forEach((pt, i) => { if(pt.v==null){ if(cur.length>1) segs.push(cur); cur = []; } else cur.push(`${x(i).toFixed(2)},${100-pt.v}`); });
+  if(cur.length>1) segs.push(cur);
+  const tip = pt => pt.v==null ? `<b>–</b><span>${esc(pt.label)}</span><span>Chưa có dữ liệu</span>`
+    : `<b>${pt.v}</b><span>KPI trung bình · ${esc(pt.label)}</span><span>${pt.n}/${pt.total} người có dữ liệu</span>`;
+  return `<div class="kpi-chart" role="group" aria-label="Xu hướng KPI trung bình ${n} kỳ gần nhất">
+      <div class="kpi-y" aria-hidden="true"><span style="bottom:100%">100</span><span style="bottom:50%">50</span><span style="bottom:0">0</span></div>
+      <div class="kpi-plot">
+        ${[0,25,50,75,100].map(v=>`<i class="kpi-grid" style="bottom:${v}%"></i>`).join("")}
+        <i class="kpi-target" style="bottom:${target}%"><span>Đạt yêu cầu từ ${target}</span></i>
+        <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">${segs.map(s=>`<polyline points="${s.join(" ")}" vector-effect="non-scaling-stroke"/>`).join("")}</svg>
+        ${points.map((pt, i) => `<div class="kpi-col${i===0?" first":""}${i===n-1?" last":""}${pt.v!=null&&pt.v>=55?" hi":""}" tabindex="0" style="left:${i/n*100}%; width:${100/n}%"
+            aria-label="${esc(pt.label)}: ${pt.v==null?"chưa có dữ liệu":`KPI trung bình ${pt.v}, ${pt.n} trên ${pt.total} người có dữ liệu`}">
+          ${pt.v!=null?`<b class="kpi-dot" style="bottom:${pt.v}%"></b>`:""}
+          ${i===n-1&&pt.v!=null?`<span class="kpi-end${pt.v>=85?" below":""}" style="bottom:${pt.v}%">${pt.v}</span>`:""}
+          <div class="kpi-tip">${tip(pt)}</div></div>`).join("")}
+      </div>
+      <div class="kpi-x" aria-hidden="true">${points.map(pt=>`<span>${esc(pt.short)}</span>`).join("")}</div>
+    </div>
+    <details class="kpi-tblview"><summary>Xem số liệu dạng bảng</summary>
+      <div class="tbl-wrap"><table><thead><tr><th>Kỳ</th><th style="text-align:center">KPI trung bình</th><th style="text-align:center">Số người có dữ liệu</th></tr></thead>
+      <tbody>${points.map(pt=>`<tr><td>${esc(pt.label)}</td><td style="text-align:center">${kpiNum(pt.v)}</td><td style="text-align:center">${pt.n}/${pt.total}</td></tr>`).join("")}</tbody></table></div>
+    </details>`;
+}
+/* Biểu đồ mạng nhện: mỗi tiêu chí 1 trục (thang 0–100), 1 chuỗi duy nhất nên không cần chú giải. Dựng bằng SVG thuần.
+   items = [{label, v, w}] – v=null là CHƯA CÓ DỮ LIỆU, khác điểm 0: trục đó vẽ nét đứt, không có chấm, viền không
+   nối qua nó và vùng tô thu về tâm ở hướng đó (không "bịa" ra giá trị). Tiêu chí có dữ liệu nhưng cả 2 trục kề
+   đều trống thì thêm 1 nét từ tâm ra chấm để vẫn đọc được độ lớn. Bảng bên cạnh là bản số liệu đầy đủ. */
+function kpiRadarHtml(items){
+  if(!items.some(x=>x.v!=null)) return `<div class="empty"><b>Chưa có dữ liệu trong kỳ</b>Chưa tiêu chí nào có số liệu để vẽ biểu đồ.</div>`;
+  const n = items.length, W = 580, H = 330, cx = W/2, cy = 172, R = 112;
+  const ang = i => (-90 + i*360/n) * Math.PI/180;
+  const at = (i, d) => [cx + d*Math.cos(ang(i)), cy + d*Math.sin(ang(i))];
+  const f = a => a.map(x=>x.toFixed(1)).join(",");
+  const has = i => items[i].v!=null, P = i => at(i, R*items[i].v/100);
+  const line = (a, b, cls) => `<line class="${cls}" x1="${a[0].toFixed(1)}" y1="${a[1].toFixed(1)}" x2="${b[0].toFixed(1)}" y2="${b[1].toFixed(1)}"/>`;
+  const edges = items.map((_, i) => { const j = (i+1)%n, k = (i+n-1)%n;
+    return (has(i)&&has(j) ? line(P(i), P(j), "kpi-rd-edge") : "") + (has(i)&&!has(j)&&!has(k) ? line([cx,cy], P(i), "kpi-rd-edge") : ""); }).join("");
+  const labels = items.map((it, i) => { const [x, y] = at(i, R+14), c = Math.cos(ang(i)), sn = Math.sin(ang(i));
+    const anchor = c>0.3 ? "start" : c<-0.3 ? "end" : "middle", y1 = sn<-0.5 ? y-18 : sn>0.5 ? y+12 : y-3;
+    return `<text class="kpi-rd-lb" text-anchor="${anchor}" x="${x.toFixed(1)}" y="${y1.toFixed(1)}">${esc(it.label)}</text>
+      <text class="${it.v==null?"kpi-rd-na":"kpi-rd-v"}" text-anchor="${anchor}" x="${x.toFixed(1)}" y="${(y1+16).toFixed(1)}">${it.v==null?"Chưa có dữ liệu":it.v}</text>`; }).join("");
+  return `<div class="kpi-rd"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Điểm theo tiêu chí: ${esc(items.map(it=>`${it.label} ${it.v==null?"chưa có dữ liệu":it.v}`).join("; "))}">
+      ${[25,50,75,100].map(v=>`<polygon class="kpi-rd-ring${v===100?" out":""}" points="${items.map((_, i)=>f(at(i, R*v/100))).join(" ")}"/>`).join("")}
+      ${items.map((_, i)=>line([cx,cy], at(i, R), "kpi-rd-axis"+(has(i)?"":" na"))).join("")}
+      <polygon class="kpi-rd-area" points="${items.map((_, i)=>f(has(i)?P(i):[cx,cy])).join(" ")}"/>
+      ${edges}
+      ${[50,100].map(v=>`<text class="kpi-rd-tick" x="${cx+5}" y="${(cy-R*v/100+11).toFixed(1)}">${v}</text>`).join("")}
+      ${items.map((it, i)=>{ if(!has(i)) return ""; const [x, y] = P(i);
+        return `<g class="kpi-rd-pt"><title>${esc(it.label)}: ${it.v} điểm · trọng số ${it.w}%</title><circle class="hit" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="14"/><circle class="dot" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4"/></g>`; }).join("")}
+      ${labels}
+    </svg></div>`;
 }
 function viewKpi(){
-  /* Đang phát triển – chỉ tài khoản admin (hệ thống) xem được ở giai đoạn này, kể cả trưởng phòng/phó
-     phòng cũng chưa thấy (khác các trang khác, dùng S.canEdit); mở rộng dần khi hoàn thiện. */
   if(!(S.user && S.user.role==="admin")) return `<div class="head"><div><h1>KPI &amp; Năng lực</h1></div></div>
     <section class="panel"><div class="empty"><b>Tính năng đang phát triển</b>Trang KPI &amp; Năng lực hiện đang hoàn thiện, sắp ra mắt.</div></section>`;
   kpiInit();
   if(S.kpi.sel) return kpiDetailView();
-  const info = kpiPeriodInfo(S.kpi.anchor, S.kpi.kind);
-  const rows = M.staff.map(s => ({s, r: kpiCompute(s.name, info.weeks)}));
-  const evaluated = rows.filter(x=>x.r.kpi!=null);
-  const avg = evaluated.length ? Math.round(evaluated.reduce((a,x)=>a+x.r.kpi,0)/evaluated.length) : null;
-  const excellent = evaluated.filter(x=>(kpiLabel(x.r.kpi)||{}).label==="Xuất sắc").length;
-  const improve = evaluated.filter(x=>(kpiLabel(x.r.kpi)||{}).label==="Cần cải thiện").length;
-  let h = `<div class="head"><h1>KPI &amp; Năng lực</h1>
-    ${S.canEdit?`<button class="btn" data-act="kpicfg">Cấu hình tiêu chí</button>`:""}</div>`;
-  h += `<section class="panel" style="margin-bottom:14px"><div class="panel-b">${kpiPeriodNav()}</div></section>`;
+  const p = kpiPeriod(), c = kpiContext();
+  const rows = M.staff.map(s => kpiRow(c, s, p));
+  const scored = rows.filter(r=>r.kpi!=null);
+  const avgOf = list => { const a = list.filter(r=>r.kpi!=null); return a.length ? Math.round(a.reduce((x,r)=>x+r.kpi,0)/a.length) : null; };
+  const th = c.crit.thresholds, target = (th[th.length-2]||th[0]).min; // ngưỡng thấp nhất còn được coi là đạt
+  const nLocked = rows.filter(r=>r.status==="locked").length, nDraft = rows.filter(r=>r.status==="draft").length;
+  const nPass = scored.filter(r=>r.kpi>=target).length, nReview = scored.length-nPass, nNoData = rows.length-scored.length;
+
+  let h = `<div class="head"><div><h1>KPI &amp; Năng lực</h1></div>
+    <div class="ex-ctl">${kpiPeriodNav(p)}
+      <button class="btn icon" data-act="exrefresh" title="Làm mới" aria-label="Làm mới">${ICONS.refresh}</button></div></div>
+    <div class="head-ctl" style="margin-bottom:16px"><button class="btn" data-act="kpicfg">Cấu hình tiêu chí</button></div>`; // hàng công cụ riêng dưới tiêu đề, như hàng lọc của màn Dự án
+  if(!rows.length) return h + `<section class="panel"><div class="empty"><b>Chưa có nhân sự</b>Thêm nhân sự ở Cài đặt → Nhân sự &amp; capacity để bắt đầu đánh giá.</div></section>`;
   h += `<div class="band">
-    <div class="stat"><div class="v">${evaluated.length}/${M.staff.length}</div><div class="l">Nhân viên được đánh giá</div></div>
-    <div class="stat ${avg==null?"":avg>=80?"ok":avg>=65?"warn":"bad"}"><div class="v">${avg==null?"–":avg}</div><div class="l">KPI trung bình</div></div>
-    <div class="stat ok"><div class="v">${excellent}</div><div class="l">Đề xuất khen thưởng (Xuất sắc)</div></div>
-    <div class="stat ${improve?"bad":""}"><div class="v">${improve}</div><div class="l">Cần cải thiện</div></div></div>`;
-  const q = (S.kpi.q||"").toLowerCase();
-  let filtered = rows.filter(x=>!q || x.s.name.toLowerCase().includes(q));
-  const sortKey = S.kpi.sort, dir = S.kpi.dir;
-  filtered = [...filtered].sort((a,b) => {
-    if(sortKey==="name") return dir*a.s.name.localeCompare(b.s.name,"vi");
-    return dir*((a.r.kpi??-1)-(b.r.kpi??-1));
-  });
-  const sortIcon = k => sortKey===k ? (dir>0?" ▲":" ▼") : "";
-  h += `<section class="panel"><div class="panel-h"><h2>Bảng đánh giá nhân viên</h2>
-    <input class="inp" style="max-width:220px" type="search" placeholder="Tìm nhân viên…" data-act="kpisearch" value="${esc(S.kpi.q||"")}"></div>
-    <div class="tbl-wrap"><table style="table-layout:fixed"><thead><tr>
-      <th data-act="kpisorth" data-k="name" style="cursor:pointer; width:19%">Nhân sự${sortIcon("name")}</th>
-      ${KPI_CRIT.map(c=>`<th style="width:13%; text-align:center">${c.label}</th>`).join("")}
-      <th data-act="kpisorth" data-k="kpi" style="cursor:pointer; width:8%; text-align:center">KPI${sortIcon("kpi")}</th>
-      <th style="width:14%">Xếp loại</th></tr></thead><tbody>
-    ${filtered.length ? filtered.map(x=>{
-      const lb = kpiLabel(x.r.kpi);
-      return `<tr class="click" data-act="kpisel" data-name="${esc(x.s.name)}" tabindex="0">
-        <td class="cell-main">${esc(x.s.name)}${x.s.title?`<div class="small muted">${esc(x.s.title)}</div>`:""}</td>
-        ${KPI_CRIT.map(c=>`<td style="text-align:center">${x.r.scores[c.key]==null?"–":x.r.scores[c.key]}</td>`).join("")}
-        <td style="text-align:center; font-weight:700">${x.r.kpi??"–"}</td>
-        <td>${lb?`<span class="pill ${lb.cls}">${esc(lb.label)}</span>`:'<span class="pill mute">Chưa có dữ liệu</span>'}</td></tr>`;
-    }).join("") : `<tr><td colspan="${3+KPI_CRIT.length}" class="muted">Không tìm thấy nhân sự phù hợp.</td></tr>`}
+    <div class="stat" title="${nDraft?`${nDraft} người đang đánh giá`:"Chưa có bản đang đánh giá dở"}"><div class="v">${nLocked}<span class="kpi-of">/${rows.length}</span></div><div class="l">Nhân viên đã chốt đánh giá</div></div>
+    <div class="stat" title="${scored.length?`Trên ${scored.length} người có dữ liệu`:"Chưa ai có dữ liệu trong kỳ"}"><div class="v">${kpiNum(avgOf(rows))}</div><div class="l">Điểm KPI trung bình</div></div>
+    <div class="stat" title="KPI từ ${target} trở lên"><div class="v">${scored.length?nPass:"–"}</div><div class="l">Nhân viên đạt mục tiêu</div></div>
+    <div class="stat ${nReview?"bad":""}" title="KPI dưới ${target}${nNoData?` · ngoài ra ${nNoData} người chưa có dữ liệu`:""}"><div class="v">${scored.length?nReview:"–"}</div><div class="l">Trường hợp cần xem xét</div></div></div>`;
+
+  const points = []; let q = p;
+  for(let i=0; i<KPI_TREND_N; i++){ const rs = M.staff.map(s => kpiRow(c, s, q)); points.unshift({label:q.label, short:q.short, v:avgOf(rs), n:rs.filter(r=>r.kpi!=null).length, total:rs.length}); q = KPI_CALC.shift(q, -1); }
+  h += `<section class="panel" style="margin-bottom:14px"><div class="panel-h"><h2>Xu hướng KPI trung bình</h2><span class="muted small">${KPI_TREND_N} kỳ gần nhất · trung bình của những người có dữ liệu trong kỳ</span></div>
+    <div class="panel-b">${kpiTrendHtml(points, target)}</div></section>`;
+
+  const kw = (S.kpi.q||"").toLowerCase(), fR = S.kpi.fRating, fS = S.kpi.fStatus;
+  const stOrder = {none:0, draft:1, locked:2}, sortKey = S.kpi.sort, dir = S.kpi.dir;
+  const list = rows.filter(r => (!kw || r.s.name.toLowerCase().includes(kw)) && (!fS || r.status===fS) && (!fR || (fR==="__none__" ? !r.rating : r.rating && r.rating.label===fR)))
+    .sort((a,b) => sortKey==="name" ? dir*a.s.name.localeCompare(b.s.name,"vi") : sortKey==="status" ? dir*(stOrder[a.status]-stOrder[b.status]) || a.s.name.localeCompare(b.s.name,"vi")
+      : dir*((a.kpi??-1)-(b.kpi??-1)) || a.s.name.localeCompare(b.s.name,"vi"));
+  const sortTh = (k, label, style) => `<th data-act="kpisorth" data-k="${k}" tabindex="0" style="cursor:pointer; ${style}" aria-sort="${sortKey===k?(dir>0?"ascending":"descending"):"none"}">${label}${sortKey===k?(dir>0?" ▲":" ▼"):""}</th>`;
+  h += `<section class="panel"><div class="panel-h"><h2>Bảng đánh giá nhân sự <span class="muted small">· ${list.length}/${rows.length}</span></h2>
+    <div class="toolbar">
+      <input class="inp" style="width:190px" type="search" placeholder="Tìm nhân viên…" data-act="kpisearch" value="${esc(S.kpi.q||"")}" aria-label="Tìm nhân viên">
+      <select class="inp" style="width:auto" data-act="kpifilter" data-k="fRating" aria-label="Lọc theo xếp loại"><option value="">Mọi xếp loại</option>${th.map(t=>`<option ${fR===t.label?"selected":""}>${esc(t.label)}</option>`).join("")}<option value="__none__" ${fR==="__none__"?"selected":""}>Chưa có dữ liệu</option></select>
+      <select class="inp" style="width:auto" data-act="kpifilter" data-k="fStatus" aria-label="Lọc theo trạng thái đánh giá"><option value="">Mọi trạng thái</option>${Object.entries(KPI_STATUS).map(([k,v])=>`<option value="${k}" ${fS===k?"selected":""}>${v[0]}</option>`).join("")}</select>
+    </div></div>
+    <div class="tbl-wrap"><table class="kpi-tbl" style="table-layout:fixed"><thead><tr>
+      ${sortTh("name","Nhân sự","width:18%")}
+      ${KPI_CRIT.map(k=>`<th style="width:10%; text-align:center">${k.label}</th>`).join("")}
+      ${sortTh("kpi","KPI","width:7%; text-align:center")}
+      <th style="width:12%">Xếp loại</th>
+      ${sortTh("status","Trạng thái","width:13%")}</tr></thead><tbody>
+    ${list.length ? list.map(r => `<tr class="click" data-act="kpisel" data-name="${esc(r.s.name)}" tabindex="0">
+        <td class="cell-main">${esc(r.s.name)}${r.s.title?`<div class="small muted">${esc(r.s.title)}</div>`:""}</td>
+        ${KPI_CRIT.map(k=>`<td style="text-align:center">${kpiNum(r.scores[k.key])}</td>`).join("")}
+        <td style="text-align:center; font-weight:700">${kpiNum(r.kpi)}</td>
+        <td>${r.rating?`<span class="pill ${r.rating.cls}">${esc(r.rating.label)}</span>`:'<span class="pill mute">Chưa có dữ liệu</span>'}</td>
+        <td><span class="pill ${KPI_STATUS[r.status][1]}">${KPI_STATUS[r.status][0]}</span></td></tr>`).join("")
+      : `<tr><td colspan="${4+KPI_CRIT.length}" class="muted">Không có nhân sự nào khớp điều kiện tìm/lọc.</td></tr>`}
     </tbody></table></div>
-    <div class="panel-b small muted">"Năng lực & phát triển" (${(S.kpiCriteria||KPI_DEFAULT).weights.capability}%) hiện chưa có nguồn dữ liệu (chờ Giai đoạn 2 — ma trận năng lực) nên không tính vào KPI; trọng số các tiêu chí còn lại tự quy đổi lại theo đúng phần có dữ liệu.</div></section>`;
+    <div class="panel-b small muted">“–” nghĩa là chưa có dữ liệu trong kỳ, khác với điểm 0. “Năng lực &amp; phát triển” (${c.crit.weights.capability}%) hiện chưa có nguồn dữ liệu nên không tính vào KPI; trọng số các tiêu chí còn lại tự quy đổi theo đúng phần có dữ liệu. Người đã chốt hiển thị điểm lưu lúc chốt. Bấm vào một dòng để mở chi tiết.</div></section>`;
   return h;
 }
+/* ----- chi tiết 1 nhân viên (bố cục Giai đoạn 1 – sẽ làm lại theo tab ở bước 2) ----- */
 function kpiDetailView(){
   const name = S.kpi.sel;
   const s = M.staff.find(x=>x.name===name);
   if(!s){ S.kpi.sel = null; return viewKpi(); }
-  const info = kpiPeriodInfo(S.kpi.anchor, S.kpi.kind);
-  const r = kpiCompute(name, info.weeks);
-  const lb = kpiLabel(r.kpi);
-  const noteId = `${S.kpi.kind}-${S.kpi.anchor}__${slug(name)}`;
+  const p = kpiPeriod(), c = kpiContext(), r = kpiRow(c, s, p), lb = r.rating;
+  const noteId = KPI_CALC.reviewId(p.kind, p.key, name); // mã kỳ chuẩn – không phụ thuộc cách điều hướng tới kỳ
   const note = (S.kpiNotes||[]).find(n=>n.id===noteId);
-  let h = `<div class="head"><div><button class="btn ghost" data-act="kpiback">‹ Quay lại danh sách</button><h1 style="margin-top:8px">${esc(name)}</h1></div></div>`;
+  /* Đầu trang cùng kiểu trang riêng của 1 dự án (projectPage() ở project-overview.js): tiêu đề chung của màn,
+     rồi 1 thanh thông tin .me-sum (nhãn nhỏ + giá trị đậm, nhãn trạng thái, nút quay lại sát lề phải). */
+  const cell = (label, val) => `<div><div class="small muted">${label}</div><div style="font-weight:700; font-size:17px">${val}</div></div>`;
+  let h = `<div class="head"><div><h1>KPI &amp; Năng lực</h1></div>
+    <div class="ex-ctl">${kpiPeriodNav(p)}
+      <button class="btn icon" data-act="exrefresh" title="Làm mới" aria-label="Làm mới">${ICONS.refresh}</button></div></div>
+    <section class="panel" style="margin-bottom:18px"><div class="panel-b me-sum">
+      ${cell("Nhân sự", esc(name))}
+      ${s.title?cell("Chức danh", esc(s.title)):""}
+      ${cell("Kỳ đánh giá", esc(p.label))}
+      ${cell("KPI tổng", kpiNum(r.kpi))}
+      <div class="badges">${lb?`<span class="pill ${lb.cls}">${esc(lb.label)}</span>`:'<span class="pill mute">Chưa có dữ liệu</span>'}<span class="pill ${KPI_STATUS[r.status][1]}">${KPI_STATUS[r.status][0]}</span></div>
+      <div class="toolbar" style="margin-left:auto"><button class="btn" data-act="kpiback">← Quay lại tổng quan</button></div>
+    </div></section>`;
   h += `<div class="band">
-    <div class="stat ${lb?lb.cls:""}"><div class="v">${r.kpi??"–"}</div><div class="l">KPI tổng${lb?" · "+esc(lb.label):""}</div></div>
-    ${KPI_CRIT.map(c=>`<div class="stat"><div class="v">${r.scores[c.key]??"–"}</div><div class="l">${c.label}</div></div>`).join("")}
+    ${KPI_CRIT.map(k=>`<div class="stat"><div class="v">${kpiNum(r.scores[k.key])}</div><div class="l">${k.label}</div></div>`).join("")}
   </div>`;
-  h += `<section class="panel" style="margin-bottom:14px"><div class="panel-h"><h2>Chi tiết từng tiêu chí</h2></div><div class="panel-b">
-    ${KPI_CRIT.map(c=>{ const v = r.scores[c.key];
-      return `<div class="hbar"><span>${c.label} <span class="muted small">· trọng số ${(S.kpiCriteria||KPI_DEFAULT).weights[c.key]}%</span></span>
-        <div class="t"><i style="width:${v??0}%; background:${v==null?"var(--line-2)":"var(--teal)"}"></i></div>
-        <span style="text-align:right">${v==null?"Chưa có dữ liệu":v}</span></div>`; }).join("")}
+  const wts = (r.status==="locked" && r.rev.snapshot && r.rev.snapshot.weights) || c.crit.weights; // đã chốt → trọng số lúc chốt
+  const crits = KPI_CRIT.map(k=>({label:k.label, v:r.scores[k.key], w:wts[k.key]}));
+  h += `<section class="panel" style="margin-bottom:14px"><div class="panel-h"><h2>Chi tiết từng tiêu chí</h2><span class="muted small">Thang 0–100 cho mỗi tiêu chí</span></div>
+    <div class="panel-b kpi-rd-wrap">${kpiRadarHtml(crits)}
+      <div class="tbl-wrap kpi-rd-list"><table><thead><tr><th>Tiêu chí</th><th style="text-align:center">Trọng số</th><th style="text-align:center">Điểm</th></tr></thead><tbody>
+        ${crits.map(it=>`<tr><td>${esc(it.label)}</td><td style="text-align:center">${it.w}%</td><td style="text-align:center">${it.v==null?'<span class="muted small" style="white-space:nowrap">Chưa có dữ liệu</span>':`<b>${it.v}</b>`}</td></tr>`).join("")}
+      </tbody></table></div>
+    </div></section>`;
+  h += kpiWorkHtml(KPI_CALC.work(c.ix, name, p.weeks));
+  const hist = []; let q = p;
+  for(let i=0; i<KPI_TREND_N; i++){ hist.unshift({label:q.label, kpi:kpiRow(c, s, q).kpi}); q = KPI_CALC.shift(q, -1); }
+  h += `<section class="panel" style="margin-bottom:14px"><div class="panel-h"><h2>Lịch sử KPI</h2><span class="muted small">${KPI_TREND_N} kỳ gần nhất · kỳ đã chốt giữ điểm lúc chốt, kỳ chưa chốt tính theo cấu hình hiện hành</span></div><div class="panel-b">
+    ${hist.map(x=>`<div class="hbar"><span>${esc(x.label)}</span><div class="t"><i style="width:${x.kpi??0}%; background:${x.kpi==null?"var(--line-2)":"var(--indigo)"}"></i></div><span style="text-align:right">${kpiNum(x.kpi)}</span></div>`).join("")}
   </div></section>`;
-  h += `<section class="panel" style="margin-bottom:14px"><div class="panel-h"><h2>Đầu việc phụ trách, hoàn thành trong kỳ</h2><span class="muted small">${r.nTasks} đầu việc</span></div>
-    <div class="tbl-wrap"><table style="table-layout:fixed"><thead><tr><th>Dự án</th><th>Đầu việc</th><th style="text-align:center">Độ phức tạp</th><th style="text-align:center">Đúng hạn</th><th style="text-align:center">Chất lượng</th></tr></thead><tbody>
-    ${r.tasks.length ? r.tasks.map(t=>`<tr><td class="small muted">${esc(t.p.name)}</td><td class="cell-main">${esc(planShortName(t.dv))}</td>
-      <td style="text-align:center">${t.ptE??"–"}</td>
-      <td style="text-align:center">${t.ontime===true?'<span class="pill ok">Đúng hạn</span>':t.ontime===false?'<span class="pill bad">Trễ hạn</span>':"–"}</td>
-      <td style="text-align:center">${t.eval&&t.eval.cl!=null?t.eval.cl:"–"}</td></tr>`).join("") : `<tr><td colspan="5" class="muted">Không có đầu việc nào hoàn thành trong kỳ này.</td></tr>`}
-    </tbody></table></div></section>`;
-  const hist = []; let a = S.kpi.anchor;
-  for(let i=0;i<6;i++){ const inf = kpiPeriodInfo(a, S.kpi.kind); const rr = kpiCompute(name, inf.weeks); hist.unshift({label:inf.label, kpi:rr.kpi}); a = kpiShiftAnchor(a, S.kpi.kind, -1); }
-  h += `<section class="panel" style="margin-bottom:14px"><div class="panel-h"><h2>Lịch sử KPI</h2><span class="muted small">6 kỳ gần nhất, tính lại theo cấu hình tiêu chí hiện hành</span></div><div class="panel-b">
-    ${hist.map(x=>`<div class="hbar"><span>${esc(x.label)}</span><div class="t"><i style="width:${x.kpi??0}%; background:${x.kpi==null?"var(--line-2)":"var(--indigo)"}"></i></div><span style="text-align:right">${x.kpi??"–"}</span></div>`).join("")}
-  </div></section>`;
-  h += `<section class="panel" style="margin-bottom:14px"><div class="panel-h"><h2>Ma trận năng lực</h2></div><div class="panel-b"><div class="empty"><b>Chưa có dữ liệu</b>Ma trận năng lực theo chức danh sẽ được xây dựng ở Giai đoạn 2 (cần cấu hình nhóm kỹ năng &amp; cấp độ mục tiêu theo từng chức danh trước khi nhập minh chứng).</div></div></section>`;
-  h += `<section class="panel"><div class="panel-h"><h2>Nhận xét của trưởng phòng</h2>${S.canEdit?`<button class="btn" data-act="kpinote" data-id="${esc(noteId)}" data-name="${esc(name)}">${note?"Sửa":"Thêm"} nhận xét</button>`:""}</div>
+  h += `<section class="panel" style="margin-bottom:14px"><div class="panel-h"><h2>Ma trận năng lực</h2></div><div class="panel-b"><div class="empty"><b>Chưa có dữ liệu</b>Ma trận năng lực theo chức danh sẽ được xây dựng ở bước sau (cần cấu hình nhóm kỹ năng &amp; cấp độ mục tiêu theo từng chức danh trước khi nhập minh chứng).</div></div></section>`;
+  h += `<section class="panel"><div class="panel-h"><h2>Nhận xét của trưởng phòng</h2><button class="btn" data-act="kpinote" data-id="${esc(noteId)}" data-name="${esc(name)}">${note?"Sửa":"Thêm"} nhận xét</button></div>
     <div class="panel-b">${note&&note.text?`<p style="white-space:pre-wrap; margin:0">${esc(note.text)}</p>${note.updatedAt?`<div class="small muted" style="margin-top:6px">Cập nhật ${dmy(note.updatedAt.slice(0,10))}</div>`:""}`:'<div class="muted small">Chưa có nhận xét cho kỳ này.</div>'}</div></section>`;
   return h;
 }
 function kpiCriteriaForm(){
-  const c = S.kpiCriteria || KPI_DEFAULT;
-  openForm({title:"Cấu hình tiêu chí KPI", subtitle:"Áp dụng cho mọi kỳ kể từ khi lưu — các kỳ trước không bị tính lại âm thầm theo trọng số cũ vì KPI luôn tính theo cấu hình hiện hành khi xem",
+  const c = kpiCriteria();
+  openForm({title:"Cấu hình tiêu chí KPI", subtitle:"Áp dụng cho mọi kỳ chưa chốt (kể cả kỳ cũ) ngay khi lưu; kỳ đã chốt giữ nguyên trọng số và ngưỡng lúc chốt",
     values:{...c.weights, thExcellent:c.thresholds[0].min, thGood:c.thresholds[1].min, thOk:c.thresholds[2].min},
     fields:[
       ...KPI_CRIT.map(k=>({key:k.key, label:`${k.label} (%)`, type:"number", half:true})),
@@ -219,9 +292,10 @@ function kpiNoteForm(id, name){
     onDelete: note ? async()=>{ if(!confirm("Xoá nhận xét này?")) return false; await remove("kpiNote/"+id); toast("Đã xoá"); } : null
   });
 }
-ACTIONS["kpikind"] = el => { kpiInit(); S.kpi.kind = el.dataset.v; render(); };
-ACTIONS["kpinav"] = el => { kpiInit(); S.kpi.anchor = kpiShiftAnchor(S.kpi.anchor, S.kpi.kind, +el.dataset.d); render(); };
-ACTIONS["kpisel"] = el => { kpiInit(); S.kpi.sel = el.dataset.name; render(); };
+/* Đổi loại kỳ: giữ nguyên mốc thời gian đang xem (kỳ mới là kỳ chứa tuần đầu của kỳ cũ) */
+ACTIONS["kpikind"] = el => { kpiInit(); const p = kpiPeriod(); S.kpi.kind = el.dataset.v; S.kpi.key = KPI_CALC.periodOf(S.kpi.kind, p.weeks[0]).key; render(); };
+ACTIONS["kpinav"] = el => { kpiInit(); S.kpi.key = KPI_CALC.shift(kpiPeriod(), +el.dataset.d).key; render(); };
+ACTIONS["kpisel"] = el => { kpiInit(); S.kpi.sel = el.dataset.name; render(); main.scrollTop = 0; };
 ACTIONS["kpiback"] = () => { S.kpi.sel = null; render(); };
 ACTIONS["kpisorth"] = el => { kpiInit(); const k=el.dataset.k; if(S.kpi.sort===k) S.kpi.dir*=-1; else { S.kpi.sort=k; S.kpi.dir = k==="name"?1:-1; } render(); };
 ACTIONS["kpicfg"] = () => kpiCriteriaForm();
@@ -231,6 +305,10 @@ main.addEventListener("input", e => {
   kpiInit(); S.kpi.q = e.target.value;
   const pos = e.target.selectionStart; render();
   const el = main.querySelector('[data-act="kpisearch"]'); if(el){ el.focus(); el.setSelectionRange(pos,pos); }
+});
+main.addEventListener("change", e => {
+  if(e.target.dataset.act!=="kpifilter") return;
+  kpiInit(); S.kpi[e.target.dataset.k] = e.target.value; render();
 });
 VIEW_RENDER.kpi = viewKpi;
 ICONS.kpi = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8.21 13.89 7 23l5-3 5 3-1.21-9.12"/><circle cx="12" cy="8" r="7"/></svg>';

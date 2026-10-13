@@ -20,3 +20,6 @@ function toast(msg){ const t=document.createElement("div"); t.className="toast";
 
 
 function store(k, v){ try{ if(v===undefined) return localStorage.getItem("ptkt."+k); localStorage.setItem("ptkt."+k, v); }catch(e){ return null; } }
+/* Cho máy chủ (Node) dùng lại đúng các hàm ngày tháng/slug này khi tính KPI lúc chốt kỳ (modules/kpi-calc.js);
+   trên trình duyệt `module` không tồn tại nên dòng này không làm gì. */
+if(typeof module!=="undefined" && module.exports) module.exports = {iso, parse, addDays, mondayOf, slug};

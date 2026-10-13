@@ -17,6 +17,7 @@ const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
 const { createStore } = require("./lib/store");
 const { slug, renameStaff } = require("./lib/staff");
+const kpi = require("./lib/kpi");
 
 /* ---------------- cấu hình (đọc từ file .env) ---------------- */
 const PORT = Number(process.env.PORT) || 3000;
@@ -55,7 +56,9 @@ if (JWT_SECRET.length < 32) {
  *                   nhân viên gửi gì cũng bị máy chủ giữ nguyên giá trị cũ (xem route PUT /api/doc/projects/:id)
  *   "own"         : ai cũng tạo mới được (PUT lên id chưa tồn tại); sửa/xoá thì chỉ người tạo
  *                   (created_by, máy chủ ghi) hoặc tài khoản toàn quyền mới được.
- * Mọi tài khoản đã đăng nhập đều ĐỌC được tất cả.
+ *   "server"      : KHÔNG ai ghi/xoá được qua PUT/DELETE chung (kể cả tài khoản toàn quyền) – chỉ ghi qua route
+ *                   riêng, nơi máy chủ tự tính/tự ghi vết (vd kpiReview: điểm khi chốt do máy chủ tính lại).
+ * Mọi tài khoản đã đăng nhập đều ĐỌC được tất cả – trừ các collection khai báo trong READ_ROLES bên dưới.
  */
 const FULL_ROLES = new Set(["admin", "head", "deputy"]);
 /* Thứ bậc để kiểm soát việc QUẢN LÝ TÀI KHOẢN (không liên quan RULES/canWrite ở trên – 3 vai trò
@@ -70,12 +73,20 @@ const RULES = {
   weeks: "own-week",        // weeks/<thứ 2 của tuần>__<tên>  (dữ liệu nhập theo tuần)
   feedback: "own",          // feedback/<id>  (góp ý, yêu cầu cải tiến)
   kpiNote: "admin",         // kpiNote/<kỳ>__<tên nhân sự>  (nhận xét của trưởng phòng ở trang KPI & Năng lực)
+  kpiReview: "server",      // kpiReview/<kind>-<mã kỳ>__<tên>  (bản đánh giá KPI: nháp/đã chốt, điểm lúc chốt, lịch sử
+                             // điều chỉnh) – chỉ ghi qua /api/kpi/review*, xem lib/kpi.js
   worklog: "own-week",      // worklog/<thứ 2 của tuần>__<tên>  (nhật ký làm việc trong tuần, tự do ghi chú –
                              // đúng cơ chế own-week: tài khoản toàn quyền sửa được của mọi người/mọi tuần,
                              // để bù lại khi ai đó quên ghi lúc làm thêm giờ; nhân viên chỉ sửa tuần hiện
                              // tại trở đi, của chính mình)
 };
 const COLLECTIONS = new Set(Object.keys(RULES));
+/* Trang KPI & Năng lực đang hoàn thiện: hiện chỉ tài khoản "admin" (hệ thống) dùng được – khớp điều kiện
+   hiển thị ở frontend/js/modules/kpi.js. Khi mở cho trưởng phòng/phó phòng thì thêm vai trò vào đây. */
+const KPI_ROLES = new Set(["admin"]);
+/* Giới hạn ĐỌC: collection có trong bảng này chỉ các vai trò liệt kê mới đọc được qua GET /api/collection
+   (mặc định mọi tài khoản đăng nhập đọc được hết – ẩn ở giao diện thôi là chưa đủ với dữ liệu đánh giá). */
+const READ_ROLES = { kpiReview: KPI_ROLES };
 const ID_RE = /^[A-Za-z0-9_\-.~:@+]{1,200}$/;
 
 const store = createStore();
@@ -175,6 +186,7 @@ app.post("/api/me/password", auth, A(async (req, res) => {
 app.get("/api/collection/:coll", auth, A(async (req, res) => {
   const coll = req.params.coll;
   if (!COLLECTIONS.has(coll)) return res.status(404).json({ error: "Không có dữ liệu này" });
+  if (READ_ROLES[coll] && !READ_ROLES[coll].has(req.user.role)) return res.status(403).json({ error: "Bạn không có quyền xem dữ liệu này" });
   const weekGte = req.query.field === "week" && req.query.gte ? String(req.query.gte) : null;
   const rows = await store.getDocs(coll, weekGte);
   res.json(rows.map(r => ({ id: r.doc_id, data: JSON.parse(r.body) })));
@@ -191,6 +203,7 @@ function mondayOfToday() {
 /* op: "write" (PUT, gồm cả thêm/sửa/xoá đầu việc bên trong) | "delete" (DELETE, xoá cả dự án) */
 function canWrite(user, coll, id, body, existing, op = "write") {
   const rule = RULES[coll];
+  if (rule === "server") return false; // chỉ ghi qua route riêng, kể cả tài khoản toàn quyền
   if (FULL_ROLES.has(user.role)) return true;
   if (rule === "member") return true;
   if (rule === "own-project") {
@@ -305,6 +318,17 @@ app.delete("/api/doc/:coll/:id", auth, A(async (req, res) => {
   audit(req.user, "delete", p); broadcast(coll);
   res.status(204).end();
 }));
+/* --- bản đánh giá KPI theo người + kỳ (xem lib/kpi.js): lưu nhận xét, chốt (máy chủ tự tính điểm), mở lại --- */
+const kpiOnly = (req, res, next) => KPI_ROLES.has(req.user.role) ? next() : res.status(403).json({ error: "Bạn không có quyền đánh giá KPI" });
+const kpiRoute = (fn, action) => A(async (req, res) => {
+  const r = await fn(store, req.user.username, req.body || {});
+  if (r.error) return res.status(r.error.status).json({ error: r.error.message });
+  audit(req.user, action, `kpiReview/${r.id}`); broadcast("kpiReview");
+  res.json(r.doc);
+});
+app.post("/api/kpi/review", auth, kpiOnly, kpiRoute(kpi.saveReview, "kpi-save"));
+app.post("/api/kpi/review/lock", auth, kpiOnly, kpiRoute(kpi.lockReview, "kpi-lock"));
+app.post("/api/kpi/review/unlock", auth, kpiOnly, kpiRoute(kpi.unlockReview, "kpi-unlock"));
 /* --- đổi tên nhân sự / chuyển dữ liệu sang nhân sự khác (trưởng phòng/phó phòng/admin) – xem lib/staff.js --- */
 app.post("/api/staff/rename", auth, adminOnly, A(async (req, res) => {
   const r = await renameStaff(store, (req.body || {}).from, (req.body || {}).to, req.user.username);
