@@ -208,9 +208,10 @@ function entryForm(entry, person){
       if(thisWl>budgetH) throw new Error(`Việc này tính tải ${fmt1(thisWl)}h (giờ × Độ phức tạp), vượt quá phần còn lại dành cho việc này trong tuần (còn ${fmt1(budgetH)}h, sau khi đã trừ các việc khác). Giảm giờ, giảm Độ phức tạp, hoặc giảm bớt việc khác trước.`);
       const doc = weekDoc(S.week, who); const list = doc ? [...(doc.entries||[])] : [];
       const taskRef = M.taskMap.get(v.projectId+"|"+v.taskId);
-      /* Mỗi đầu việc chỉ 1 dòng/tuần – trừ "Việc khác" của quy trình Nội bộ: mỗi lần chọn là một việc lặt
-         vặt khác nhau (ghi rõ ở "Việc đã làm"), nên được thêm bao nhiêu dòng trong tuần cũng được. */
-      const anyTimes = !!taskRef && internal(taskRef.p) && /Việc khác/.test(taskRef.t.dv);
+      /* Mỗi đầu việc chỉ 1 dòng/tuần – trừ MỌI đầu việc của dự án Nội bộ ("Việc chung của phòng": hỗ trợ, đào
+         tạo, việc khác…): mỗi lần chọn là một việc lặt vặt khác nhau (ghi rõ ở "Việc đã làm"), nên được thêm
+         bao nhiêu dòng giống nhau trong tuần cũng được. */
+      const anyTimes = !!taskRef && internal(taskRef.p);
       if(!anyTimes && list.some(x=>x.id!==v.id && x.projectId===v.projectId && x.taskId===v.taskId))
         throw new Error("Đầu việc này đã có trong tuần. Bấm vào dòng đó trong bảng để sửa thay vì thêm mới.");
       const i = list.findIndex(x=>x.id===v.id); const clean = {id:v.id, projectId:v.projectId, taskId:v.taskId, work:v.work||"", qm:v.qm, hours:v.hours, pt:v.pt||null, status:v.status||"", ms:v.ms??null, nn:v.nn||"", note:v.note||""};
