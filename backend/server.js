@@ -400,6 +400,23 @@ app.post("/api/users", auth, adminOnly, A(async (req, res) => {
   audit(req.user, "user-create", username);
   res.json(publicUser(await store.getUserById(id)));
 }));
+/* Xoá tài khoản đăng nhập: chỉ trưởng phòng/phó phòng/admin, chỉ xoá được tài khoản cấp ≤ mình, không tự xoá mình,
+   không xoá tài khoản admin hệ thống (quản lý qua CLI) và không xoá người toàn quyền cuối cùng còn hoạt động.
+   Chỉ xoá tài khoản đăng nhập – nhân sự (config/staff) và mọi dữ liệu họ đã nhập giữ nguyên; phiên đang mở của
+   tài khoản đó mất hiệu lực ngay vì auth tra lại người dùng theo uid ở mỗi yêu cầu. Nếu chỉ muốn ngăn đăng nhập
+   mà vẫn giữ tài khoản thì dùng "Khoá". */
+app.delete("/api/users/:id", auth, adminOnly, A(async (req, res) => {
+  const u = await store.getUserById(Number(req.params.id));
+  if (!u) return res.status(404).json({ error: "Không tìm thấy tài khoản" });
+  if (u.id === req.user.id) return res.status(400).json({ error: "Không thể tự xoá tài khoản đang đăng nhập" });
+  if (u.role === "admin") return res.status(400).json({ error: "Không xoá được tài khoản admin hệ thống" });
+  if (ROLE_RANK[u.role] > ROLE_RANK[req.user.role]) return res.status(403).json({ error: "Bạn không có quyền xoá tài khoản này" });
+  if (FULL_ROLES.has(u.role) && u.active && (await store.countActiveAdmins()) <= 1)
+    return res.status(400).json({ error: "Phải còn ít nhất một tài khoản trưởng phòng/phó phòng đang hoạt động" });
+  await store.deleteUser(u.id);
+  audit(req.user, "user-delete", u.username);
+  res.status(204).end();
+}));
 app.patch("/api/users/:id", auth, A(async (req, res) => {
   const u = await store.getUserById(Number(req.params.id));
   if (!u) return res.status(404).json({ error: "Không tìm thấy tài khoản" });

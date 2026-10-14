@@ -169,6 +169,13 @@ function userForm(u){
       {key:"pw", label: isNew ? "Mật khẩu (ít nhất 8 ký tự)" : "Đặt mật khẩu mới (để trống nếu không đổi)", type:"password", required:isNew}
     ],
     saveLabel: isNew ? "Tạo tài khoản" : "Lưu",
+    /* Nút Xoá: trưởng phòng/phó phòng/admin, tài khoản khác mình, cấp ≤ mình, không phải admin hệ thống – khớp
+       DELETE /api/users/:id (máy chủ mới là nơi chặn thật). Trả false để giữ form mở khi bị từ chối/huỷ. */
+    ...(!isNew && canManage && u.id!==S.user.id && u.role!=="admin" && ROLE_RANK[u.role]<=ROLE_RANK[S.user.role] ? {onDelete: async () => {
+      if(!confirm(`Xoá tài khoản “${u.username}” (${u.display_name})?\n\nChỉ xoá tài khoản đăng nhập; dữ liệu và nhân sự của họ vẫn giữ nguyên. Nếu chỉ muốn ngăn đăng nhập, hãy chọn “Khoá” thay vì xoá.`)) return false;
+      try{ await S.db.api("DELETE", `/api/users/${u.id}`); }catch(e){ toast(e.message || "Không xoá được tài khoản."); return false; }
+      toast("Đã xoá tài khoản"); S.users = null; loadUsers();
+    }} : {}),
     onSave: async x => {
       try{
         if(isNew) await S.db.api("POST", "/api/users", {username:x.username, password:x.pw, display_name:x.display_name, staff_name:x.staff_name||null, role:x.role});

@@ -114,6 +114,7 @@ function createMariaStore() {
       const keys = Object.keys(f); if (!keys.length) return;
       await q(`UPDATE users SET ${keys.map(k => `${k}=?`).join(", ")} WHERE id=?`, [...keys.map(k => f[k]), id]);
     },
+    async deleteUser(id) { await q("DELETE FROM users WHERE id=?", [id]); },
     async countActiveAdmins() { return Number((await q("SELECT COUNT(*) c FROM users WHERE role IN ('admin','head','deputy') AND active=1"))[0].c); },
     async countAdmins() { return Number((await q("SELECT COUNT(*) c FROM users WHERE role IN ('admin','head','deputy')"))[0].c); },
     async countUsers() { return Number((await q("SELECT COUNT(*) c FROM users"))[0].c); },
@@ -208,6 +209,7 @@ function createSqliteStore(file) {
       const keys = Object.keys(f); if (!keys.length) return;
       run(`UPDATE users SET ${keys.map(k => `${k}=?`).join(", ")} WHERE id=?`, ...keys.map(k => f[k]), id);
     },
+    async deleteUser(id) { run("DELETE FROM users WHERE id=?", id); },
     async countActiveAdmins() { return one("SELECT COUNT(*) c FROM users WHERE role IN ('admin','head','deputy') AND active=1").c; },
     async countAdmins() { return one("SELECT COUNT(*) c FROM users WHERE role IN ('admin','head','deputy')").c; },
     async countUsers() { return one("SELECT COUNT(*) c FROM users").c; },
