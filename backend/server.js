@@ -72,6 +72,7 @@ const RULES = {
   projects: "own-project",  // projects/<mã dự án>  (thông tin dự án + đầu việc)
   weeks: "own-week",        // weeks/<thứ 2 của tuần>__<tên>  (dữ liệu nhập theo tuần)
   feedback: "own",          // feedback/<id>  (góp ý, yêu cầu cải tiến)
+  feedbackReply: "own",     // feedbackReply/<id>  (phản hồi/thảo luận dưới 1 góp ý: {fbId, text, images}; ai cũng viết được)
   kpiNote: "admin",         // kpiNote/<kỳ>__<tên nhân sự>  (nhận xét của trưởng phòng ở trang KPI & Năng lực)
   kpiReview: "server",      // kpiReview/<kind>-<mã kỳ>__<tên>  (bản đánh giá KPI: nháp/đã chốt, điểm lúc chốt, lịch sử
                              // điều chỉnh) – chỉ ghi qua /api/kpi/review*, xem lib/kpi.js
@@ -228,6 +229,8 @@ function canWrite(user, coll, id, body, existing, op = "write") {
   if (week && week < mondayOfToday()) return false;
   return true;
 }
+/* Ảnh dán kèm góp ý/phản hồi: chỉ data URL ảnh jpeg/png/webp, tối đa 4 ảnh, mỗi ảnh ≤ ~1,2MB chuỗi */
+const imagesBad = a => !Array.isArray(a) || a.length > 4 || a.some(u => typeof u !== "string" || u.length > 1_200_000 || !/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(u));
 app.put("/api/doc/:coll/:id", auth, A(async (req, res) => {
   const { coll, id } = req.params, body = req.body;
   if (!COLLECTIONS.has(coll) || !ID_RE.test(id)) return res.status(400).json({ error: "Đường dẫn không hợp lệ" });
@@ -254,9 +257,26 @@ app.put("/api/doc/:coll/:id", auth, A(async (req, res) => {
     /* Ảnh dán kèm góp ý: chỉ nhận data URL ảnh jpeg/png/webp, tối đa 4 ảnh, mỗi ảnh ≤ ~1,2MB chuỗi. Thiếu trường
        images (lệnh cũ, vd đổi trạng thái) thì giữ nguyên ảnh đang có – gửi [] mới là xoá hết ảnh. */
     if (body.images === undefined) { if (exBody && exBody.images) body.images = exBody.images; }
-    else if (!Array.isArray(body.images) || body.images.length > 4 || body.images.some(u => typeof u !== "string" || u.length > 1_200_000 || !/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(u)))
+    else if (imagesBad(body.images))
       return res.status(400).json({ error: "Ảnh đính kèm không hợp lệ (tối đa 4 ảnh jpeg/png/webp)" });
     // created_by/person/createdAt luôn do máy chủ ghi, không nhận từ client, và không đổi được sau khi tạo
+    body.created_by = exBody ? exBody.created_by : req.user.username;
+    body.person = exBody ? exBody.person : (req.user.staff_name || req.user.display_name || req.user.username);
+    body.createdAt = exBody ? exBody.createdAt : new Date().toISOString();
+  }
+  if (coll === "feedbackReply") {
+    /* Phản hồi thuộc đúng 1 góp ý đang tồn tại (fbId không đổi được sau khi tạo); chỉ giữ 3 trường text/images/fbId,
+       created_by/person/createdAt do máy chủ ghi như góp ý. */
+    const fbId = exBody ? exBody.fbId : body.fbId;
+    if (typeof fbId !== "string" || !ID_RE.test(fbId) || !(await store.getDoc("feedback/" + fbId)))
+      return res.status(400).json({ error: "Góp ý được phản hồi không tồn tại" });
+    const text = typeof body.text === "string" ? body.text.trim() : "";
+    if (!text || text.length > 2000) return res.status(400).json({ error: "Nội dung phản hồi 1–2000 ký tự" });
+    const images = body.images === undefined ? [] : body.images;
+    if (imagesBad(images)) return res.status(400).json({ error: "Ảnh đính kèm không hợp lệ (tối đa 4 ảnh jpeg/png/webp)" });
+    const keep = { fbId, text, images };
+    for (const k of Object.keys(body)) delete body[k];
+    Object.assign(body, keep);
     body.created_by = exBody ? exBody.created_by : req.user.username;
     body.person = exBody ? exBody.person : (req.user.staff_name || req.user.display_name || req.user.username);
     body.createdAt = exBody ? exBody.createdAt : new Date().toISOString();
@@ -321,6 +341,11 @@ app.delete("/api/doc/:coll/:id", auth, A(async (req, res) => {
   if (!canWrite(req.user, coll, id, null, JSON.parse(ex), "delete")) return res.status(403).json({ error: "Bạn không có quyền xoá phần này" });
   await store.deleteDoc(p);
   audit(req.user, "delete", p); broadcast(coll);
+  if (coll === "feedback") { // xoá góp ý thì xoá luôn các phản hồi của nó, tránh phản hồi mồ côi
+    let n = 0;
+    for (const r of await store.getDocs("feedbackReply")) if (JSON.parse(r.body).fbId === id) { await store.deleteDoc(`feedbackReply/${r.doc_id}`); n++; }
+    if (n) { audit(req.user, "delete", `feedbackReply/*(${id}) x${n}`); broadcast("feedbackReply"); }
+  }
   res.status(204).end();
 }));
 /* --- bản đánh giá KPI theo người + kỳ (xem lib/kpi.js): lưu nhận xét, chốt (máy chủ tự tính điểm), mở lại --- */

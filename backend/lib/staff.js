@@ -63,9 +63,9 @@ async function renameStaff(store, fromRaw, toRaw, by) {
       n[coll]++;
     }
   }
-  for (const r of await store.getDocs("feedback")) { // person chỉ là nhãn người gửi – đổi theo cho khớp tên mới
+  for (const coll of ["feedback", "feedbackReply"]) for (const r of await store.getDocs(coll)) { // person chỉ là nhãn người gửi – đổi theo cho khớp tên mới
     const b = JSON.parse(r.body); if (b.person !== from) continue;
-    await store.upsertDoc(`feedback/${r.doc_id}`, "feedback", r.doc_id, JSON.stringify({ ...b, person: to }), by); n.feedback++;
+    await store.upsertDoc(`${coll}/${r.doc_id}`, coll, r.doc_id, JSON.stringify({ ...b, person: to }), by); n.feedback++;
   }
   for (const u of await store.listUsers()) if (u.staff_name === from) { await store.updateUser(u.id, { staff_name: to }); n.users++; }
   return { n, from, to };

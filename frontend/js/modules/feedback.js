@@ -14,10 +14,25 @@ ON_SESSION.push(db => db.collection("feedback").onSnapshot(snap => {
 }));
 /* Chấm thông báo ở menu "Góp ý": đếm số góp ý có từ sau lần cuối mở trang này (lưu mốc thời gian
    riêng trên trình duyệt, giống cách "Tôi là"/"view" đang lưu – không đồng bộ giữa các thiết bị). */
-NAV_BADGE.feedback = () => { const seen = store("fbSeen")||""; return S.feedback.filter(f=>(f.createdAt||"")>seen).length; };
+/* Phản hồi dưới từng góp ý: S.fbReplies = mọi phản hồi, xếp cũ → mới (đọc như 1 cuộc trò chuyện) */
+S.fbReplies = [];
+ON_SESSION.push(db => db.collection("feedbackReply").onSnapshot(snap => {
+  S.fbReplies = snap.docs.map(d => ({...d.data(), id: d.id})).sort((a,b) => String(a.createdAt||"").localeCompare(String(b.createdAt||"")));
+  schedule();
+}));
+NAV_BADGE.feedback = () => { const seen = store("fbSeen")||""; return S.feedback.filter(f=>(f.createdAt||"")>seen).length + S.fbReplies.filter(r=>(r.createdAt||"")>seen && r.created_by!==(S.user&&S.user.username)).length; };
 function viewFeedback(){
   const seen = store("fbSeen")||"";
-  if(S.feedback.some(f=>(f.createdAt||"")>seen)){ store("fbSeen", new Date().toISOString()); schedule(); }
+  if(S.feedback.some(f=>(f.createdAt||"")>seen) || S.fbReplies.some(r=>(r.createdAt||"")>seen)){ store("fbSeen", new Date().toISOString()); schedule(); }
+  const repliesOf = new Map();
+  for(const r of S.fbReplies){ if(!repliesOf.has(r.fbId)) repliesOf.set(r.fbId, []); repliesOf.get(r.fbId).push(r); }
+  const me = S.user && S.user.username;
+  const replyHtml = r => {
+    const canDel = me && (r.created_by===me || S.canEdit);
+    return `<div class="fb-reply"><div class="fb-reply-h"><b>${esc(r.person||"–")}</b><span class="small muted">${r.createdAt?dmy(r.createdAt.slice(0,10))+" "+new Date(r.createdAt).toLocaleTimeString("vi-VN",{hour:"2-digit",minute:"2-digit"}):""}</span>${canDel?`<button type="button" class="btn ghost fb-reply-x" data-act="delreply" data-id="${esc(r.id)}" aria-label="Xoá phản hồi">Xoá</button>`:""}</div>
+      <div class="fb-reply-t">${esc(r.text||"")}</div>
+      ${(r.images||[]).some(imgOk)?`<div class="fb-imgs">${r.images.map((u,i)=>imgOk(u)?`<button type="button" class="fb-img" data-act="fbimg" data-id="${esc(r.id)}" data-i="${i}" data-reply="1" aria-label="Xem ảnh ${i+1} cỡ lớn"><img src="${u}" alt="Ảnh phản hồi ${i+1}" loading="lazy"></button>`:"").join("")}</div>`:""}</div>`;
+  };
   let h = `<div class="head"><h1>Góp ý</h1>
     <button class="btn primary" data-act="addfeedback">+ Gửi góp ý</button></div>`;
   if(!S.feedback.length) return h + `<section class="panel"><div class="empty"><b>Chưa có góp ý nào</b>Bấm "+ Gửi góp ý" để gửi nhận xét hoặc đề xuất cải tiến đầu tiên.</div></section>`;
@@ -36,6 +51,8 @@ function viewFeedback(){
       <p style="white-space:pre-wrap; margin:10px 0 0">${esc(f.text||"")}</p>
       ${(f.images||[]).some(imgOk)?`<div class="fb-imgs">${f.images.map((u,i)=>imgOk(u)?`<button type="button" class="fb-img" data-act="fbimg" data-id="${esc(f.id)}" data-i="${i}" aria-label="Xem ảnh ${i+1} cỡ lớn"><img src="${u}" alt="Ảnh góp ý ${i+1}" loading="lazy"></button>`:"").join("")}</div>`:""}
       <div class="toolbar" style="margin-top:10px; justify-content:space-between">${S.canEdit?statusUI:"<div></div>"}${mine?`<div class="toolbar"><button class="btn" data-act="editfeedback" data-id="${esc(f.id)}">Sửa</button><button class="btn danger" data-act="delfeedback" data-id="${esc(f.id)}">Xoá</button></div>`:""}</div>
+      <div class="fb-thread">${(repliesOf.get(f.id)||[]).map(replyHtml).join("")}
+        <button type="button" class="btn fb-reply-btn" data-act="replyfeedback" data-id="${esc(f.id)}">${(repliesOf.get(f.id)||[]).length?"Trả lời":"Phản hồi"}</button></div>
       </div></section>`;
   }).join("");
   return h;
@@ -61,6 +78,23 @@ function feedbackForm(f){
   });
 }
 ACTIONS["addfeedback"] = () => feedbackForm();
+/* Phản hồi 1 góp ý: ai cũng gửi được (RULES.feedbackReply = "own"); xoá thì chỉ người viết hoặc trưởng phòng */
+ACTIONS["replyfeedback"] = el => {
+  const f = S.feedback.find(x=>x.id===el.dataset.id); if(!f) return;
+  openForm({title:"Phản hồi góp ý", subtitle:`${f.person||""}: ${(f.text||"").slice(0,80)}${(f.text||"").length>80?"…":""}`,
+    values:{text:"", images:[]},
+    fields:[
+      {key:"text", label:"Nội dung phản hồi", type:"textarea", required:true},
+      {key:"images", label:"Ảnh minh hoạ", type:"images", max:4, hint:()=>"Chụp màn hình rồi bấm Ctrl+V (dán) vào cửa sổ này – tối đa 4 ảnh."}
+    ],
+    saveLabel:"Gửi phản hồi",
+    onSave: async v => {
+      if(!v.text.trim()) throw new Error("Nhập nội dung phản hồi.");
+      await write("feedbackReply/"+uid("fr"), {fbId:f.id, text:v.text.trim(), images:(v.images||[]).filter(imgOk)});
+      toast("Đã gửi phản hồi");
+    }});
+};
+ACTIONS["delreply"] = async el => { if(!confirm("Xoá phản hồi này?")) return; await remove("feedbackReply/"+el.dataset.id); toast("Đã xoá"); };
 ACTIONS["editfeedback"] = el => { const f = S.feedback.find(x=>x.id===el.dataset.id); if(f) feedbackForm(f); };
 ACTIONS["delfeedback"] = async el => { if(!confirm("Xoá góp ý này?")) return; await remove("feedback/"+el.dataset.id); toast("Đã xoá"); };
 /* Đổi trạng thái xử lý – chỉ trưởng phòng bấm được (nút chỉ render khi S.canEdit, xem viewFeedback()).
@@ -71,7 +105,7 @@ ACTIONS["fbstatus"] = async el => {
 };
 /* Xem ảnh cỡ lớn: lớp phủ đơn giản, bấm ra ngoài / Esc để đóng */
 ACTIONS["fbimg"] = el => {
-  const f = S.feedback.find(x=>x.id===el.dataset.id), u = f && (f.images||[])[+el.dataset.i]; if(!imgOk(u)) return;
+  const f = (el.dataset.reply ? S.fbReplies : S.feedback).find(x=>x.id===el.dataset.id), u = f && (f.images||[])[+el.dataset.i]; if(!imgOk(u)) return;
   const layer = document.getElementById("layer");
   const close = () => { layer.innerHTML = ""; document.removeEventListener("keydown", onKey); };
   const onKey = e => { if(e.key==="Escape") close(); };
