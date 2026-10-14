@@ -216,6 +216,28 @@ function effectiveSimAs(){
 
 
 
+/* ================= ảnh dán vào form (kiểu ô "images") =================
+   Ảnh chụp màn hình thường vài MB → thu nhỏ (cạnh dài tối đa 1280px) rồi nén JPEG trước khi lưu thành data URL
+   ngay trong tài liệu, để vẫn nằm gọn trong giới hạn 5MB của máy chủ và không cần kho tệp riêng. */
+const IMG_MAX_SIDE = 1280, IMG_QUALITY = 0.82;
+function imgCompress(file){
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file), im = new Image();
+    im.onload = () => {
+      const k = Math.min(1, IMG_MAX_SIDE/Math.max(im.width, im.height)), c = document.createElement("canvas");
+      c.width = Math.max(1, Math.round(im.width*k)); c.height = Math.max(1, Math.round(im.height*k));
+      const g = c.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0, 0, c.width, c.height); g.drawImage(im, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url); resolve(c.toDataURL("image/jpeg", IMG_QUALITY));
+    };
+    im.onerror = () => { URL.revokeObjectURL(url); reject(new Error("Không đọc được ảnh vừa dán.")); };
+    im.src = url;
+  });
+}
+const imgOk = u => typeof u==="string" && /^data:image\/(jpeg|png|webp);base64,/.test(u); // chỉ hiện ảnh đúng dạng, không nhận URL tuỳ ý
+function imgFieldHTML(list){
+  return `<div class="img-field" tabindex="0">${(list||[]).filter(imgOk).map((u,i)=>`<div class="img-th"><img src="${u}" alt="Ảnh ${i+1}"><button type="button" class="img-x" data-imgdel="${i}" aria-label="Bỏ ảnh ${i+1}">✕</button></div>`).join("")}</div>`;
+}
+
 /* ================= form drawer ================= */
 function openForm(cfg){
   const layer = document.getElementById("layer");
@@ -241,6 +263,8 @@ function openForm(cfg){
       ctl = `<select class="inp" id="${id}" ${dis}>${hasPlaceholder?"":'<option value="">— chọn —</option>'}${body}</select>`;
     }
     else if(f.type==="seg") ctl = `<div class="seg-in" role="group" aria-label="${esc(f.label)}">${f.options.map(o=>`<button type="button" data-k="${f.key}" data-v="${esc(JSON.stringify(o[0]))}" aria-pressed="${JSON.stringify(o[0]??null)===JSON.stringify(v??null)}" ${f.disabled?"disabled":""}>${esc(o[1])}</button>`).join("")}</div>`;
+    /* "images": ảnh dán (Ctrl+V) – vals[key] là mảng data URL; f.max = số ảnh tối đa (mặc định 4) */
+    else if(f.type==="images") ctl = `<div id="${id}">${imgFieldHTML(v)}</div>`;
     /* "badge": không phải ô nhập, chỉ hiển thị tĩnh (vd số giờ còn lại cạnh ô nhập giờ) – dùng f.text, không đọc/ghi vals */
     else if(f.type==="badge") ctl = `<div class="field-badge"><span class="pill ${esc(f.tone||"info")}">${esc(f.text||"")}</span></div>`;
     return `<div class="field" ${f.half?'data-half="1"':""} data-field="${f.key}">${f.type==="check"?"":`<label for="${id}">${esc(f.label)}${f.required?' <span style="color:var(--bad)">*</span>':""}</label>`}${ctl}${hint!==""?`<div class="hint" data-hint="${f.key}">${esc(hint)}</div>`:`<div class="hint" data-hint="${f.key}"></div>`}</div>`;
@@ -257,13 +281,15 @@ function openForm(cfg){
     <div class="drawer-f"><div>${cfg.onDelete?'<button class="btn danger" data-del>Xoá</button>':""}</div><div class="toolbar">${cfg.extraBtn?`<button class="btn" data-extra>${esc(cfg.extraBtn.label)}</button>`:""}<button class="btn" data-close>${cfg.readOnly?"Đóng":"Huỷ"}</button>${cfg.readOnly?"":`<button class="btn primary" data-save>${esc(cfg.saveLabel||"Lưu")}</button>`}</div></div></div>`;
   const dlg = layer.querySelector(".drawer");
   const api = { setOptions(key, opts){ optsOverride[key]=opts; vals[key]=""; const f = cfg.fields.find(x=>x.key===key); const wrap = dlg.querySelector(`[data-field="${key}"]`); if(f && wrap){ const tmp=document.createElement("div"); tmp.innerHTML=fieldHTML(f); wrap.replaceWith(tmp.firstElementChild); } } };
-  const readInputs = () => { for(const f of cfg.fields){ if(!f.key) continue; const el = dlg.querySelector("#f_"+f.key); if(!el) continue; if(f.type==="check") vals[f.key]=el.checked; else if(f.type==="number") vals[f.key]=el.value===""?null:+el.value; else if(f.type!=="seg") vals[f.key]=el.value||(f.type==="date"?null:""); } };
+  const readInputs = () => { for(const f of cfg.fields){ if(!f.key) continue; const el = dlg.querySelector("#f_"+f.key); if(!el) continue; if(f.type==="check") vals[f.key]=el.checked; else if(f.type==="number") vals[f.key]=el.value===""?null:+el.value; else if(f.type!=="seg" && f.type!=="images") vals[f.key]=el.value||(f.type==="date"?null:""); } };
   const close = () => { layer.innerHTML=""; document.removeEventListener("keydown", onKey); if(prevFocus && prevFocus.focus) prevFocus.focus(); };
   const onKey = e => { if(e.key==="Escape") close(); };
   document.addEventListener("keydown", onKey);
   dlg.addEventListener("click", async e => {
     const sb = e.target.closest(".seg-in button");
     if(sb){ const k=sb.dataset.k; const v=JSON.parse(sb.dataset.v); vals[k]=v; sb.parentElement.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed", b===sb)); const f=cfg.fields.find(x=>x.key===k); const hn=dlg.querySelector(`[data-hint="${k}"]`); if(f && hn && typeof f.hint==="function") hn.textContent=f.hint(v, vals); return; }
+    const ix = e.target.closest("[data-imgdel]");
+    if(ix){ const fi = cfg.fields.find(x=>x.type==="images"); if(fi){ vals[fi.key] = (vals[fi.key]||[]).filter((_, j) => j!==+ix.dataset.imgdel); dlg.querySelector("#f_"+fi.key).innerHTML = imgFieldHTML(vals[fi.key]); } return; }
     if(e.target.closest("[data-save]")){
       readInputs();
       for(const f of cfg.fields){ if(f.required && (vals[f.key]==null || vals[f.key]==="")){ toast("Còn thiếu: "+f.label); return; } }
@@ -280,6 +306,19 @@ function openForm(cfg){
     if(f && f.onChange) f.onChange(vals[key], api);
     const hn = dlg.querySelector(`[data-hint="${key}"]`); if(f && hn && typeof f.hint==="function") hn.textContent=f.hint(vals[key], vals);
     cfg.fields.forEach(g=>{ if(typeof g.hint==="function"){ const h2=dlg.querySelector(`[data-hint="${g.key}"]`); if(h2) h2.textContent=g.hint(vals[g.key], vals); } });
+  });
+  /* Dán ảnh: bắt sự kiện paste trong cả hộp thoại; chỉ xử lý khi clipboard có ảnh (dán chữ vẫn như thường) */
+  const fImg = cfg.fields.find(x=>x.type==="images");
+  if(fImg && !cfg.readOnly) dlg.addEventListener("paste", async e => {
+    const files = [...(e.clipboardData ? e.clipboardData.items : [])].filter(it => it.kind==="file" && /^image\//.test(it.type)).map(it => it.getAsFile()).filter(Boolean);
+    if(!files.length) return;
+    e.preventDefault();
+    const max = fImg.max || 4, cur = [...(vals[fImg.key] || [])];
+    if(cur.length >= max){ toast("Tối đa "+max+" ảnh – bỏ bớt ảnh cũ trước khi dán thêm."); return; }
+    try{
+      for(const fl of files.slice(0, max-cur.length)) cur.push(await imgCompress(fl));
+      vals[fImg.key] = cur; dlg.querySelector("#f_"+fImg.key).innerHTML = imgFieldHTML(cur);
+    }catch(err){ toast(err.message || "Không dán được ảnh."); }
   });
   layer.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click", close));
   setTimeout(()=>{ const first = dlg.querySelector("input,select,textarea,.seg-in button"); (first||dlg.querySelector("[data-close]")).focus(); }, 30);

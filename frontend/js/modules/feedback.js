@@ -34,6 +34,7 @@ function viewFeedback(){
         ${S.canEdit?"":`<span class="pill ${FB_STATUS_CLS[status]||"mute"}">${esc(status)}</span>`}
         <span class="small muted" style="margin-left:auto">${f.createdAt?dmy(f.createdAt.slice(0,10)):"–"}</span></div>
       <p style="white-space:pre-wrap; margin:10px 0 0">${esc(f.text||"")}</p>
+      ${(f.images||[]).some(imgOk)?`<div class="fb-imgs">${f.images.map((u,i)=>imgOk(u)?`<button type="button" class="fb-img" data-act="fbimg" data-id="${esc(f.id)}" data-i="${i}" aria-label="Xem ảnh ${i+1} cỡ lớn"><img src="${u}" alt="Ảnh góp ý ${i+1}" loading="lazy"></button>`:"").join("")}</div>`:""}
       <div class="toolbar" style="margin-top:10px; justify-content:space-between">${S.canEdit?statusUI:"<div></div>"}${mine?`<div class="toolbar"><button class="btn" data-act="editfeedback" data-id="${esc(f.id)}">Sửa</button><button class="btn danger" data-act="delfeedback" data-id="${esc(f.id)}">Xoá</button></div>`:""}</div>
       </div></section>`;
   }).join("");
@@ -43,16 +44,18 @@ function viewFeedback(){
    đè cả tài liệu (person/created_by/createdAt thì máy chủ tự giữ nguyên, xem server.js). */
 function feedbackForm(f){
   openForm({title: f ? "Sửa góp ý" : "Gửi góp ý", subtitle: f ? (f.person||"") : (S.me || (S.user && S.user.display_name) || ""),
-    values:{type: f ? (f.type||"Nhận xét") : "Nhận xét", text: f ? (f.text||"") : ""},
+    values:{type: f ? (f.type||"Nhận xét") : "Nhận xét", text: f ? (f.text||"") : "", images: f ? [...(f.images||[])] : []},
     fields:[
       {key:"type", label:"Loại góp ý", type:"seg", options:FB_TYPES.map(t=>[t,t])},
-      {key:"text", label:"Nội dung", type:"textarea", required:true, hint:()=>"Nhận xét về trải nghiệm dùng app, hoặc đề xuất tính năng/cải tiến cụ thể."}
+      {key:"text", label:"Nội dung", type:"textarea", required:true, hint:()=>"Nhận xét về trải nghiệm dùng app, hoặc đề xuất tính năng/cải tiến cụ thể."},
+      {key:"images", label:"Ảnh minh hoạ", type:"images", max:4, hint:()=>"Chụp màn hình rồi bấm Ctrl+V (dán) vào cửa sổ này – tối đa 4 ảnh, ảnh lớn sẽ tự thu nhỏ."}
     ],
     saveLabel: f ? "Lưu thay đổi" : "Gửi góp ý",
     onSave: async v => {
       if(!v.text.trim()) throw new Error("Nhập nội dung góp ý.");
-      if(f) await write("feedback/"+f.id, {type:v.type, text:v.text.trim(), ...(f.status?{status:f.status}:{})});
-      else await write("feedback/"+uid("fb"), {type:v.type, text:v.text.trim()});
+      const images = (v.images||[]).filter(imgOk);
+      if(f) await write("feedback/"+f.id, {type:v.type, text:v.text.trim(), images, ...(f.status?{status:f.status}:{})});
+      else await write("feedback/"+uid("fb"), {type:v.type, text:v.text.trim(), images});
       toast(f ? "Đã lưu góp ý" : "Đã gửi góp ý");
     }
   });
@@ -64,7 +67,17 @@ ACTIONS["delfeedback"] = async el => { if(!confirm("Xoá góp ý này?")) return
    Gửi lại nguyên type/text hiện có vì PUT /api/doc/:coll/:id ghi đè toàn bộ tài liệu, không merge từng field. */
 ACTIONS["fbstatus"] = async el => {
   const f = S.feedback.find(x=>x.id===el.dataset.id); if(!f) return;
-  await write("feedback/"+f.id, {type:f.type, text:f.text, status:el.dataset.v});
+  await write("feedback/"+f.id, {type:f.type, text:f.text, images:f.images||[], status:el.dataset.v});
+};
+/* Xem ảnh cỡ lớn: lớp phủ đơn giản, bấm ra ngoài / Esc để đóng */
+ACTIONS["fbimg"] = el => {
+  const f = S.feedback.find(x=>x.id===el.dataset.id), u = f && (f.images||[])[+el.dataset.i]; if(!imgOk(u)) return;
+  const layer = document.getElementById("layer");
+  const close = () => { layer.innerHTML = ""; document.removeEventListener("keydown", onKey); };
+  const onKey = e => { if(e.key==="Escape") close(); };
+  layer.innerHTML = `<div class="scrim" data-close></div><div class="fb-lightbox" role="dialog" aria-modal="true" aria-label="Xem ảnh"><img src="${u}" alt="Ảnh góp ý"><button type="button" class="btn" data-close>Đóng</button></div>`;
+  layer.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", close));
+  document.addEventListener("keydown", onKey);
 };
 registerView({id:"feedback", label:"Góp ý",
   iconSvg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4h16v12H8l-4 4V4z"/><path d="M8 9h8M8 13h5"/></svg>',

@@ -1,0 +1,15 @@
+/* Góp ý (modules/feedback.js) – ảnh dán kèm. Màu chỉ dùng token trong theme.css. */
+.img-field{display:flex; flex-wrap:wrap; gap:10px; min-height:64px; padding:10px; border:1px dashed var(--line); border-radius:10px; background:var(--surface)}
+.img-field:empty::before{content:"Chưa có ảnh – bấm vào đây rồi dán (Ctrl+V)"; color:var(--ink-3); font-size:12.5px; align-self:center}
+.img-field:focus-visible{outline:2px solid var(--focus)}
+.img-th{position:relative; width:120px; height:84px; border-radius:8px; overflow:hidden; border:1px solid var(--line)}
+.img-th img{width:100%; height:100%; object-fit:cover; display:block}
+.img-x{all:unset; cursor:pointer; position:absolute; top:4px; right:4px; width:22px; height:22px; border-radius:50%; background:rgba(10,18,28,.7); color:#fff; font-size:12px; text-align:center; line-height:22px}
+.img-x:hover,.img-x:focus-visible{background:var(--bad)}
+.fb-imgs{display:flex; flex-wrap:wrap; gap:10px; margin-top:12px}
+.fb-img{all:unset; cursor:zoom-in; border-radius:8px; overflow:hidden; border:1px solid var(--line)}
+.fb-img:focus-visible{outline:2px solid var(--focus)}
+.fb-img img{display:block; max-width:220px; max-height:150px; object-fit:cover}
+.fb-lightbox{position:fixed; inset:0; z-index:60; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; padding:24px; pointer-events:none}
+.fb-lightbox>*{pointer-events:auto}
+.fb-lightbox img{max-width:min(96vw,1400px); max-height:calc(100vh - 110px); border-radius:8px; background:#fff}

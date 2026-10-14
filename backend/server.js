@@ -251,6 +251,11 @@ app.put("/api/doc/:coll/:id", auth, A(async (req, res) => {
     }
   }
   if (coll === "feedback") {
+    /* Ảnh dán kèm góp ý: chỉ nhận data URL ảnh jpeg/png/webp, tối đa 4 ảnh, mỗi ảnh ≤ ~1,2MB chuỗi. Thiếu trường
+       images (lệnh cũ, vd đổi trạng thái) thì giữ nguyên ảnh đang có – gửi [] mới là xoá hết ảnh. */
+    if (body.images === undefined) { if (exBody && exBody.images) body.images = exBody.images; }
+    else if (!Array.isArray(body.images) || body.images.length > 4 || body.images.some(u => typeof u !== "string" || u.length > 1_200_000 || !/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(u)))
+      return res.status(400).json({ error: "Ảnh đính kèm không hợp lệ (tối đa 4 ảnh jpeg/png/webp)" });
     // created_by/person/createdAt luôn do máy chủ ghi, không nhận từ client, và không đổi được sau khi tạo
     body.created_by = exBody ? exBody.created_by : req.user.username;
     body.person = exBody ? exBody.person : (req.user.staff_name || req.user.display_name || req.user.username);
