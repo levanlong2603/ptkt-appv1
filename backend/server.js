@@ -432,7 +432,9 @@ app.patch("/api/users/:id", auth, A(async (req, res) => {
 /* --- giao diện --- */
 app.use(express.static(path.join(__dirname, "..", "frontend"), {
   index: "index.html",
-  setHeaders: (res, file) => { if (file.endsWith(".html")) res.setHeader("Cache-Control", "no-cache"); }
+  /* no-cache = trình duyệt luôn hỏi lại máy chủ (ETag, tệp không đổi thì chỉ nhận 304) – không có bước build/đặt
+     tên theo phiên bản nên nếu để trình duyệt tự đoán thời hạn đệm, sau khi cập nhật người dùng vẫn chạy CSS/JS cũ. */
+  setHeaders: (res, file) => { if (/\.(html|css|js)$/.test(file)) res.setHeader("Cache-Control", "no-cache"); }
 }));
 app.use("/api", (req, res) => res.status(404).json({ error: "Không tìm thấy" }));
 app.use((err, req, res, next) => {

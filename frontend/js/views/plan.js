@@ -84,10 +84,10 @@ function planDetail(p, full){
       <div><div class="small muted" style="margin-bottom:4px">Tình hình / vướng mắc chung</div><div class="note">${esc(p.situation||"–")}</div></div></div>`:""}`;
   const rows = planReportRows(p);
   out += `<div class="plan-tbl-scroll"><div class="rp-sec rp-sec-grn" style="zoom:${zoom}%"><div class="tbl-wrap"><table class="plan-report-tbl" style="table-layout:fixed">
-      <thead><tr><th style="width:3%">STT</th><th style="width:8%">Hạng mục</th><th style="width:10%">Đầu việc</th><th style="width:8%">Phụ trách</th><th style="width:8%">Thực hiện</th><th style="width:12%">Chi tiết thực hiện</th>
-        <th style="width:8%">Deadline theo HĐ</th><th style="width:4%; text-align:center" title="Workload kế hoạch (giờ) = Quy mô × Độ phức tạp">WL</th><th style="width:5%; text-align:center">Ưu tiên</th><th style="width:9%">Trạng thái thực hiện</th><th style="width:9%">Vướng mắc</th><th style="width:9%">Hướng giải quyết</th>
-        <th style="width:7%">Cảnh báo</th></tr></thead>
-      <tbody>${rows||`<tr><td colspan="13"><div class="empty">Dự án chưa có đầu việc.${canManageProject(p)?" Bấm “+ Đầu việc”.":""}</div></td></tr>`}</tbody>
+      <thead><tr><th style="width:7%">Hạng mục</th><th style="width:11%">Đầu việc</th><th style="width:8%">Phụ trách</th><th style="width:8%">Thực hiện</th><th style="width:14%">Chi tiết thực hiện</th>
+        <th style="width:8%">Deadline theo HĐ</th><th style="width:4%; text-align:center" title="Workload kế hoạch (giờ) = Quy mô × Độ phức tạp">WL</th><th style="width:5%; text-align:center">Ưu tiên</th><th style="width:8%">Trạng thái thực hiện</th><th style="width:9%">Vướng mắc</th><th style="width:10%">Hướng giải quyết</th>
+        <th style="width:8%">Cảnh báo</th></tr></thead>
+      <tbody>${rows||`<tr><td colspan="12"><div class="empty">Dự án chưa có đầu việc.${canManageProject(p)?" Bấm “+ Đầu việc”.":""}</div></td></tr>`}</tbody>
     </table></div></div></div>
     <p class="small muted" style="margin:8px 0 0">Bấm vào một đầu việc để xem chi tiết${S.canEdit?", sửa hoặc đánh giá khi hoàn thành":""}.</p></div>`;
   return out;
@@ -105,16 +105,15 @@ function planReportRows(p){
      đúng tên qua p._phases (giống cách reports.js/rpBuildWeek() đang làm), không hiện thẳng mã. */
   const nameOf = new Map(p._phases.map(ph=>[ph.code, ph.name]));
   const tasks = [...p._tasks].sort((a,b)=>(order.get(a.phase)??999)-(order.get(b.phase)??999));
-  let out = "", i = 0, stt = 0;
+  let out = "", i = 0;
   while(i<tasks.length){
     const phase = tasks[i].phase;
     let span = 1; while(i+span<tasks.length && tasks[i+span].phase===phase) span++;
-    stt++;
     const phaseName = nameOf.get(phase) || phase || "Khác";
     for(let j=0;j<span;j++){
       const t = tasks[i+j], idle = t.status==="Chưa bắt đầu";
       out += `<tr class="click${idle?" tr-idle":""}" data-act="task" data-pid="${esc(p.id)}" data-id="${esc(t.id)}" tabindex="0" title="${esc(t.dv)}">
-        ${j===0?`<td class="small muted" rowspan="${span}" style="vertical-align:top; text-align:center">${stt}</td><td class="cell-main" rowspan="${span}" style="vertical-align:top">${esc(phaseName)}</td>`:""}
+        ${j===0?`<td class="cell-main" rowspan="${span}" style="vertical-align:top">${esc(phaseName)}</td>`:""}
         <td class="cell-main" style="vertical-align:top">${esc(planShortName(t.dv))}</td>
         <td class="small" style="vertical-align:top">${esc(t.owner||"–")}</td>
         <td class="small" style="vertical-align:top">${t.doers.length?t.doers.map(esc).join(", "):"–"}</td>

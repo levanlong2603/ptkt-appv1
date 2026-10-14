@@ -31,11 +31,15 @@
    .plan-tbl-scroll mới thật sự nhận trách nhiệm cuộn. .rp-sec-grn .tbl-wrap (reports.css) nạp SAU file
    này trong index.html nên cùng độ ưu tiên (2 class) sẽ đè ngược lại – phải tăng độ ưu tiên lên 3 class
    (thêm .plan-tbl-scroll lặp hoặc .pdetail) để chắc chắn thắng bất kể thứ tự nạp CSS. */
-.pdetail .plan-tbl-scroll .tbl-wrap{overflow:visible}
+.pdetail .plan-tbl-scroll .tbl-wrap{overflow:visible; min-width:1620px}
 /* 12 cột (thêm Phụ trách/Thực hiện/Ưu tiên/Cảnh báo so với bảng Báo cáo dự án gốc 8 cột) cần rộng hơn
    min-width chung của .rp-sec-grn table (1200px, đủ cho 8 cột) – ghi đè riêng, không ảnh hưởng bảng ở
    Báo cáo dự án (vẫn dùng .rp-sec-grn table mặc định, không có class .plan-report-tbl).
    ".rp-sec-grn table" (reports.css) có 1 lớp + 1 thẻ = độ ưu tiên CAO HƠN ".plan-report-tbl" (chỉ 1 lớp),
    nên dù nạp trước hay sau vẫn luôn thua – phải viết thành 2 lớp lồng nhau (.plan-tbl-scroll
-   .plan-report-tbl) để độ ưu tiên cao hơn hẳn, thắng chắc chắn bất kể thứ tự nạp CSS. */
-.plan-tbl-scroll .plan-report-tbl{min-width:1690px}
+   .plan-report-tbl) để độ ưu tiên cao hơn hẳn, thắng chắc chắn bất kể thứ tự nạp CSS.
+   Bề rộng tối thiểu (1620px cho 13 cột) đặt ở KHUNG .tbl-wrap phía trên chứ không đặt ở bảng: khung có viền
+   (.rp-sec .tbl-wrap, reports.css) mà lại overflow:visible, nếu chỉ bảng rộng ra thì khung vẫn hẹp bằng phần
+   nhìn thấy và viền phải của nó bị vẽ xuyên qua thân bảng – thành 1 nét kẻ dọc thừa giữa cột cuối khi cuộn
+   ngang. Khung rộng bằng bảng thì viền nằm đúng mép ngoài; bảng chỉ cần lấp đầy khung. */
+.plan-tbl-scroll .plan-report-tbl{min-width:100%}
