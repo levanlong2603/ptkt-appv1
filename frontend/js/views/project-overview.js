@@ -83,7 +83,7 @@ function projBadges(p){
 function projectPage(p){
   const cell = (label, val) => `<div><div class="small muted">${label}</div><div style="font-weight:700; font-size:17px">${val}</div></div>`;
   return `<div class="head"><div><h1>Dự án</h1></div></div>
-    <section class="panel" style="margin-bottom:18px"><div class="panel-b me-sum">
+    <section class="panel" style="margin-bottom:18px"><div class="panel-b me-sum me-sum-end">
       ${cell("Dự án", typeDot(p.type)+esc(p.name))}
       ${cell("Phụ trách", esc(p.owner||"–"))}
       ${cell("SE", esc(p.se||"–"))}

@@ -38,7 +38,7 @@ ON_SESSION.push(db => {
 });
 function kpiInit(){
   /* Kỳ mặc định = kỳ chứa thứ Hai của tuần này (tuần được tính vào kỳ theo thứ Hai của nó) */
-  if(!S.kpi) S.kpi = {kind:"month", key:KPI_CALC.periodOf("month", mondayOf(todayISO())).key, q:"", sort:"kpi", dir:-1, sel:null, fRating:"", fStatus:""};
+  if(!S.kpi) S.kpi = {kind:"month", key:KPI_CALC.periodOf("month", mondayOf(todayISO())).key, q:"", sort:"kpi", dir:-1, sel:null, tab:"overview", fRating:"", fStatus:""};
   if(!S.kpiNotes) S.kpiNotes = [];
   if(!S.kpiReviews) S.kpiReviews = [];
 }
@@ -156,11 +156,32 @@ function kpiRadarHtml(items){
       ${labels}
     </svg></div>`;
 }
+/* Nhân sự của CHÍNH người đang xem: người đang chọn ở "Tôi là" (trưởng phòng/phó phòng/admin) hoặc nhân sự gắn với tài
+   khoản (nhân viên). null khi chưa xác định được (vd đang xem "Tất cả" và tài khoản không gắn nhân sự). */
+function kpiSelf(){
+  const n = (S.me && S.me!=="__all__") ? S.me : (S.user && S.user.staff_name) || "";
+  return M.staff.some(x=>x.name===n) ? n : null;
+}
+/* 2 tab ngang hàng như màn Dự án (.rp-tabs): Tổng quan (cả phòng; bấm 1 dòng mở trang của người đó, có nút quay lại)
+   | Trang cá nhân (cố định theo góc nhìn của chính người đang xem) */
+function kpiTabs(){
+  const t = S.kpi.tab==="personal" ? "personal" : "overview";
+  return `<div class="rp-tabs" role="tablist">
+    <button type="button" role="tab" data-act="kputab" data-t="overview" aria-selected="${t==="overview"}">Tổng quan</button>
+    <button type="button" role="tab" data-act="kputab" data-t="personal" aria-selected="${t==="personal"}">Trang cá nhân</button>
+  </div>`;
+}
 function viewKpi(){
   if(!(S.user && KPI_VIEW_ROLES.has(S.user.role))) return `<div class="head"><div><h1>KPI &amp; Năng lực</h1></div></div>
     <section class="panel"><div class="empty"><b>Tính năng đang phát triển</b>Trang KPI &amp; Năng lực hiện đang hoàn thiện, sắp ra mắt.</div></section>`;
   kpiInit();
-  if(S.kpi.sel) return kpiDetailView();
+  if(S.kpi.tab==="personal"){
+    const me = kpiSelf();
+    if(me) return kpiDetailView(me, true);
+    return `<div class="head"><div><h1>KPI &amp; Năng lực</h1></div></div>${kpiTabs()}
+      <section class="panel"><div class="empty"><b>Chưa xác định được nhân sự của bạn</b>Chọn tên của bạn ở ô “Tôi là” (thanh bên) hoặc nhờ trưởng phòng gắn tài khoản với nhân sự, rồi quay lại tab này. Muốn xem người khác thì mở tab Tổng quan và bấm vào dòng của họ.</div></section>`;
+  }
+  if(S.kpi.sel && M.staff.some(x=>x.name===S.kpi.sel)) return kpiDetailView(S.kpi.sel, false);
   const p = kpiPeriod(), c = kpiContext();
   const rows = M.staff.map(s => kpiRow(c, s, p));
   const scored = rows.filter(r=>r.kpi!=null);
@@ -172,6 +193,7 @@ function viewKpi(){
   let h = `<div class="head"><div><h1>KPI &amp; Năng lực</h1></div>
     <div class="ex-ctl">${kpiPeriodNav(p)}
       <button class="btn icon" data-act="exrefresh" title="Làm mới" aria-label="Làm mới">${ICONS.refresh}</button></div></div>
+    ${kpiTabs()}
     <div class="head-ctl" style="margin-bottom:16px"><button class="btn" data-act="kpicfg">Cấu hình tiêu chí</button></div>`; // hàng công cụ riêng dưới tiêu đề, như hàng lọc của màn Dự án
   if(!rows.length) return h + `<section class="panel"><div class="empty"><b>Chưa có nhân sự</b>Thêm nhân sự ở Cài đặt → Nhân sự &amp; capacity để bắt đầu đánh giá.</div></section>`;
   h += `<div class="band">
@@ -215,8 +237,8 @@ function viewKpi(){
   return h;
 }
 /* ----- chi tiết 1 nhân viên (bố cục Giai đoạn 1 – sẽ làm lại theo tab ở bước 2) ----- */
-function kpiDetailView(){
-  const name = S.kpi.sel;
+/* name = nhân sự cần xem; self = true khi là tab "Trang cá nhân" của chính mình (không có nút quay lại) */
+function kpiDetailView(name, self){
   const s = M.staff.find(x=>x.name===name);
   if(!s){ S.kpi.sel = null; return viewKpi(); }
   const p = kpiPeriod(), c = kpiContext(), r = kpiRow(c, s, p), lb = r.rating;
@@ -228,13 +250,14 @@ function kpiDetailView(){
   let h = `<div class="head"><div><h1>KPI &amp; Năng lực</h1></div>
     <div class="ex-ctl">${kpiPeriodNav(p)}
       <button class="btn icon" data-act="exrefresh" title="Làm mới" aria-label="Làm mới">${ICONS.refresh}</button></div></div>
-    <section class="panel" style="margin-bottom:18px"><div class="panel-b me-sum">
+    ${kpiTabs()}
+    <section class="panel" style="margin-bottom:18px"><div class="panel-b me-sum me-sum-end">
       ${cell("Nhân sự", esc(name))}
       ${s.title?cell("Chức danh", esc(s.title)):""}
       ${cell("Kỳ đánh giá", esc(p.label))}
       ${cell("KPI tổng", kpiNum(r.kpi))}
       <div class="badges">${lb?`<span class="pill ${lb.cls}">${esc(lb.label)}</span>`:'<span class="pill mute">Chưa có dữ liệu</span>'}<span class="pill ${KPI_STATUS[r.status][1]}">${KPI_STATUS[r.status][0]}</span></div>
-      <div class="toolbar" style="margin-left:auto"><button class="btn" data-act="kpiback">← Quay lại tổng quan</button></div>
+      ${self?"":'<div class="toolbar" style="margin-left:auto"><button class="btn" data-act="kpiback">← Quay lại tổng quan</button></div>'}
     </div></section>`;
   h += `<div class="band">
     ${KPI_CRIT.map(k=>`<div class="stat"><div class="v">${kpiNum(r.scores[k.key])}</div><div class="l">${k.label}</div></div>`).join("")}
@@ -297,8 +320,9 @@ function kpiNoteForm(id, name){
 /* Đổi loại kỳ: giữ nguyên mốc thời gian đang xem (kỳ mới là kỳ chứa tuần đầu của kỳ cũ) */
 ACTIONS["kpikind"] = el => { kpiInit(); const p = kpiPeriod(); S.kpi.kind = el.dataset.v; S.kpi.key = KPI_CALC.periodOf(S.kpi.kind, p.weeks[0]).key; render(); };
 ACTIONS["kpinav"] = el => { kpiInit(); S.kpi.key = KPI_CALC.shift(kpiPeriod(), +el.dataset.d).key; render(); };
-ACTIONS["kpisel"] = el => { kpiInit(); S.kpi.sel = el.dataset.name; render(); main.scrollTop = 0; };
-ACTIONS["kpiback"] = () => { S.kpi.sel = null; render(); };
+ACTIONS["kpisel"] = el => { kpiInit(); S.kpi.sel = el.dataset.name; S.kpi.tab = "overview"; render(); main.scrollTop = 0; };
+ACTIONS["kpiback"] = () => { kpiInit(); S.kpi.sel = null; render(); };
+ACTIONS["kputab"] = el => { kpiInit(); S.kpi.tab = el.dataset.t==="personal" ? "personal" : "overview"; S.kpi.sel = null; render(); main.scrollTop = 0; };
 ACTIONS["kpisorth"] = el => { kpiInit(); const k=el.dataset.k; if(S.kpi.sort===k) S.kpi.dir*=-1; else { S.kpi.sort=k; S.kpi.dir = k==="name"?1:-1; } render(); };
 ACTIONS["kpicfg"] = () => kpiCriteriaForm();
 ACTIONS["kpinote"] = el => kpiNoteForm(el.dataset.id, el.dataset.name);

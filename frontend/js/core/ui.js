@@ -10,8 +10,8 @@ function renderNav(){
   const sepI = VIEWS.findIndex(v=>v.sep);
   const group1 = sepI<0 ? VIEWS : VIEWS.slice(0,sepI), group2 = sepI<0 ? [] : VIEWS.slice(sepI+1);
   document.getElementById("nav").innerHTML =
-    `<div class="nav-grp">Dashboard &amp; Quản lý</div>${group1.map(btn).join("")}` +
-    (group2.length ? `<div class="nav-grp">Cài đặt</div>${group2.map(btn).join("")}` : "");
+    `<div class="nav-grp" title="Dashboard &amp; Quản lý"><span class="full">Dashboard &amp; Quản lý</span><span class="ab" aria-hidden="true">D</span></div>${group1.map(btn).join("")}` +
+    (group2.length ? `<div class="nav-grp" title="Cài đặt"><span class="full">Cài đặt</span><span class="ab" aria-hidden="true">C</span></div>${group2.map(btn).join("")}` : "");
   const ub = document.getElementById("userBox");
   if(S.user){ ub.hidden = false;
     const initials = avatarInitials(S.user.display_name);
@@ -31,7 +31,7 @@ document.getElementById("meSel").addEventListener("change", e => { S.me=e.target
 
 /* ================= sidebar thu gọn/phóng to ================= */
 const sideToggleBtn = document.getElementById("sideToggle");
-sideToggleBtn.insertAdjacentHTML("afterbegin", ICONS.panelLeft);
+sideToggleBtn.insertAdjacentHTML("afterbegin", '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 6l-6 6 6 6"/></svg>');
 /* Thu gọn chỉ có ý nghĩa ở bố cục máy tính; ở điện thoại menu là ngăn kéo nên luôn bỏ lớp side-collapsed (để nhãn
    hiện đủ), trở lại máy tính thì áp lại theo lựa chọn đã lưu */
 const mobileMQ = window.matchMedia("(max-width:860px)");
