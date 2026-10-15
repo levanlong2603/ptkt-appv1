@@ -29,7 +29,7 @@ function viewFeedback(){
   const me = S.user && S.user.username;
   const replyHtml = r => {
     const canDel = me && (r.created_by===me || S.canEdit);
-    return `<div class="fb-reply"><div class="fb-reply-h"><b>${esc(r.person||"–")}</b><span class="small muted">${r.createdAt?dmy(r.createdAt.slice(0,10))+" "+new Date(r.createdAt).toLocaleTimeString("vi-VN",{hour:"2-digit",minute:"2-digit"}):""}</span>${canDel?`<button type="button" class="btn ghost fb-reply-x" data-act="delreply" data-id="${esc(r.id)}" aria-label="Xoá phản hồi">Xoá</button>`:""}</div>
+    return `<div class="fb-reply"><div class="fb-reply-h"><b>${esc(r.person||"–")}</b><span class="small muted">${r.createdAt?dmy(r.createdAt.slice(0,10))+" "+new Date(r.createdAt).toLocaleTimeString("vi-VN",{hour:"2-digit",minute:"2-digit"}):""}</span>${canDel?`<span class="fb-reply-x"><button type="button" class="btn ghost" data-act="editreply" data-id="${esc(r.id)}" aria-label="Sửa phản hồi">Sửa</button><button type="button" class="btn ghost fb-reply-del" data-act="delreply" data-id="${esc(r.id)}" aria-label="Xoá phản hồi">Xoá</button></span>`:""}</div>
       <div class="fb-reply-t">${esc(r.text||"")}</div>
       ${(r.images||[]).some(imgOk)?`<div class="fb-imgs">${r.images.map((u,i)=>imgOk(u)?`<button type="button" class="fb-img" data-act="fbimg" data-id="${esc(r.id)}" data-i="${i}" data-reply="1" aria-label="Xem ảnh ${i+1} cỡ lớn"><img src="${u}" alt="Ảnh phản hồi ${i+1}" loading="lazy"></button>`:"").join("")}</div>`:""}</div>`;
   };
@@ -79,20 +79,25 @@ function feedbackForm(f){
 }
 ACTIONS["addfeedback"] = () => feedbackForm();
 /* Phản hồi 1 góp ý: ai cũng gửi được (RULES.feedbackReply = "own"); xoá thì chỉ người viết hoặc trưởng phòng */
-ACTIONS["replyfeedback"] = el => {
-  const f = S.feedback.find(x=>x.id===el.dataset.id); if(!f) return;
-  openForm({title:"Phản hồi góp ý", subtitle:`${f.person||""}: ${(f.text||"").slice(0,80)}${(f.text||"").length>80?"…":""}`,
-    values:{text:"", images:[]},
+/* r = phản hồi đang sửa (bỏ trống = viết mới). Sửa ghi đè cùng id; fbId/người viết/ngày giờ máy chủ tự giữ nguyên. */
+function replyForm(f, r){
+  openForm({title: r ? "Sửa phản hồi" : "Phản hồi góp ý", subtitle:`${f.person||""}: ${(f.text||"").slice(0,80)}${(f.text||"").length>80?"…":""}`,
+    values:{text: r ? (r.text||"") : "", images: r ? [...(r.images||[])] : []},
     fields:[
       {key:"text", label:"Nội dung phản hồi", type:"textarea", required:true},
       {key:"images", label:"Ảnh minh hoạ", type:"images", max:4, hint:()=>"Chụp màn hình rồi bấm Ctrl+V (dán) vào cửa sổ này – tối đa 4 ảnh."}
     ],
-    saveLabel:"Gửi phản hồi",
+    saveLabel: r ? "Lưu thay đổi" : "Gửi phản hồi",
     onSave: async v => {
       if(!v.text.trim()) throw new Error("Nhập nội dung phản hồi.");
-      await write("feedbackReply/"+uid("fr"), {fbId:f.id, text:v.text.trim(), images:(v.images||[]).filter(imgOk)});
-      toast("Đã gửi phản hồi");
+      await write("feedbackReply/"+(r ? r.id : uid("fr")), {fbId:f.id, text:v.text.trim(), images:(v.images||[]).filter(imgOk)});
+      toast(r ? "Đã lưu phản hồi" : "Đã gửi phản hồi");
     }});
+}
+ACTIONS["replyfeedback"] = el => { const f = S.feedback.find(x=>x.id===el.dataset.id); if(f) replyForm(f); };
+ACTIONS["editreply"] = el => {
+  const r = S.fbReplies.find(x=>x.id===el.dataset.id), f = r && S.feedback.find(x=>x.id===r.fbId);
+  if(r && f) replyForm(f, r);
 };
 ACTIONS["delreply"] = async el => { if(!confirm("Xoá phản hồi này?")) return; await remove("feedbackReply/"+el.dataset.id); toast("Đã xoá"); };
 ACTIONS["editfeedback"] = el => { const f = S.feedback.find(x=>x.id===el.dataset.id); if(f) feedbackForm(f); };
