@@ -112,8 +112,9 @@ body.side-collapsed .nav button span:not(.nav-badge){opacity:0; max-width:0}
 .dot{width:8px; height:8px; border-radius:50%; background:var(--grey)}
 .dot.on{background:var(--ok)} .dot.off{background:var(--bad)}
 /* ---------- main ---------- */
-main{overflow-y:auto; overflow-x:hidden; height:100%}
-.page{width:100%; padding:26px 32px 60px}
+main{overflow-y:auto; overflow-x:hidden; height:100%; display:flex; flex-direction:column}
+main>.page{flex:1 0 auto}
+.page{width:100%; padding:26px 32px 12px}
 .head{display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-bottom:16px; min-height:38px}
 .head-ctl{display:flex; align-items:center; gap:10px; flex-wrap:wrap}
 h1{font-size:16px; line-height:1.3; font-weight:650; letter-spacing:-.005em; margin:0; color:var(--ink)}
@@ -281,8 +282,8 @@ textarea.inp{min-height:74px; resize:vertical}
   .side-foot select{min-height:44px}
   /* Chỉ giữ ảnh đại diện ở thanh đầu trang cho đỡ chật (tên hiện trong menu tài khoản) */
   #tbName,#tbAccount .tb-chev{display:none}
-  main{height:auto}
-  .page{padding:18px 14px 50px}
+  main{height:auto; min-height:calc(100vh - var(--header-h))}
+  .page{padding:18px 14px 10px}
   .prow{grid-template-columns:1fr 80px; gap:10px}
   .prow .strip-cell,.prow .next,.prow .badges{grid-column:1 / -1}
   .prow .badges{justify-content:flex-start}
@@ -319,7 +320,7 @@ textarea.inp{min-height:74px; resize:vertical}
   .weeknav button,.ex-wk button,.plan-zoom button{min-width:36px; display:inline-flex; align-items:center; justify-content:center}
 }
 @media (max-width:520px){
-  .page{padding:14px 12px 44px}
+  .page{padding:14px 12px 8px}
   .stat .v{font-size:22px}
   .band{grid-template-columns:repeat(auto-fit,minmax(130px,1fr))}
   .weeknav .lbl{min-width:0; flex:1}
@@ -371,5 +372,6 @@ textarea.inp{min-height:74px; resize:vertical}
 .userbox button:hover{background:var(--side-hover-bg); color:var(--bad)}
 /* Ở điện thoại hộp tài khoản nằm cuối ngăn kéo menu (tên + vai trò + đổi mật khẩu/đăng xuất) */
 /* Chân trang cuối mỗi màn hình */
-.app-foot{margin-top:40px; padding:22px 0 6px; text-align:center; color:var(--ink-3); font-size:12.5px; line-height:1.7; border-top:1px solid var(--line-2)}
+/* Gọn và sát đáy: khoảng đệm dưới của .page đã giảm còn ~10px nên chân trang chỉ còn 2 dòng chữ sát cuối nội dung */
+.app-foot{flex:none; margin-top:auto; padding:12px 16px 8px; text-align:center; color:var(--ink-3); font-size:12px; line-height:1.45; background:var(--paper)}
 .app-foot div:first-child{text-transform:uppercase; letter-spacing:.04em; font-weight:600; color:var(--ink-2)}
