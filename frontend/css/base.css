@@ -46,8 +46,13 @@ main,.page,.stack,.grid2>*,.split>*,.prow,.prow>*,.lrow,.lrow>*,.me-sum>*,.toolb
 .tb-dropdown .tb-item .muted{display:block; margin-top:2px}
 .tb-dropdown .tb-sep{height:1px; background:var(--line-2); margin:6px 4px}
 .tb-dropdown .tb-head{padding:8px 10px 4px; font-size:11px; font-weight:700; color:var(--ink-3); text-transform:uppercase; letter-spacing:.03em}
-@media (max-width:860px){ .topbar-wordmark,.topbar-div,.topbar-app{display:none} }
-@media (max-width:860px){ .side-toggle{display:none} }
+/* Nút ☰ mở menu: chỉ có ở bố cục điện thoại (≤860px) */
+.tb-menu{all:unset; display:none; cursor:pointer; width:40px; height:40px; border-radius:9px; align-items:center; justify-content:center; color:var(--header-icon); flex:none}
+.tb-menu:hover{background:var(--header-hover); color:var(--header-ink)}
+.tb-menu:focus-visible{outline:2px solid var(--focus)}
+.tb-menu svg{width:24px; height:24px}
+.nav-scrim{display:none}
+@media (max-width:860px){ .topbar-div,.topbar-app{display:none} .side-toggle{display:none} }
 /* ---------- sidebar ---------- */
 .side{background:var(--side); color:var(--side-ink); display:flex; flex-direction:column; padding:14px 10px 16px; position:sticky; top:var(--header-h); height:calc(100vh - var(--header-h)); overflow:auto; border-right:1px solid var(--side-line); transition:width .15s ease}
 /* Đặt đè lên hàng của nhãn nhóm đầu tiên (.nav-grp:first-child) thay vì chiếm riêng 1 hàng phía trên */
@@ -221,7 +226,7 @@ td.num,th.num{text-align:right}
   background:var(--surface); z-index:31; display:flex; flex-direction:column; border-radius:16px; overflow:hidden; box-shadow:0 24px 64px rgba(10,18,28,.3);
   padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px); animation:pop .15s ease-out}
 @keyframes pop{from{transform:translate(-50%,-50%) scale(.97); opacity:0}}
-@media (prefers-reduced-motion: reduce){.drawer{animation:none}}
+@media (prefers-reduced-motion: reduce){.drawer{animation:none} .side{transition:none}}
 .drawer-h{padding:18px 22px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex:none}
 .drawer-b{padding:18px 22px; overflow:auto; flex:1}
 .drawer-f{padding:14px 22px; border-top:1px solid var(--line); display:flex; gap:8px; justify-content:space-between; flex:none}
@@ -253,18 +258,29 @@ textarea.inp{min-height:74px; resize:vertical}
 .mobile-nav{display:none}
 @media (max-width: 1100px){ .grid2{grid-template-columns:minmax(0,1fr)} .lrow{grid-template-columns:130px 1fr 86px} .lrow .hide-m{display:none} }
 @media (max-width: 860px){
-  .app{grid-template-columns:minmax(0,1fr); grid-template-rows:auto 1fr}
+  .app{grid-template-columns:minmax(0,1fr); grid-template-rows:auto}
   .row2{grid-template-columns:minmax(0,1fr)}
-  .side{position:sticky; top:var(--header-h); z-index:5; height:auto; flex-direction:row; align-items:center; padding:8px 10px; gap:8px; overflow-x:auto}
-  .side-foot .conn,.nav-grp{display:none}
-  .topbar{padding:0 10px}
+  /* Menu = ngăn kéo trượt từ trái (mở bằng nút ☰ ở thanh đầu trang), nhãn đầy đủ, mục cao 46px dễ bấm.
+     Đóng khi chọn 1 mục, chạm vào vùng mờ, hoặc bấm Esc (xem ui.js). */
+  .tb-menu{display:flex}
+  .topbar{padding:0 10px 0 6px}
+  .topbar-l{gap:6px}
+  .topbar-wordmark{height:30px}
   .topbar-r{gap:0}
-  .nav{flex-direction:row}
-  .nav button span:not(.nav-badge){display:none}
-  .nav button{position:relative}
-  .nav-badge{position:absolute; top:2px; right:2px; margin:0; padding:2px 5px}
-  .side-foot{margin:0 0 0 auto; border:0; padding:0; min-width:130px}
-  .side-foot label{display:none}
+  .side{position:fixed; top:var(--header-h); left:0; bottom:0; width:min(300px,86vw); height:auto; z-index:40; padding:10px 12px 16px;
+    transform:translateX(-104%); transition:transform .2s ease; visibility:hidden}
+  body.nav-open .side{transform:none; visibility:visible; box-shadow:0 0 40px rgba(10,18,28,.4)}
+  .nav-scrim{position:fixed; top:var(--header-h); left:0; right:0; bottom:0; z-index:39; background:rgba(10,18,28,.5)}
+  body.nav-open .nav-scrim{display:block}
+  body.nav-open{overflow:hidden}
+  .nav-grp{font-size:12px; padding:16px 12px 8px}
+  .nav-grp:first-child{padding-top:8px}
+  .nav button{padding:12px; gap:14px; font-size:15.5px; min-height:46px}
+  .nav svg{width:22px; height:22px}
+  .nav button span:not(.nav-badge){max-width:none}
+  .side-foot select{min-height:44px}
+  /* Chỉ giữ ảnh đại diện ở thanh đầu trang cho đỡ chật (tên hiện trong menu tài khoản) */
+  #tbName,#tbAccount .tb-chev{display:none}
   main{height:auto}
   .page{padding:18px 14px 50px}
   .prow{grid-template-columns:1fr 80px; gap:10px}
@@ -353,4 +369,4 @@ textarea.inp{min-height:74px; resize:vertical}
 .userbox button{all:unset; cursor:pointer; display:flex; align-items:center; gap:7px; color:var(--side-ink); font-size:12.5px; padding:6px 4px; border-radius:6px}
 .userbox button svg{width:15px; height:15px; flex:none}
 .userbox button:hover{background:var(--side-hover-bg); color:var(--bad)}
-@media (max-width:860px){ .userbox{display:none} }
+/* Ở điện thoại hộp tài khoản nằm cuối ngăn kéo menu (tên + vai trò + đổi mật khẩu/đăng xuất) */

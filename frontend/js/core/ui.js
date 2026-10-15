@@ -32,9 +32,22 @@ document.getElementById("meSel").addEventListener("change", e => { S.me=e.target
 /* ================= sidebar thu gọn/phóng to ================= */
 const sideToggleBtn = document.getElementById("sideToggle");
 sideToggleBtn.insertAdjacentHTML("afterbegin", ICONS.panelLeft);
-if(store("sideCollapsed")==="1") document.body.classList.add("side-collapsed");
+/* Thu gọn chỉ có ý nghĩa ở bố cục máy tính; ở điện thoại menu là ngăn kéo nên luôn bỏ lớp side-collapsed (để nhãn
+   hiện đủ), trở lại máy tính thì áp lại theo lựa chọn đã lưu */
+const mobileMQ = window.matchMedia("(max-width:860px)");
+const applyCollapsed = () => { document.body.classList.toggle("side-collapsed", !mobileMQ.matches && store("sideCollapsed")==="1"); };
+applyCollapsed();
 const syncSideToggleLabel = () => { const on = document.body.classList.contains("side-collapsed"); const label = on?"Mở rộng menu":"Thu gọn menu"; sideToggleBtn.setAttribute("aria-label", label); sideToggleBtn.title = label; };
 syncSideToggleLabel();
+/* Ngăn kéo menu ở điện thoại */
+const tbMenu = document.getElementById("tbMenu");
+tbMenu.insertAdjacentHTML("afterbegin", '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>');
+const setNavOpen = on => { document.body.classList.toggle("nav-open", on); tbMenu.setAttribute("aria-expanded", on ? "true" : "false"); tbMenu.setAttribute("aria-label", on ? "Đóng menu" : "Mở menu"); };
+tbMenu.addEventListener("click", e => { e.stopPropagation(); setNavOpen(!document.body.classList.contains("nav-open")); });
+document.getElementById("navScrim").addEventListener("click", () => setNavOpen(false));
+document.addEventListener("keydown", e => { if(e.key==="Escape" && document.body.classList.contains("nav-open")) setNavOpen(false); });
+document.getElementById("nav").addEventListener("click", e => { if(e.target.closest("button[data-view]")) setNavOpen(false); });
+mobileMQ.addEventListener("change", () => { setNavOpen(false); applyCollapsed(); syncSideToggleLabel(); });
 sideToggleBtn.addEventListener("click", () => {
   const on = document.body.classList.toggle("side-collapsed");
   store("sideCollapsed", on?"1":"0");
