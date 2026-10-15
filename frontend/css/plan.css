@@ -43,3 +43,5 @@
    nhìn thấy và viền phải của nó bị vẽ xuyên qua thân bảng – thành 1 nét kẻ dọc thừa giữa cột cuối khi cuộn
    ngang. Khung rộng bằng bảng thì viền nằm đúng mép ngoài; bảng chỉ cần lấp đầy khung. */
 .plan-tbl-scroll .plan-report-tbl{min-width:100%}
+/* Cảm ứng: nút thu/phóng bảng rộng 40px (luật .plan-zoom button ở trên dùng all:unset nên phải đặt lại ở đây) */
+@media (pointer:coarse){ .plan-zoom button{min-width:40px; display:inline-flex; align-items:center; justify-content:center} }

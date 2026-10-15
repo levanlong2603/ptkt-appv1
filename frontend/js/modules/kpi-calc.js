@@ -41,7 +41,8 @@ const KPI_CALC = (() => {
     const q = Math.floor(m0/3)+1;
     const key = kind==="month" ? `${y}-${String(m0+1).padStart(2,"0")}` : kind==="quarter" ? `${y}-Q${q}` : String(y);
     const label = kind==="month" ? `Tháng ${m0+1}/${y}` : kind==="quarter" ? `Quý ${q}/${y}` : `Năm ${y}`;
-    const short = kind==="month" ? `T${m0+1}/${y}` : kind==="quarter" ? `Q${q}/${y}` : String(y);
+    /* nhãn ngắn dưới trục biểu đồ: năm 2 chữ số (T10/26) để vừa 6 cột trên màn điện thoại */
+    const yy = String(y).slice(2), short = kind==="month" ? `T${m0+1}/${yy}` : kind==="quarter" ? `Q${q}/${yy}` : String(y);
     /* Tuần thuộc kỳ nếu thứ Hai của tuần đó nằm trong kỳ – khớp periodInfo() (exec-dashboard.js) */
     const weeks = []; let w = U.mondayOf(U.iso(new Date(y, m0, 1)));
     if(U.parse(w).getMonth()!==m0) w = U.addDays(w, 7);

@@ -62,7 +62,7 @@ function viewFeedback(){
 /* f = góp ý đang sửa (bỏ trống = gửi mới). Sửa chỉ đổi loại/nội dung; gửi kèm lại status hiện có vì PUT ghi
    đè cả tài liệu (person/created_by/createdAt thì máy chủ tự giữ nguyên, xem server.js). */
 function feedbackForm(f){
-  openForm({title: f ? "Sửa góp ý" : "Gửi góp ý", subtitle: f ? (f.person||"") : (S.me || (S.user && S.user.display_name) || ""),
+  openForm({title: f ? "Sửa góp ý" : "Gửi góp ý", subtitle: f ? (f.person||"") : ((S.me && S.me!=="__all__" ? S.me : "") || (S.user && S.user.display_name) || ""),
     values:{type: f ? (f.type||"Nhận xét") : "Nhận xét", text: f ? (f.text||"") : "", images: f ? [...(f.images||[])] : []},
     fields:[
       {key:"type", label:"Loại góp ý", type:"seg", options:FB_TYPES.map(t=>[t,t])},

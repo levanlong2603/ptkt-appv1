@@ -235,7 +235,8 @@ function imgCompress(file){
 }
 const imgOk = u => typeof u==="string" && /^data:image\/(jpeg|png|webp);base64,/.test(u); // chỉ hiện ảnh đúng dạng, không nhận URL tuỳ ý
 function imgFieldHTML(list){
-  return `<div class="img-field" tabindex="0">${(list||[]).filter(imgOk).map((u,i)=>`<div class="img-th"><img src="${u}" alt="Ảnh ${i+1}"><button type="button" class="img-x" data-imgdel="${i}" aria-label="Bỏ ảnh ${i+1}">✕</button></div>`).join("")}</div>`;
+  return `<div class="img-field" tabindex="0">${(list||[]).filter(imgOk).map((u,i)=>`<div class="img-th"><img src="${u}" alt="Ảnh ${i+1}"><button type="button" class="img-x" data-imgdel="${i}" aria-label="Bỏ ảnh ${i+1}">✕</button></div>`).join("")}</div>
+    <div class="img-pick"><button type="button" class="btn" data-imgpick>+ Chọn ảnh / chụp ảnh</button><input type="file" accept="image/*" multiple hidden data-imgfile></div>`;
 }
 
 /* ================= form drawer ================= */
@@ -288,6 +289,7 @@ function openForm(cfg){
   dlg.addEventListener("click", async e => {
     const sb = e.target.closest(".seg-in button");
     if(sb){ const k=sb.dataset.k; const v=JSON.parse(sb.dataset.v); vals[k]=v; sb.parentElement.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed", b===sb)); const f=cfg.fields.find(x=>x.key===k); const hn=dlg.querySelector(`[data-hint="${k}"]`); if(f && hn && typeof f.hint==="function") hn.textContent=f.hint(v, vals); return; }
+    if(e.target.closest("[data-imgpick]")){ const inp = dlg.querySelector("[data-imgfile]"); if(inp) inp.click(); return; }
     const ix = e.target.closest("[data-imgdel]");
     if(ix){ const fi = cfg.fields.find(x=>x.type==="images"); if(fi){ vals[fi.key] = (vals[fi.key]||[]).filter((_, j) => j!==+ix.dataset.imgdel); dlg.querySelector("#f_"+fi.key).innerHTML = imgFieldHTML(vals[fi.key]); } return; }
     if(e.target.closest("[data-save]")){
@@ -307,19 +309,29 @@ function openForm(cfg){
     const hn = dlg.querySelector(`[data-hint="${key}"]`); if(f && hn && typeof f.hint==="function") hn.textContent=f.hint(vals[key], vals);
     cfg.fields.forEach(g=>{ if(typeof g.hint==="function"){ const h2=dlg.querySelector(`[data-hint="${g.key}"]`); if(h2) h2.textContent=g.hint(vals[g.key], vals); } });
   });
-  /* Dán ảnh: bắt sự kiện paste trong cả hộp thoại; chỉ xử lý khi clipboard có ảnh (dán chữ vẫn như thường) */
+  /* Thêm ảnh: dán (Ctrl+V / giữ chạm → Dán) hoặc nút "Chọn ảnh / chụp ảnh" (thư viện ảnh, máy ảnh điện thoại).
+     Chỉ xử lý khi clipboard có ảnh – dán chữ vẫn như thường. */
   const fImg = cfg.fields.find(x=>x.type==="images");
-  if(fImg && !cfg.readOnly) dlg.addEventListener("paste", async e => {
-    const files = [...(e.clipboardData ? e.clipboardData.items : [])].filter(it => it.kind==="file" && /^image\//.test(it.type)).map(it => it.getAsFile()).filter(Boolean);
-    if(!files.length) return;
-    e.preventDefault();
+  const addImages = async files => {
     const max = fImg.max || 4, cur = [...(vals[fImg.key] || [])];
-    if(cur.length >= max){ toast("Tối đa "+max+" ảnh – bỏ bớt ảnh cũ trước khi dán thêm."); return; }
+    if(cur.length >= max){ toast("Tối đa "+max+" ảnh – bỏ bớt ảnh cũ trước khi thêm."); return; }
     try{
       for(const fl of files.slice(0, max-cur.length)) cur.push(await imgCompress(fl));
       vals[fImg.key] = cur; dlg.querySelector("#f_"+fImg.key).innerHTML = imgFieldHTML(cur);
-    }catch(err){ toast(err.message || "Không dán được ảnh."); }
-  });
+    }catch(err){ toast(err.message || "Không thêm được ảnh."); }
+  };
+  if(fImg && !cfg.readOnly){
+    dlg.addEventListener("paste", async e => {
+      const files = [...(e.clipboardData ? e.clipboardData.items : [])].filter(it => it.kind==="file" && /^image\//.test(it.type)).map(it => it.getAsFile()).filter(Boolean);
+      if(!files.length) return;
+      e.preventDefault(); await addImages(files);
+    });
+    dlg.addEventListener("change", async e => {
+      const inp = e.target.closest && e.target.closest("[data-imgfile]"); if(!inp) return;
+      const files = [...inp.files].filter(x => /^image\//.test(x.type)); inp.value = "";
+      if(files.length) await addImages(files);
+    });
+  }
   layer.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click", close));
   setTimeout(()=>{ const first = dlg.querySelector("input,select,textarea,.seg-in button"); (first||dlg.querySelector("[data-close]")).focus(); }, 30);
 }

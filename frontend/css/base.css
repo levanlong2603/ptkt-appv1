@@ -274,6 +274,34 @@ textarea.inp{min-height:74px; resize:vertical}
   .plist{max-height:none}
   .row2{grid-template-columns:1fr}
 }
+/* ===== Điện thoại / máy tính bảng nhỏ (≤860px): bố cục đã gọn ở trên, phần dưới chỉnh cho CẢM ỨNG ===== */
+@media (max-width:860px){
+  /* Ô nhập < 16px khiến Safari/iOS tự phóng to trang khi chạm vào ô – ép đúng 16px để không bị nhảy khung */
+  input,select,textarea,.inp{font-size:16px}
+  .inp{min-height:42px}
+  .btn{min-height:40px}
+  .btn.icon{min-width:40px}
+  /* Bảng nhiều cột (table-layout:fixed chia % cho cả bảng) bị bóp tới mức chữ vỡ từng ký tự ở màn hẹp:
+     giữ bề rộng tối thiểu để cuộn ngang trong khung bảng thay vì bóp cột */
+  .tbl-wrap>table[style*="table-layout:fixed"]{min-width:760px}
+  /* Dòng tiêu đề cột của danh sách tải (.lrow-h) xếp dọc vô nghĩa khi mỗi dòng đã tự xếp chồng */
+  .lrow-h{display:none}
+  .head{gap:10px}
+  /* Nút thu gọn menu không dùng ở bố cục điện thoại (menu là dải ngang); phải đặt SAU luật .side-toggle{all:unset} mới thắng */
+  .side-head{display:none}
+}
+/* Màn cảm ứng: đích bấm tối thiểu ~40px (chuẩn 44px của iOS/Android là tham khảo), thanh cuộn ngang dày hơn để thấy và kéo được */
+@media (pointer:coarse){
+  *::-webkit-scrollbar{height:6px}
+  .nav button{min-height:40px}
+  .tb-btn,.tb-account{min-height:40px}
+  .seg-in button{min-height:38px}
+  .chip-btn{min-height:36px}
+  /* Nút nhỏ lẻ trong nội dung (‹ ›, − +, bộ lọc P1–P4…): đích bấm tối thiểu 36px chiều cao. Ô hạng mục nhỏ trong dải
+     tiến độ (.seg) giữ gọn vì xếp dày theo hàng. */
+  main button:not(.seg):not(.img-x){min-height:36px}
+  .weeknav button,.ex-wk button,.plan-zoom button{min-width:36px; display:inline-flex; align-items:center; justify-content:center}
+}
 @media (max-width:520px){
   .page{padding:14px 12px 44px}
   .stat .v{font-size:22px}
