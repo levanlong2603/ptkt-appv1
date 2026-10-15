@@ -370,3 +370,6 @@ textarea.inp{min-height:74px; resize:vertical}
 .userbox button svg{width:15px; height:15px; flex:none}
 .userbox button:hover{background:var(--side-hover-bg); color:var(--bad)}
 /* Ở điện thoại hộp tài khoản nằm cuối ngăn kéo menu (tên + vai trò + đổi mật khẩu/đăng xuất) */
+/* Chân trang cuối mỗi màn hình */
+.app-foot{margin-top:40px; padding:22px 0 6px; text-align:center; color:var(--ink-3); font-size:12.5px; line-height:1.7; border-top:1px solid var(--line-2)}
+.app-foot div:first-child{text-transform:uppercase; letter-spacing:.04em; font-weight:600; color:var(--ink-2)}

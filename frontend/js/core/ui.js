@@ -153,7 +153,8 @@ function render(){
   const banner = S.conn==="off" ? `<div class="banner">Không kết nối được máy chủ. Kiểm tra mạng hoặc báo quản trị hệ thống.</div>` : "";
   if(S.conn==="on" && !S.loaded) html = `<div class="empty"><b>Đang tải dữ liệu…</b></div>`;
   else html = (VIEW_RENDER[S.view] || VIEW_RENDER.dash || (() => ""))();
-  main.innerHTML = `<div class="page">${banner}${html}</div>`;
+  /* Chân trang cuối nội dung (cuộn cùng trang): tên đơn vị + năm + phiên bản ứng dụng */
+  main.innerHTML = `<div class="page">${banner}${html}<footer class="app-foot"><div>NextGen Service Integration</div><div>© 2026 NGSI - Version 1</div></footer></div>`;
 }
 
 
