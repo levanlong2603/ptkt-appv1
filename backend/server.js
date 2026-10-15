@@ -205,6 +205,15 @@ function mondayOfToday() {
 function canWrite(user, coll, id, body, existing, op = "write") {
   const rule = RULES[coll];
   if (rule === "server") return false; // chỉ ghi qua route riêng, kể cả tài khoản toàn quyền
+  /* Góp ý/phản hồi của người khác: trưởng phòng/phó phòng KHÔNG sửa nội dung hay xoá được – chỉ người viết. Ngoại lệ
+     duy nhất: trưởng phòng/phó phòng đổi được TRẠNG THÁI XỬ LÝ của góp ý (loại/nội dung/ảnh phải giữ nguyên).
+     Tài khoản "admin" (hệ thống) vẫn kiểm duyệt được để gỡ nội dung vi phạm. */
+  if ((coll === "feedback" || coll === "feedbackReply") && existing && existing.created_by !== user.username && user.role !== "admin") {
+    if (coll === "feedback" && op === "write" && FULL_ROLES.has(user.role) && body && body.type === existing.type && body.text === existing.text
+      && JSON.stringify(body.images === undefined ? (existing.images || []) : body.images) === JSON.stringify(existing.images || [])
+      && ["Mới", "Đang xem xét", "Đã thực hiện"].includes(body.status)) return true;
+    return false;
+  }
   if (FULL_ROLES.has(user.role)) return true;
   if (rule === "member") return true;
   if (rule === "own-project") {

@@ -28,7 +28,7 @@ function viewFeedback(){
   for(const r of S.fbReplies){ if(!repliesOf.has(r.fbId)) repliesOf.set(r.fbId, []); repliesOf.get(r.fbId).push(r); }
   const me = S.user && S.user.username;
   const replyHtml = r => {
-    const canDel = me && (r.created_by===me || S.canEdit);
+    const canDel = me && (r.created_by===me || S.user.role==="admin");
     return `<div class="fb-reply"><div class="fb-reply-h"><b>${esc(r.person||"–")}</b><span class="small muted">${r.createdAt?dmy(r.createdAt.slice(0,10))+" "+new Date(r.createdAt).toLocaleTimeString("vi-VN",{hour:"2-digit",minute:"2-digit"}):""}</span>${canDel?`<span class="fb-reply-x"><button type="button" class="btn ghost" data-act="editreply" data-id="${esc(r.id)}" aria-label="Sửa phản hồi">Sửa</button><button type="button" class="btn ghost fb-reply-del" data-act="delreply" data-id="${esc(r.id)}" aria-label="Xoá phản hồi">Xoá</button></span>`:""}</div>
       <div class="fb-reply-t">${esc(r.text||"")}</div>
       ${(r.images||[]).some(imgOk)?`<div class="fb-imgs">${r.images.map((u,i)=>imgOk(u)?`<button type="button" class="fb-img" data-act="fbimg" data-id="${esc(r.id)}" data-i="${i}" data-reply="1" aria-label="Xem ảnh ${i+1} cỡ lớn"><img src="${u}" alt="Ảnh phản hồi ${i+1}" loading="lazy"></button>`:"").join("")}</div>`:""}</div>`;
@@ -37,7 +37,9 @@ function viewFeedback(){
     <button class="btn primary" data-act="addfeedback">+ Gửi góp ý</button></div>`;
   if(!S.feedback.length) return h + `<section class="panel"><div class="empty"><b>Chưa có góp ý nào</b>Bấm "+ Gửi góp ý" để gửi nhận xét hoặc đề xuất cải tiến đầu tiên.</div></section>`;
   h += S.feedback.map(f => {
-    const mine = S.user && (f.created_by===S.user.username || S.canEdit);
+    /* Sửa/xoá góp ý: chỉ người viết (trưởng phòng/phó phòng không sửa/xoá góp ý của người khác – chỉ đổi trạng thái
+       xử lý); admin hệ thống vẫn kiểm duyệt được. Máy chủ chặn y hệt (canWrite). */
+    const mine = S.user && (f.created_by===S.user.username || S.user.role==="admin");
     const tcls = f.type==="Yêu cầu cải tiến" ? "info" : "mute";
     const status = f.status || "Mới";
     const statusUI = S.canEdit
