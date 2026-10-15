@@ -389,3 +389,10 @@ textarea.inp{min-height:74px; resize:vertical}
 .me-sum-end{align-items:flex-end}
 .me-sum-end>.badges,.me-sum-end>.toolbar{margin-bottom:1px}
 .me-sum-end>.badges{align-self:flex-end}
+/* Liên kết nhanh ở nút lưới của thanh đầu trang */
+#tbAppsMenu{min-width:270px}
+.tb-apps{display:flex; gap:8px; padding:6px 4px 10px; flex-wrap:wrap}
+.tb-app{display:flex; flex-direction:column; align-items:center; gap:6px; width:112px; box-sizing:border-box; padding:10px 6px; border-radius:10px; text-decoration:none; color:var(--ink); font-size:12.5px; font-weight:600; text-align:center}
+.tb-app:hover,.tb-app:focus-visible{background:var(--hover)}
+.tb-app-ico{width:48px; height:48px; border-radius:12px; background:var(--teal-soft); color:var(--teal-hover); display:flex; align-items:center; justify-content:center}
+.tb-app-ico svg{width:26px; height:26px}

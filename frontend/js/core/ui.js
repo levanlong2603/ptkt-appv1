@@ -114,7 +114,13 @@ function renderHeader(){
     document.getElementById("tbAvatar").textContent = avatarInitials(S.user.display_name);
     document.getElementById("tbName").textContent = S.user.display_name;
   }
-  document.getElementById("tbAppsMenu").innerHTML = `<div class="tb-empty">Chưa có ứng dụng khác</div>`;
+  /* Danh sách liên kết nhanh (nút lưới ở thanh đầu trang): mở trong thẻ mới, rel=noopener để trang đích không điều khiển được ứng dụng */
+  const APP_LINKS = [
+    {label:"Cổng thông tin", href:"https://www.ngsi.com.vn/", icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.6 2.6 4 5.7 4 9s-1.4 6.4-4 9c-2.6-2.6-4-5.7-4-9s1.4-6.4 4-9z"/></svg>'},
+    {label:"Facebook", href:"https://www.facebook.com/profile.php?id=100056785749445", icon:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.5 21v-7.5h2.6l.5-3h-3.1V8.6c0-.9.3-1.5 1.6-1.5h1.6V4.4c-.3 0-1.2-.1-2.3-.1-2.3 0-3.9 1.4-3.9 4v2.2H7.8v3h2.7V21h3z"/></svg>'}
+  ];
+  document.getElementById("tbAppsMenu").innerHTML = `<div class="tb-head">Danh sách chức năng (${APP_LINKS.length})</div>
+    <div class="tb-apps">${APP_LINKS.map(a=>`<a class="tb-app" href="${a.href}" target="_blank" rel="noopener noreferrer"><span class="tb-app-ico">${a.icon}</span><span>${esc(a.label)}</span></a>`).join("")}</div>`;
   const th = currentTheme();
   document.getElementById("tbAccountMenu").innerHTML = S.user ? `
     <div class="tb-head">Giao diện</div>
