@@ -1,7 +1,7 @@
 "use strict";
 /* Module mở rộng: KPI & Năng lực.
-   Đang hoàn thiện theo từng bước – hiện CHỈ tài khoản "admin" (hệ thống) xem được, kể cả trưởng phòng/phó
-   phòng cũng chưa thấy (khớp KPI_ROLES ở backend/server.js; khi mở rộng phải sửa cả 2 nơi).
+   Đang hoàn thiện theo từng bước – hiện tài khoản "admin" (hệ thống) và "head" (trưởng phòng) xem/đánh giá
+   được; phó phòng và nhân viên chưa thấy (khớp KPI_ROLES ở backend/server.js; khi mở rộng phải sửa cả 2 nơi).
      Bước 1 (file này): KPI tổng quan – kỳ đánh giá, thẻ số liệu, xu hướng, bảng nhân sự, trạng thái đánh giá.
      Bước 2: hồ sơ KPI cá nhân theo tab (hiện kpiDetailView() còn bố cục cũ, chưa có lưu/chốt bản đánh giá).
      Bước 3–4: ma trận năng lực, hồ sơ năng lực.
@@ -14,6 +14,8 @@
    đánh giá"; đã chốt → "Đã chốt". Bản đánh giá chỉ ghi qua /api/kpi/review* (backend/lib/kpi.js).
    Luôn phân biệt "chưa có dữ liệu" (null, hiện "–") với điểm 0. */
 const KPI_DEFAULT = KPI_CALC.DEFAULT, KPI_CRIT = KPI_CALC.CRIT;
+/* Vai trò xem/đánh giá KPI – phải khớp KPI_ROLES ở backend/server.js (máy chủ mới là nơi chặn thật) */
+const KPI_VIEW_ROLES = new Set(["admin", "head"]);
 const KPI_STATUS = {none:["Chưa đánh giá","mute"], draft:["Đang đánh giá","info"], locked:["Đã chốt","ok"]};
 const KPI_TREND_N = 6;
 ON_SESSION.push(db => {
@@ -29,7 +31,7 @@ ON_SESSION.push(db => {
   /* Bản đánh giá chỉ vai trò được phép mới đọc được (máy chủ trả 403 cho người khác) – không đăng ký nghe
      khi không có quyền, và xoá sạch bản đang giữ của phiên trước nếu đổi tài khoản. */
   S.kpiReviews = [];
-  if(S.user && S.user.role==="admin") db.collection("kpiReview").onSnapshot(snap => {
+  if(S.user && KPI_VIEW_ROLES.has(S.user.role)) db.collection("kpiReview").onSnapshot(snap => {
     S.kpiReviews = snap.docs.map(d=>({...d.data(), id:d.id}));
     schedule();
   }, () => {});
@@ -155,7 +157,7 @@ function kpiRadarHtml(items){
     </svg></div>`;
 }
 function viewKpi(){
-  if(!(S.user && S.user.role==="admin")) return `<div class="head"><div><h1>KPI &amp; Năng lực</h1></div></div>
+  if(!(S.user && KPI_VIEW_ROLES.has(S.user.role))) return `<div class="head"><div><h1>KPI &amp; Năng lực</h1></div></div>
     <section class="panel"><div class="empty"><b>Tính năng đang phát triển</b>Trang KPI &amp; Năng lực hiện đang hoàn thiện, sắp ra mắt.</div></section>`;
   kpiInit();
   if(S.kpi.sel) return kpiDetailView();

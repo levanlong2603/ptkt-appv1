@@ -84,7 +84,7 @@ const RULES = {
 const COLLECTIONS = new Set(Object.keys(RULES));
 /* Trang KPI & Năng lực đang hoàn thiện: hiện chỉ tài khoản "admin" (hệ thống) dùng được – khớp điều kiện
    hiển thị ở frontend/js/modules/kpi.js. Khi mở cho trưởng phòng/phó phòng thì thêm vai trò vào đây. */
-const KPI_ROLES = new Set(["admin"]);
+const KPI_ROLES = new Set(["admin", "head"]);
 /* Giới hạn ĐỌC: collection có trong bảng này chỉ các vai trò liệt kê mới đọc được qua GET /api/collection
    (mặc định mọi tài khoản đăng nhập đọc được hết – ẩn ở giao diện thôi là chưa đủ với dữ liệu đánh giá). */
 const READ_ROLES = { kpiReview: KPI_ROLES };
