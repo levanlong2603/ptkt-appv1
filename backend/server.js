@@ -82,12 +82,14 @@ const RULES = {
                              // tại trở đi, của chính mình)
 };
 const COLLECTIONS = new Set(Object.keys(RULES));
-/* Trang KPI & Năng lực đang hoàn thiện: hiện chỉ tài khoản "admin" (hệ thống) dùng được – khớp điều kiện
-   hiển thị ở frontend/js/modules/kpi.js. Khi mở cho trưởng phòng/phó phòng thì thêm vai trò vào đây. */
+/* KPI & Năng lực: MỌI tài khoản đã đăng nhập XEM được (kể cả bản đánh giá của người khác – theo yêu cầu mở cho tất
+   cả mọi người). GHI (lưu nhận xét / chốt / mở lại bản đánh giá, qua /api/kpi/review*) vẫn chỉ admin và trưởng phòng:
+   chốt điểm là quyết định của người đánh giá, không để nhân viên tự chốt/mở lại điểm của mình hay của nhau.
+   Khớp KPI_WRITE_ROLES ở frontend/js/modules/kpi.js. */
 const KPI_ROLES = new Set(["admin", "head"]);
-/* Giới hạn ĐỌC: collection có trong bảng này chỉ các vai trò liệt kê mới đọc được qua GET /api/collection
-   (mặc định mọi tài khoản đăng nhập đọc được hết – ẩn ở giao diện thôi là chưa đủ với dữ liệu đánh giá). */
-const READ_ROLES = { kpiReview: KPI_ROLES };
+/* Giới hạn ĐỌC theo vai trò cho từng collection: hiện không giới hạn collection nào (mặc định mọi tài khoản đăng
+   nhập đọc được hết). Khi cần ẩn lại dữ liệu đánh giá thì thêm `kpiReview: KPI_ROLES` vào đây. */
+const READ_ROLES = {};
 const ID_RE = /^[A-Za-z0-9_\-.~:@+]{1,200}$/;
 
 const store = createStore();

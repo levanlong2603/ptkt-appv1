@@ -82,7 +82,9 @@ function projBadges(p){
    người không có quyền bấm vào dòng chỉ mở được popup xem. */
 function projectPage(p){
   const cell = (label, val) => `<div><div class="small muted">${label}</div><div style="font-weight:700; font-size:17px">${val}</div></div>`;
-  return `<div class="head"><div><h1>Dự án</h1></div></div>
+  /* Trang riêng của dự án vẫn giữ thanh kỳ Tuần/Tháng/Quý + Làm mới ở hàng tiêu đề như 2 tab của màn Dự án (cùng
+     toolbar với tab Tổng quan – dashToolbar()), để đổi kỳ ngay khi đang xem 1 dự án mà không phải quay lại */
+  return `<div class="head"><div><h1>Dự án</h1></div><div class="ex-ctl">${dashToolbar()}</div></div>
     <section class="panel" style="margin-bottom:18px"><div class="panel-b me-sum me-sum-end">
       ${cell("Dự án", typeDot(p.type)+esc(p.name))}
       ${cell("Phụ trách", esc(p.owner||"–"))}

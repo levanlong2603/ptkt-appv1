@@ -1,7 +1,7 @@
 "use strict";
 /* Module mở rộng: KPI & Năng lực.
-   Đang hoàn thiện theo từng bước – hiện tài khoản "admin" (hệ thống) và "head" (trưởng phòng) xem/đánh giá
-   được; phó phòng và nhân viên chưa thấy (khớp KPI_ROLES ở backend/server.js; khi mở rộng phải sửa cả 2 nơi).
+   Đang hoàn thiện theo từng bước – hiện MỌI tài khoản xem được; admin + trưởng phòng mới đánh giá (lưu/chốt/mở lại)
+   và cấu hình tiêu chí được (khớp KPI_ROLES ở backend/server.js; khi đổi phạm vi phải sửa cả 2 nơi).
      Bước 1 (file này): KPI tổng quan – kỳ đánh giá, thẻ số liệu, xu hướng, bảng nhân sự, trạng thái đánh giá.
      Bước 2: hồ sơ KPI cá nhân theo tab (hiện kpiDetailView() còn bố cục cũ, chưa có lưu/chốt bản đánh giá).
      Bước 3–4: ma trận năng lực, hồ sơ năng lực.
@@ -15,7 +15,8 @@
    Luôn phân biệt "chưa có dữ liệu" (null, hiện "–") với điểm 0. */
 const KPI_DEFAULT = KPI_CALC.DEFAULT, KPI_CRIT = KPI_CALC.CRIT;
 /* Vai trò xem/đánh giá KPI – phải khớp KPI_ROLES ở backend/server.js (máy chủ mới là nơi chặn thật) */
-const KPI_VIEW_ROLES = new Set(["admin", "head"]);
+const KPI_VIEW_ROLES = new Set(["admin", "head", "deputy", "member"]); // xem: mọi tài khoản
+const KPI_WRITE_ROLES = new Set(["admin", "head"]); // lưu/chốt/mở lại đánh giá: chỉ admin + trưởng phòng (máy chủ chặn y hệt)
 const KPI_STATUS = {none:["Chưa đánh giá","mute"], draft:["Đang đánh giá","info"], locked:["Đã chốt","ok"]};
 const KPI_TREND_N = 6;
 ON_SESSION.push(db => {
@@ -194,7 +195,7 @@ function viewKpi(){
     <div class="ex-ctl">${kpiPeriodNav(p)}
       <button class="btn icon" data-act="exrefresh" title="Làm mới" aria-label="Làm mới">${ICONS.refresh}</button></div></div>
     ${kpiTabs()}
-    <div class="head-ctl" style="margin-bottom:16px"><button class="btn" data-act="kpicfg">Cấu hình tiêu chí</button></div>`; // hàng công cụ riêng dưới tiêu đề, như hàng lọc của màn Dự án
+    <div class="head-ctl" style="margin-bottom:16px">${S.canEdit?'<button class="btn" data-act="kpicfg">Cấu hình tiêu chí</button>':""}</div>`; // hàng công cụ riêng dưới tiêu đề, như hàng lọc của màn Dự án
   if(!rows.length) return h + `<section class="panel"><div class="empty"><b>Chưa có nhân sự</b>Thêm nhân sự ở Cài đặt → Nhân sự &amp; capacity để bắt đầu đánh giá.</div></section>`;
   h += `<div class="band">
     <div class="stat" title="${nDraft?`${nDraft} người đang đánh giá`:"Chưa có bản đang đánh giá dở"}"><div class="v">${nLocked}<span class="kpi-of">/${rows.length}</span></div><div class="l">Nhân viên đã chốt đánh giá</div></div>
