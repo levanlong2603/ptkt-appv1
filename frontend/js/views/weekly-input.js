@@ -26,7 +26,7 @@ function viewInput(){
     <button class="btn primary" data-act="addentry">+ Thêm việc</button>`}`}</div></div></section>`;
   if(locked) h += `<p class="small muted" style="margin:-8px 0 14px">Tuần ${isoWeek(w)} đã qua, chỉ trưởng phòng mới sửa được dữ liệu tuần này.</p>`;
   if(!L.es.length) return h + `<section class="panel"><div class="empty"><b>Chưa có việc nào trong tuần ${isoWeek(w)}</b>${locked?"":"Thêm việc bạn làm trong tuần, hoặc chép các việc dở dang từ tuần trước."}</div></section>`;
-  return h + `<section class="panel tbl-wrap"><table style="table-layout:fixed"><thead><tr><th style="width:20%">Đầu việc</th><th style="width:20%">Việc đã làm</th><th style="width:8%; text-align:center">Giờ</th><th style="width:10%; text-align:center">Workload</th><th style="width:14%">Trạng thái cuối tuần</th><th style="width:12%">Ma sát</th><th style="width:16%">Vướng / cần hỗ trợ</th></tr></thead><tbody>${inputTreeRows(L.es, locked)}</tbody></table></section>
+  return h + `<section class="panel tbl-wrap"><table style="table-layout:fixed"><thead><tr><th style="width:20%">Đầu việc</th><th style="width:20%">Việc làm</th><th style="width:8%; text-align:center">Giờ</th><th style="width:10%; text-align:center">Workload</th><th style="width:14%">Trạng thái cuối tuần</th><th style="width:12%">Ma sát</th><th style="width:16%">Vướng / cần hỗ trợ</th></tr></thead><tbody>${inputTreeRows(L.es, locked)}</tbody></table></section>
     ${locked?"":'<p class="small muted">Bấm vào một dòng để sửa hoặc xoá.</p>'}`;
 }
 /* "Tất cả" (chỉ trưởng phòng): liệt kê gộp việc đã nhập của mọi người trong tuần, gom theo người.
@@ -44,7 +44,7 @@ function viewInputAll(w){
     rows += inputGroupRow(0, person, `${pes.length} đầu việc · ${fmt1(wl)} điểm`, 7);
     for(const e of pes) rows += inputAllRow(e);
   }
-  return `<section class="panel tbl-wrap"><table style="table-layout:fixed"><thead><tr><th style="width:26%">Đầu việc</th><th style="width:16%">Việc đã làm</th><th style="width:7%; text-align:center">Giờ</th><th style="width:9%; text-align:center">Workload</th><th style="width:13%">Trạng thái cuối tuần</th><th style="width:12%">Ma sát</th><th style="width:17%">Vướng / cần hỗ trợ</th></tr></thead><tbody>${rows}</tbody></table></section>
+  return `<section class="panel tbl-wrap"><table style="table-layout:fixed"><thead><tr><th style="width:26%">Đầu việc</th><th style="width:16%">Việc làm</th><th style="width:7%; text-align:center">Giờ</th><th style="width:9%; text-align:center">Workload</th><th style="width:13%">Trạng thái cuối tuần</th><th style="width:12%">Ma sát</th><th style="width:17%">Vướng / cần hỗ trợ</th></tr></thead><tbody>${rows}</tbody></table></section>
     <p class="small muted">Bấm vào một dòng để sửa hoặc xoá.</p>`;
 }
 /* Cột "Ma sát" (mức độ + nguyên nhân) và "Vướng / cần hỗ trợ" (ghi chú) tách riêng 2 ô, không ghép chung
@@ -170,11 +170,11 @@ function entryForm(entry, person){
     fields: [
       {key:"projectId", label:"Dự án", type:"select", options:projOpts, required:true, onChange:(v,f)=>{ f.setOptions("taskId", taskOpts(v)); }},
       {key:"taskId", label:"Đầu việc (theo kế hoạch của dự án)", type:"select", options:taskOpts(e.projectId, e.taskId), required:true},
-      {key:"work", label:"Việc đã làm trong tuần", type:"textarea"},
-      {key:"qm", label:"Quy mô (ước lượng, chỉ để tham khảo)", type:"seg", options:[1,2,3,4,5].map(n=>[n,String(n)]), required:true, half:true,
+      {key:"work", label:"Việc làm trong tuần", type:"textarea"},
+      {key:"qm", label:"Quy mô (ước lượng, chỉ để tham khảo)", type:"seg", options:[[null,"Không"],...[1,2,3,4,5].map(n=>[n,String(n)])], half:true,
         /* Chỉ để ước lượng/tham khảo – không tham gia công thức tính tải nữa (xem hours bên dưới). */
-        hint:v=>v?QM_HINT[v]:"Chọn mức ước lượng gần đúng nhất, chỉ để tham khảo."},
-      {key:"hours", label:"Thời gian thực hiện (giờ thật)", type:"number", min:0.5, max:32, step:0.5, required:true, half:true,
+        hint:v=>v?QM_HINT[v]:"Không bắt buộc – chọn mức ước lượng gần đúng nếu cần tham khảo."},
+      {key:"hours", label:"Thời gian thực hiện", type:"number", min:0.5, max:32, step:0.5, required:true, half:true,
         hint:"Số giờ dự kiến làm trong tuần cho đầu việc này, có thể nhập lẻ 0,5 giờ."},
       {key:"pt", label:"Độ phức tạp", type:"seg", options:[[null,"Mặc định"],...[1,2,3,4,5].map(n=>[n,String(n)])],
         /* Nhân vào Thời gian thực hiện để ra tải – đồng thời vẫn đồng bộ Độ phức tạp vừa chọn về đúng đầu
@@ -199,7 +199,6 @@ function entryForm(entry, person){
     ],
     saveLabel: isNew ? "Thêm việc" : "Lưu thay đổi",
     onSave: async v => {
-      if(!v.qm) throw new Error("Chọn Quy mô (ước lượng).");
       if(!(v.hours>=0.5 && v.hours<=32)) throw new Error("Thời gian thực hiện phải từ 0,5 đến 32 giờ.");
       /* Tải tính vào hệ thống = Thời gian thực hiện (giờ thật) × hệ số Độ phức tạp, khớp với model.js/derive(). */
       const thisWl = Math.round(v.hours*(v.pt?PT_MULT[v.pt]:1)*10)/10;
@@ -207,12 +206,12 @@ function entryForm(entry, person){
       const doc = weekDoc(S.week, who); const list = doc ? [...(doc.entries||[])] : [];
       const taskRef = M.taskMap.get(v.projectId+"|"+v.taskId);
       /* Mỗi đầu việc chỉ 1 dòng/tuần – trừ MỌI đầu việc của dự án Nội bộ ("Việc chung của phòng": hỗ trợ, đào
-         tạo, việc khác…): mỗi lần chọn là một việc lặt vặt khác nhau (ghi rõ ở "Việc đã làm"), nên được thêm
+         tạo, việc khác…): mỗi lần chọn là một việc lặt vặt khác nhau (ghi rõ ở "Việc làm trong tuần"), nên được thêm
          bao nhiêu dòng giống nhau trong tuần cũng được. */
       const anyTimes = !!taskRef && internal(taskRef.p);
       if(!anyTimes && list.some(x=>x.id!==v.id && x.projectId===v.projectId && x.taskId===v.taskId))
         throw new Error("Đầu việc này đã có trong tuần. Bấm vào dòng đó trong bảng để sửa thay vì thêm mới.");
-      const i = list.findIndex(x=>x.id===v.id); const clean = {id:v.id, projectId:v.projectId, taskId:v.taskId, work:v.work||"", qm:v.qm, hours:v.hours, pt:v.pt||null, status:v.status||"", ms:v.ms??null, nn:v.nn||"", note:v.note||""};
+      const i = list.findIndex(x=>x.id===v.id); const clean = {id:v.id, projectId:v.projectId, taskId:v.taskId, work:v.work||"", qm:v.qm||null, hours:v.hours, pt:v.pt||null, status:v.status||"", ms:v.ms??null, nn:v.nn||"", note:v.note||""};
       if(i>=0) list[i]=clean; else list.push(clean);
       await saveWeek(S.week, who, list); toast(isNew?"Đã thêm việc":"Đã lưu thay đổi");
       /* Nhân viên tự đánh giá Độ phức tạp ngay trong tuần → đồng bộ về đúng đầu việc ở Kế hoạch dự án,
