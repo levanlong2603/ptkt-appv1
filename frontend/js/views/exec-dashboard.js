@@ -97,7 +97,7 @@ function viewExec(){
   // Danh sách theo đầu việc (Công việc, Ma sát, Lịch hết hạn…) siết tới đúng đầu việc người đó phụ trách/phối hợp,
   // không phải mọi đầu việc của dự án họ là TM/SE – danh sách "Dự án" (runP bên dưới) vẫn giữ theo TM/SE của cả dự án.
   const seenKey = new Set();
-  const T = M.tasks.filter(t=>t.p.type!=="Nội bộ" && (!simAs || (projectAssigned(t.p, simAs) && (t.owner===simAs || t.collab===simAs)))
+  const T = M.tasks.filter(t=>t.p.type!=="Nội bộ" && (!simAs || (projectAssigned(t.p, simAs) && (tOwners(t).includes(simAs) || tCollabs(t).includes(simAs))))
     && !seenKey.has(t.key) && seenKey.add(t.key)); // chặn trùng dòng nếu cùng một đầu việc (dự án+id) lọt vào nhiều lần
   const active = T.filter(t=>t.status==="Đang làm"||t.status==="Đang vướng");
   const isLate = t => t.warns.some(w=>w[1]==="Quá hạn"), isSoon = t => t.warns.some(w=>w[1]==="Sắp đến hạn");
@@ -143,14 +143,14 @@ function viewExec(){
   const q = (S.exQ||"").trim().toLowerCase();
   const taskRisk = t => isLate(t) || (t.ms||0)>=3 ? ["tg-red","Cao"] : (isSoon(t) || (t.ms||0)>=1) ? ["tg-org","Trung bình"] : ["tg-grn","Thấp"];
   const list = T.filter(t=>(t.status==="Đang làm"||t.status==="Đang vướng") && (pr==="Tất cả" || t.pr===pr)
-      && (!q || t.dv.toLowerCase().includes(q) || t.p.name.toLowerCase().includes(q) || (t.owner||"").toLowerCase().includes(q)))
+      && (!q || t.dv.toLowerCase().includes(q) || t.p.name.toLowerCase().includes(q) || peopleText(tOwners(t),"").toLowerCase().includes(q)))
     .sort((a,b)=>(b.ms||0)-(a.ms||0) || (prRank[a.pr]||9)-(prRank[b.pr]||9) || String(a.deadline||"9999").localeCompare(String(b.deadline||"9999")));
   h += `<div class="ex-row ex-r2" style="grid-template-columns:1fr">
     <div class="ex-card"><div class="ex-h"><h3>CÔNG VIỆC ĐANG THỰC HIỆN</h3>
       <div class="ex-chips" role="group" aria-label="Lọc ưu tiên">${["Tất cả","P1","P2","P3","P4"].map(x=>`<button data-act="expr" data-p="${x}" aria-pressed="${pr===x}">${x}</button>`).join("")}</div></div>
       <div class="panel-b" style="padding:0 16px 12px"><input type="search" data-act="exq" value="${esc(S.exQ||"")}" placeholder="Tìm công việc, dự án, người phụ trách…" style="width:100%; max-width:360px"></div>
       <div class="ex-scroll"><table class="ex-t"><thead><tr><th class="c">#</th><th>Công việc</th><th>Dự án</th><th>Phụ trách</th><th class="c">Quy<br>mô</th><th class="c">Độ phức<br>tạp</th><th class="c">Work-<br>load</th><th class="c">Ưu<br>tiên</th><th class="c">Hạn</th><th class="c">Ma sát</th><th class="c">Rủi ro</th><th class="c">Trạng thái</th></tr></thead><tbody>
-      ${list.map((t,i)=>{ const r=taskRisk(t); return `<tr><td class="c">${i+1}</td><td class="w">${esc(t.dv.replace(/^[0-9A-Z]{1,2}\d?\.\s*[^–]*–\s*/,""))}</td><td class="w2">${esc(t.p.name)}</td><td class="w2">${esc(t.owner||"–")}</td>
+      ${list.map((t,i)=>{ const r=taskRisk(t); return `<tr><td class="c">${i+1}</td><td class="w">${esc(t.dv.replace(/^[0-9A-Z]{1,2}\d?\.\s*[^–]*–\s*/,""))}</td><td class="w2">${esc(t.p.name)}</td><td class="w2">${esc(peopleText(tOwners(t)))}</td>
         <td class="c">${t.qmE??"–"}</td><td class="c">${t.ptE??"–"}</td><td class="c"><b>${t.wl??"–"}</b></td><td class="c">${t.pr?`<span class="ex-tag tg-${t.pr.toLowerCase()}">${esc(t.pr)}</span>`:"–"}</td>
         <td class="c${isLate(t)?" late":""}">${t.deadline?dm(t.deadline):"–"}</td>
         <td class="c">${(t.ms||0)>=1?`<span class="ex-tag ${t.ms>=3?"tg-red":"tg-org"}">${esc(t.nn||"Ma sát")} (${t.ms})</span>`:"–"}</td>
@@ -163,14 +163,14 @@ function viewExec(){
   const soonList = T.filter(t=>OPEN.has(t.status) && t.deadline && t.deadline>=M.today && days(M.today,t.deadline)<=14).sort((a,b)=>a.deadline.localeCompare(b.deadline));
   const act = []; const actPid = new Set();
   for(const t of fr.filter(t=>t.ms>=3)){ const a = {"Hãng":"Liên hệ hãng","Khách hàng":"Trao đổi khách hàng","Hàng hóa / thiết bị":"Đôn đốc hàng hóa","Chờ quyết định":"Ra quyết định","Cộng sự":"Điều phối nội bộ","Hệ thống":"Xử lý hệ thống","Thay đổi yêu cầu":"Chốt yêu cầu"}[t.nn]||"Xem đầu việc";
-    act.push({level:["tg-red","Cao"], title:t.dv.replace(/^[0-9A-Z]{1,2}\d?\.\s*[^–]*–\s*/,""), desc:`Ma sát ${t.ms}${t.nn?" · "+esc(t.nn):""}`, person:t.owner||"–", project:t.p.name, btn:a, go:"task:"+t.p.id+"|"+t.id});
+    act.push({level:["tg-red","Cao"], title:t.dv.replace(/^[0-9A-Z]{1,2}\d?\.\s*[^–]*–\s*/,""), desc:`Ma sát ${t.ms}${t.nn?" · "+esc(t.nn):""}`, person:peopleText(tOwners(t)), project:t.p.name, btn:a, go:"task:"+t.p.id+"|"+t.id});
     actPid.add(t.p.id); }
   for(const t of T.filter(t=>isLate(t) && t.pr==="P1" && !(t.ms>=3))){
-    act.push({level:["tg-red","Cao"], title:t.dv.replace(/^[0-9A-Z]{1,2}\d?\.\s*[^–]*–\s*/,""), desc:`Quá hạn ${dm(t.deadline)} · Ưu tiên P1`, person:t.owner||"–", project:t.p.name, btn:"Xem lại kế hoạch", go:"task:"+t.p.id+"|"+t.id});
+    act.push({level:["tg-red","Cao"], title:t.dv.replace(/^[0-9A-Z]{1,2}\d?\.\s*[^–]*–\s*/,""), desc:`Quá hạn ${dm(t.deadline)} · Ưu tiên P1`, person:peopleText(tOwners(t)), project:t.p.name, btn:"Xem lại kế hoạch", go:"task:"+t.p.id+"|"+t.id});
     actPid.add(t.p.id); }
   for(const p of people.filter(p=>p.n && p.u>1)) act.push({level:["tg-org","Trung bình"], title:`Quá tải ${pct(p.u)}`, desc:`Capacity ${fmt1(p.c)} điểm · Workload ${fmt1(p.w)} điểm`, person:p.s.name, project:"–", btn:"Điều phối công việc", go:"load:"+encodeURIComponent(p.s.name)});
   for(const p of runP.filter(p=>risk(p)[2]===3 && !actPid.has(p.id))){ const note = p._late?`${p._late} đầu việc quá hạn`:p._stuck?`${p._stuck} đầu việc đang vướng`:"Rủi ro cao, cần theo dõi sát";
-    act.push({level:["tg-org","Trung bình"], title:"Dự án rủi ro cao", desc:note, person:p.owner||"–", project:p.name, btn:"Xem dự án", go:"p:"+p.id}); }
+    act.push({level:["tg-org","Trung bình"], title:"Dự án rủi ro cao", desc:note, person:peopleText(pOwners(p)), project:p.name, btn:"Xem dự án", go:"p:"+p.id}); }
   /* "Xem chi tiết" chỉ MỞ POPUP xem thông tin (readOnly), không điều hướng sang trang khác nữa – người
      dùng chỉ cần nắm thông tin ngay tại Dashboard, không mất công bấm quay lại. Lưu lại mảng act[] vào
      EX_ACT để ACTIONS["exinfo"] (bên dưới) đọc lại đúng dòng đã bấm theo chỉ số i, khỏi phải tính lại. */
@@ -180,7 +180,7 @@ function viewExec(){
       <div class="ex-scroll" style="max-height:340px">${act.map((a,i)=>`<div class="ex-ai ex-ai2"><div class="ex-ai-n">${i+1}</div><div class="ex-ai-b"><div class="ex-ai-top"><span class="ex-tag ${a.level[0]}">${a.level[1]}</span><b>${esc(a.title)}</b></div><div class="muted small">${a.desc}</div><div class="ex-ai-meta"><span>Người phụ trách: <b>${esc(a.person)}</b></span><span>Dự án: <b>${esc(a.project)}</b></span></div></div><button class="lnk" data-act="exinfo" data-i="${i}">Xem chi tiết ›</button></div>`).join("")||`<div class="ex-empty">Không có việc cần can thiệp ngay.</div>`}</div></div>
     <div class="ex-card"><div class="ex-h"><h3>LỊCH HẠN SẮP TỚI</h3><span class="muted small">${soonList.length} việc</span></div>
       <div class="ex-scroll" style="max-height:340px">${soonList.map(t=>{ const d=new Date(t.deadline+"T00:00:00"); const dd=String(d.getDate()).padStart(2,"0"); const r = days(M.today,t.deadline)<=3;
-        return `<div class="ex-dl"><div class="ex-dl-d"><div class="n">${dd}</div><div class="m">Th${d.getMonth()+1}</div></div><div class="ex-dl-b"><div class="w">${esc(t.dv.replace(/^[0-9A-Z]{1,2}\d?\.\s*[^–]*–\s*/,""))}</div><div class="muted small">${esc(t.p.name)} · ${esc(t.owner||"–")}</div></div><div class="ex-dl-r${r?" soon":""}">${exRelDay(t.deadline)}</div></div>`; }).join("")||`<div class="ex-empty">Không có đầu việc nào đến hạn trong 14 ngày tới.</div>`}</div></div></div>`;
+        return `<div class="ex-dl"><div class="ex-dl-d"><div class="n">${dd}</div><div class="m">Th${d.getMonth()+1}</div></div><div class="ex-dl-b"><div class="w">${esc(t.dv.replace(/^[0-9A-Z]{1,2}\d?\.\s*[^–]*–\s*/,""))}</div><div class="muted small">${esc(t.p.name)} · ${esc(peopleText(tOwners(t)))}</div></div><div class="ex-dl-r${r?" soon":""}">${exRelDay(t.deadline)}</div></div>`; }).join("")||`<div class="ex-empty">Không có đầu việc nào đến hạn trong 14 ngày tới.</div>`}</div></div></div>`;
   // Row 4: PHÂN BỔ WORKLOAD NHÂN SỰ (top 5 theo mức sử dụng) + TIẾN ĐỘ DỰ ÁN TRỌNG ĐIỂM
   const topPeople = [...people].sort((a,b)=>b.u-a.u).slice(0,5);
   const keyP = [...runP].sort((a,b)=>risk(b)[2]-risk(a)[2] || (a._prog||0)-(b._prog||0));
@@ -190,7 +190,7 @@ function viewExec(){
     <div class="ex-card"><div class="ex-h"><h3>TIẾN ĐỘ DỰ ÁN TRỌNG ĐIỂM</h3><button class="lnk" data-act="godash">Xem tất cả ›</button></div>
       <div class="ex-scroll" style="max-height:260px"><table class="ex-t"><thead><tr><th>Dự án</th><th>Tiến độ</th><th class="c">Mốc tiếp theo</th><th class="c">Nguy cơ trễ</th><th>Ghi chú</th></tr></thead><tbody>
       ${keyP.map(p=>{ const r=risk(p); const note = p._late?`${p._late} đầu việc quá hạn`:p._stuck?`${p._stuck} đầu việc đang vướng`:p._soon?`${p._soon} đầu việc sắp đến hạn`:"Đúng kế hoạch";
-        return `<tr><td class="w"><b>${esc(p.name)}</b><div class="muted" style="font-size:11.5px">${esc(p.type)} · ${esc(p.owner||"–")}</div></td>
+        return `<tr><td class="w"><b>${esc(p.name)}</b><div class="muted" style="font-size:11.5px">${esc(p.type)} · ${esc(peopleText(pOwners(p)))}</div></td>
         <td><div class="ex-ubar"><div class="t"><i style="width:${Math.round((p._prog||0)*100)}%; background:var(--info)"></i></div><b>${pct(p._prog)}</b></div></td>
         <td class="c">${p._next?dmy(p._next):"–"}</td><td class="c"><span class="ex-tag ${r[0]}">${r[1]}</span></td><td class="w" style="min-width:110px">${note}</td></tr>`; }).join("")||`<tr><td colspan="5" class="ex-empty">Không có dự án đang chạy.</td></tr>`}</tbody></table></div></div></div>`;
   h += `<div class="small muted">Workload, capacity, mức sử dụng và phân bổ workload tính theo ${P.short} đã chọn (dữ liệu nhập theo tuần). Công việc, dự án, ma sát, hạn chót tính theo tình trạng hiện tại (${dmy(M.today)}).</div></div>`;

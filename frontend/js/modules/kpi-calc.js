@@ -20,7 +20,7 @@
 const KPI_CALC = (() => {
   const onNode = typeof module!=="undefined" && !!module.exports;
   const U = onNode ? require("../core/utils.js") : {iso, parse, addDays, mondayOf, slug};
-  const K = onNode ? require("../core/constants.js") : {PT_MULT, wlOf};
+  const K = onNode ? require("../core/constants.js") : {PT_MULT, wlOf, peopleOf, pOwners, pSes, tOwners, tCollabs};
 
   const DEFAULT = {
     weights: {volume:20, difficulty:20, quality:25, progress:20, capability:15},
@@ -92,10 +92,10 @@ const KPI_CALC = (() => {
       const k = p.id+"|"+t.id, le = latest.get(k);
       const status = le ? le.status : ((t.init && t.init.status) || "Chưa bắt đầu");
       const done = status==="Hoàn thành" ? (doneWk.get(k) || null) : null;
-      tasks.push({projectId:p.id, project:p.name, id:t.id, dv:t.dv, owner:t.owner||"", pt:t.pt??null, deadline:t.deadline||null,
+      tasks.push({projectId:p.id, project:p.name, id:t.id, dv:t.dv, pt:t.pt??null, deadline:t.deadline||null,
         status, done, ontime: done && t.deadline ? done <= t.deadline : null, cl: t.eval && t.eval.cl!=null ? t.eval.cl : null,
         /* các trường dưới chỉ phục vụ work() (liệt kê dự án/đầu việc của 1 người) – compute() không đọc tới */
-        collab:t.collab||"", ptype:p.type||"", difficulty:p.difficulty??null, pOwner:p.owner||"", pSe:p.se||"",
+        owners:K.tOwners(t), collabs:K.tCollabs(t), ptype:p.type||"", difficulty:p.difficulty??null, pOwners:K.pOwners(p), pSes:K.pSes(p),
         dat:(t.eval && t.eval.dat) || null, tc: t.eval && t.eval.tc!=null ? t.eval.tc : null});
     }
     return {cap, entries, tasks};
@@ -109,7 +109,7 @@ const KPI_CALC = (() => {
     let ptWl = 0, ptW = 0;
     for(const e of mine) if(e.pt && e.wl){ ptWl += e.pt*e.wl; ptW += e.wl; }
     const difficulty = ptW ? Math.round((ptWl/ptW - 1)/4*100) : null;
-    const tasks = ix.tasks.filter(t => t.owner===name && t.done && wset.has(t.done));
+    const tasks = ix.tasks.filter(t => t.owners.includes(name) && t.done && wset.has(t.done));
     const rated = tasks.filter(t => t.cl!=null);
     const quality = rated.length ? Math.round(rated.reduce((a,t) => a+(t.cl-1)/4*100, 0)/rated.length) : null;
     const dated = tasks.filter(t => t.ontime!=null);
@@ -149,12 +149,12 @@ const KPI_CALC = (() => {
     }
     const groups = new Map();
     for(const t of ix.tasks){
-      const a = mine.get(t.projectId+"|"+t.id), c = cum.get(t.projectId+"|"+t.id), isOwner = t.owner===name, isCollab = t.collab===name;
+      const a = mine.get(t.projectId+"|"+t.id), c = cum.get(t.projectId+"|"+t.id), isOwner = t.owners.includes(name), isCollab = t.collabs.includes(name);
       const wks = c ? [...c.wks].sort() : [];
       const doneIn = !!(t.done && wset.has(t.done));
       if(!a && !((isOwner || isCollab) && doneIn)) continue;
       if(!groups.has(t.projectId)) groups.set(t.projectId, {projectId:t.projectId, project:t.project, type:t.ptype, difficulty:t.difficulty,
-        pRole: t.pOwner===name ? "TM" : t.pSe===name ? "SE" : "", tasks:[]});
+        pRole: t.pOwners.includes(name) ? "TM" : t.pSes.includes(name) ? "SE" : "", tasks:[]});
       groups.get(t.projectId).tasks.push({id:t.id, dv:t.dv, owner:isOwner, doer:isCollab || !!a, nEntries:a ? a.n : 0,
         hours: a && a.hasHours ? Math.round(a.hours*10)/10 : null, wl: a ? Math.round(a.wl*10)/10 : null,
         wlTotal: c ? Math.round(c.wl*10)/10 : null, nWeeks: wks.length, firstWeek: wks[0] || null, lastWeek: wks[wks.length-1] || null,

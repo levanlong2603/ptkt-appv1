@@ -397,3 +397,23 @@ textarea.inp{min-height:74px; resize:vertical}
 .tb-app-ico{width:48px; height:48px; border-radius:12px; background:var(--teal-soft); color:var(--teal-hover); display:flex; align-items:center; justify-content:center}
 .tb-app-ico svg{width:26px; height:26px}
 .field[hidden]{display:none}
+/* Ô chọn nhiều xổ xuống (ui.js mselHTML) */
+.msel-btn{all:unset; box-sizing:border-box; width:100%; min-height:40px; padding:8px 10px; border:1px solid var(--line); border-radius:8px; background:var(--surface); cursor:pointer; display:flex; align-items:center; justify-content:space-between; gap:10px}
+.msel-btn:focus-visible{outline:2px solid var(--focus)}
+.msel-btn[aria-expanded="true"]{border-color:var(--teal-hover)}
+.msel-sum{display:flex; align-items:center; gap:8px; min-width:0; flex:1}
+.msel-names{overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.msel-ph{color:var(--ink-3)}
+.msel-n{flex:none; min-width:22px; padding:1px 7px; border-radius:999px; background:var(--teal-soft); color:var(--teal-hover); font-size:12px; font-weight:700; text-align:center}
+.msel-caret{color:var(--ink-3); flex:none}
+.msel-btn[aria-expanded="true"] .msel-caret{transform:rotate(180deg)}
+.msel-panel{margin-top:6px; border:1px solid var(--line); border-radius:8px; background:var(--surface); padding:8px}
+.msel-panel[hidden]{display:none}
+.msel-q{margin-bottom:6px}
+.msel-list{max-height:220px; overflow-y:auto; display:grid; grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:2px 8px}
+.msel-item{display:flex; align-items:center; gap:8px; padding:6px 8px; border-radius:6px; cursor:pointer}
+.msel-item:hover{background:var(--hover)}
+.msel-item[hidden]{display:none}
+.msel-item input{width:16px; height:16px; flex:none; accent-color:var(--teal-hover)}
+.msel-foot{display:flex; justify-content:flex-end; margin-top:6px}
+@media (max-width:860px){ .msel-item{padding:10px 8px} .msel-btn{min-height:44px} }

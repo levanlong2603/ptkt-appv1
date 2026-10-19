@@ -30,7 +30,11 @@ async function renameStaff(store, fromRaw, toRaw, by) {
   }
   for (const r of await store.getDocs("projects")) {
     const p = JSON.parse(r.body); let changed = false;
-    const swap = (o, k) => { if (o[k] === from) { o[k] = to; changed = true; } };
+    /* chuỗi cũ (owner/se/collab) và mảng mới (owners/ses/collabs): thay tên, bỏ trùng nếu người nhận đã có sẵn trong danh sách */
+    const swap = (o, k) => {
+      if (o[k] === from) { o[k] = to; changed = true; }
+      if (Array.isArray(o[k + "s"]) && o[k + "s"].includes(from)) { o[k + "s"] = [...new Set(o[k + "s"].map(n => n === from ? to : n))]; changed = true; }
+    };
     swap(p, "owner"); swap(p, "se");
     for (const t of p.tasks || []) { swap(t, "owner"); swap(t, "collab"); }
     if (changed) { await store.upsertDoc(`projects/${r.doc_id}`, "projects", r.doc_id, JSON.stringify(p), by); n.projects++; }

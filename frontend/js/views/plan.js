@@ -61,7 +61,7 @@ function planReportRows(p){
         ${j===0?`<td class="cell-main" rowspan="${span}" style="vertical-align:top">${esc(phaseName)}</td>`:""}
         <td class="cell-main" style="vertical-align:top">${esc(planShortName(t.dv))}</td>
         <td style="vertical-align:top; text-align:center">${t.pr?`<span class="pill ${t.pr==="P1"?"bad":"mute"}">${esc(t.pr)}</span>`:"–"}</td>
-        <td class="small" style="vertical-align:top">${esc(t.owner||"–")}</td>
+        <td class="small" style="vertical-align:top">${esc(peopleText(tOwners(t)))}</td>
         <td class="small" style="vertical-align:top">${t.doers.length?t.doers.map(esc).join(", "):"–"}</td>
         <td class="small" style="white-space:pre-wrap; vertical-align:top">${t.detail?esc(t.detail):'<span class="muted">–</span>'}</td>
         <td style="vertical-align:top">${t.deadline?dmy(t.deadline):"–"}</td>
@@ -104,15 +104,15 @@ function planGroupRow(key, lvl, title, st, open, extra, cols=9){
 ACTIONS["tgl"] = el => { S.planTog = S.planTog || {}; S.planTog[el.dataset.key] = el.getAttribute("aria-expanded")!=="true"; render(); };
 function projectForm(p){
   const isNew = !p;
-  const v = p ? {...clean(p)} : {id:"", name:"", type:"Triển khai", owner:"", se:"", milestones:"", progress:"", situation:"", proposal:"", difficulty:1};
+  const v = p ? {...clean(p), owners:pOwners(p), ses:pSes(p)} : {id:"", name:"", type:"Triển khai", owners:[], ses:[], milestones:"", progress:"", situation:"", proposal:"", difficulty:1};
   const staffOpts = [["",""],...M.staff.map(s=>[s.name,s.name])];
   openForm({
     title: isNew ? "Dự án mới" : "Sửa thông tin dự án", values:v,
     fields:[
       {key:"name", label:"Tên dự án / gói thầu / tư vấn", type:"text", required:true},
       {key:"type", label:"Loại", type:"seg", options:TYPES.map(t=>[t,t]), disabled:!isNew && (p.tasks||[]).length>0, hint:()=>!isNew&&(p.tasks||[]).length?"Không đổi loại khi dự án đã có đầu việc.":"Quyết định quy trình đầu việc áp dụng."},
-      {key:"owner", label:"Người phụ trách", type:"select", options:staffOpts},
-      {key:"se", label:"SE", type:"select", options:staffOpts},
+      {key:"owners", label:"Người phụ trách (TM) – chọn một hoặc nhiều người", type:"multi", options:staffOpts},
+      {key:"ses", label:"SE – chọn một hoặc nhiều người", type:"multi", options:staffOpts},
       {key:"milestones", label:"Mốc hợp đồng / hạn nộp", type:"textarea"},
       {key:"situation", label:"Tình hình / vướng mắc chung", type:"textarea"},
       /* progress/proposal: chỉ dùng cho 2 cột "Tiến độ hiện tại"/"Đề xuất" ở Báo cáo → Báo cáo tổng hợp
@@ -130,12 +130,12 @@ function projectForm(p){
         let id = "p-"+slug(x.name); if(M.pById.get(id)) id += "-"+Math.random().toString(36).slice(2,5);
         /* Luôn tạo sẵn toàn bộ đầu việc theo quy trình chuẩn của loại dự án vừa chọn, không còn tuỳ
            chọn bật/tắt — tránh trường hợp quên tích ô mà tạo ra dự án trống không có đầu việc nào. */
-        const tasks = S.catalog.filter(c=>c.type===x.type && !/Việc khác/.test(c.name)).map((c,i)=>({id:"t"+String(i+1).padStart(3,"0"), dv:c.name, detail:"", owner:x.owner||"", collab:"", deadline:null, qm:null, pt:null, pr:"P2", init:{status:"",ms:null,nn:""}, note:"", eval:{}}));
+        const tasks = S.catalog.filter(c=>c.type===x.type && !/Việc khác/.test(c.name)).map((c,i)=>({id:"t"+String(i+1).padStart(3,"0"), dv:c.name, detail:"", owners:[...(x.owners||[])], collabs:[], deadline:null, qm:null, pt:null, pr:"P2", init:{status:"",ms:null,nn:""}, note:"", eval:{}}));
         const order = Math.max(0,...M.projects.map(q=>q.order||0))+1;
-        await saveProject({id, name:x.name.trim(), type:x.type, owner:x.owner||"", se:x.se||"", milestones:x.milestones||"", progress:x.progress||"", situation:x.situation||"", proposal:x.proposal||"", difficulty:x.difficulty||1, order, tasks});
+        await saveProject({id, name:x.name.trim(), type:x.type, owners:x.owners||[], ses:x.ses||[], milestones:x.milestones||"", progress:x.progress||"", situation:x.situation||"", proposal:x.proposal||"", difficulty:x.difficulty||1, order, tasks});
         S.planSel = id; S.openProject = id; toast(`Đã tạo dự án${tasks.length?" với "+tasks.length+" đầu việc":""}`);
       } else {
-        await saveProject({...p, name:x.name.trim(), type:x.type, owner:x.owner||"", se:x.se||"", milestones:x.milestones||"", progress:x.progress||"", situation:x.situation||"", proposal:x.proposal||"", difficulty:x.difficulty||1}); toast("Đã lưu thông tin dự án");
+        await saveProject({...p, name:x.name.trim(), type:x.type, owners:x.owners||[], ses:x.ses||[], milestones:x.milestones||"", progress:x.progress||"", situation:x.situation||"", proposal:x.proposal||"", difficulty:x.difficulty||1}); toast("Đã lưu thông tin dự án");
       }
     },
     onDelete: (isNew || !canDeleteProject(p)) ? null : async () => { if(!confirm(`Xoá dự án “${p.name}” và toàn bộ đầu việc?`)) return false; await remove("projects/"+p.id); S.planSel=null; S.openProject=null; toast("Đã xoá dự án"); }
@@ -144,8 +144,8 @@ function projectForm(p){
 function taskForm(p, t){
   const isNew = !t;
   const raw = t ? (p.tasks||[]).find(x=>x.id===t.id) : null;
-  const v = raw ? {...raw, st0:(raw.init||{}).status||"", ms0:(raw.init||{}).ms??null, nn0:(raw.init||{}).nn||"", dat:(raw.eval||{}).dat||"", cl:(raw.eval||{}).cl??null, tc:(raw.eval||{}).tc??null, nx:(raw.eval||{}).nx||""}
-    : {id:"", dv:"", detail:"", owner:p.owner||"", collab:"", deadline:null, qm:null, pt:null, pr:"P2", st0:"", ms0:null, nn0:"", note:""};
+  const v = raw ? {...raw, owners:tOwners(raw), collabs:tCollabs(raw), st0:(raw.init||{}).status||"", ms0:(raw.init||{}).ms??null, nn0:(raw.init||{}).nn||"", dat:(raw.eval||{}).dat||"", cl:(raw.eval||{}).cl??null, tc:(raw.eval||{}).tc??null, nx:(raw.eval||{}).nx||""}
+    : {id:"", dv:"", detail:"", owners:pOwners(p), collabs:[], deadline:null, qm:null, pt:null, pr:"P2", st0:"", ms0:null, nn0:"", note:""};
   /* Gom theo hạng mục bằng optgroup, bỏ phần "mã. hạng mục –" lặp lại trong tên hiển thị – giống ô chọn ở Nhập theo tuần */
   const dvOpts = (() => {
     const items = S.catalog.filter(c=>c.type===p.type);
@@ -174,8 +174,9 @@ function taskForm(p, t){
     fields:[
       {key:"dv", label:"Đầu việc (quy trình "+p.type+")", type:"select", options:dvOpts, required:true},
       {key:"detail", label:"Nội dung chi tiết", type:"textarea"},
-      {key:"owner", label:"Phụ trách (TM)", type:"select", options:staffOpts, half:true},
-      {key:"collab", label:"Thực hiện (được giao làm)", type:"select", options:staffOpts, half:true},
+      /* Chọn nhiều người; đầu việc mới mặc định = toàn bộ TM của dự án, chỉnh riêng từng đầu việc được (sửa TM dự án KHÔNG đổi đầu việc cũ) */
+      {key:"owners", label:"Phụ trách (TM)", type:"multi", options:staffOpts},
+      {key:"collabs", label:"Thực hiện (được giao làm)", type:"multi", options:staffOpts},
       {key:"deadline", label:"Deadline theo HĐ", type:"date", half:true},
       {key:"pr", label:"Ưu tiên", type:"seg", options:["P1","P2","P3","P4"].map(x=>[x,x]), half:true},
       {key:"qm", label:"Quy mô", type:"seg", options:[1,2,3,4,5].map(n=>[n,String(n)]), required:true, hint:v=>v?`${QM_HINT[v]} (≈${fmt1(QM_HOURS[v])}h)`:[1,2,3,4,5].map(n=>n+" = "+QM_HINT[n]+" (≈"+fmt1(QM_HOURS[n])+"h)").join(" · ")},
@@ -196,7 +197,7 @@ function taskForm(p, t){
     saveLabel: isNew ? "Thêm đầu việc" : "Lưu thay đổi",
     onSave: async x => {
       const tasks = [...(p.tasks||[])];
-      const body = {id: x.id || nextTaskId(p), dv:x.dv, detail:x.detail||"", owner:x.owner||"", collab:x.collab||"", deadline:x.deadline||null, qm:x.qm||null, pt:x.pt||null, pr:x.pr||"",
+      const body = {id: x.id || nextTaskId(p), dv:x.dv, detail:x.detail||"", owners:x.owners||[], collabs:x.collabs||[], deadline:x.deadline||null, qm:x.qm||null, pt:x.pt||null, pr:x.pr||"",
         /* init.note = vướng mắc ban đầu (chỉ có ở đầu việc nhập từ Excel) – không có ô sửa ở đây, giữ nguyên */
         init:{status:x.st0||"", ms:x.ms0??null, nn:x.nn0||"", ...(raw && raw.init && raw.init.note ? {note:raw.init.note} : {})}, note:x.note||"", eval: raw&&raw.eval ? {...raw.eval} : {}, updatedAt:Date.now()};
       if(t && t.status==="Hoàn thành" && S.canEdit) body.eval = {dat:x.dat||"", cl:x.cl??null, tc:x.tc??null, nx:x.nx||""};
@@ -213,7 +214,7 @@ function nextTaskId(p){ let n=(p.tasks||[]).length+1; const ids=new Set((p.tasks
 function openInfo(p, t, extraBtn){
   const c = S.catalog.find(x=>x.name===t.dv)||{};
   openForm({title:"Đầu việc", subtitle:p.name, values:{}, fields:[], readOnly:true, extraBtn,
-    info:`<h3 style="margin-bottom:12px">${esc(t.dv)}</h3><div class="kv"><dt>Nội dung</dt><dd>${esc(t.detail||"–")}</dd><dt>Phụ trách</dt><dd>${esc(t.owner||"–")}</dd>
+    info:`<h3 style="margin-bottom:12px">${esc(t.dv)}</h3><div class="kv"><dt>Nội dung</dt><dd>${esc(t.detail||"–")}</dd><dt>Phụ trách</dt><dd>${esc(peopleText(tOwners(t)))}</dd>
     <dt>Deadline HĐ</dt><dd>${dmy(t.deadline)}</dd><dt>Trạng thái</dt><dd>${stPill(t.status)}</dd><dt>Cập nhật</dt><dd>${esc(t.upd||"–")}</dd><dt>Ngày cập nhật</dt><dd>${esc(t.updDate||"–")}</dd>
     <dt>Kết quả đầu ra</dt><dd>${esc(c.result||"–")}</dd><dt>Workload</dt><dd>${t.wl??"–"}</dd>
     <dt>Ghi chú TrP</dt><dd>${esc(t.note||"–")}</dd></div>`});

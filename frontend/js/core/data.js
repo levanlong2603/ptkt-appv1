@@ -14,7 +14,15 @@ function write(path, body){
 }
 function remove(path){ if(!S.db) return Promise.reject(); return S.db.doc(path).delete().catch(e=>{ toast("Xoá không thành công."); throw e; }); }
 function clean(o){ const r={}; for(const [k,v] of Object.entries(o)) if(!k.startsWith("_")) r[k]=v; return r; }
-function saveProject(p){ const body = clean(p); body.tasks = (p.tasks||[]).map(t=>({...t})); return write("projects/"+p.id, body); }
+/* Chuẩn hoá NGƯỜI trước khi ghi: dự án owners[]/ses[], đầu việc owners[]/collabs[] (mảng tên, bỏ rỗng/trùng) và xoá hẳn trường
+   chuỗi cũ owner/se/collab để 1 nơi duy nhất giữ dữ liệu. Chạy cho MỌI đường ghi dự án (form, nhập Excel, xoá/sửa đầu việc…). */
+function normalizeProjectPeople(p, tasks){
+  const body = clean(p);
+  body.owners = pOwners(p); body.ses = pSes(p); delete body.owner; delete body.se;
+  body.tasks = tasks.map(t => { const r = {...t}; r.owners = tOwners(t); r.collabs = tCollabs(t); delete r.owner; delete r.collab; return r; });
+  return body;
+}
+function saveProject(p){ return write("projects/"+p.id, normalizeProjectPeople(p, p.tasks||[])); }
 function weekDocId(week, person){ return week+"__"+slug(person); }
 function weekDoc(week, person){ return S.weeks.find(w=>w.week===week && w.person===person); }
 function saveWeek(week, person, entries){

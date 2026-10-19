@@ -275,7 +275,7 @@ function rpBuildOverview(){
     return "";
   };
   const projRows = running.map(p => ({
-    name:p.name, type:p.type, owner:p.owner||"–", se:p.se||"–", status:statusOf(p), prog:p._prog,
+    name:p.name, type:p.type, owner:peopleText(pOwners(p)), se:peopleText(pSes(p)), status:statusOf(p), prog:p._prog,
     late:p._late, soon:p._soon, done:doneInPeriod(p), assess:assessOf(p), riskText:biggestRisk(p),
     milestones:p.milestones||"", progress:p.progress||"", situation:p.situation||"", proposal:p.proposal||""
   })).sort((a,b)=>(b.assess.bad-a.assess.bad) || b.late-a.late);
@@ -659,7 +659,7 @@ function rpProjectContent(pr){
   h += `<section class="panel" id="rp-print"><div class="panel-b">
     <div style="text-align:center; margin-bottom:18px">
       <div style="font-size:18px; font-weight:800; letter-spacing:.01em">BÁO CÁO DỰ ÁN – ${esc(pr.p.name.toUpperCase())} – ${esc(pr.P.label.toUpperCase())}</div>
-      <div class="small muted" style="margin-top:4px">${esc(pr.p.type)}${pr.p.owner?" · TM: "+esc(pr.p.owner):""} · ${esc(rpRangeText(pr))} · lập ngày ${dmy(todayISO())}</div>
+      <div class="small muted" style="margin-top:4px">${esc(pr.p.type)}${pOwners(pr.p).length?" · TM: "+esc(peopleText(pOwners(pr.p))):""} · ${esc(rpRangeText(pr))} · lập ngày ${dmy(todayISO())}</div>
     </div>
     <div class="band" style="margin-bottom:20px">${pr.stats.map(s=>`<div class="stat ${s.bad?"bad":""}"><div class="v">${esc(String(s.v))}</div><div class="l">${esc(s.l)}</div></div>`).join("")}</div>
     <div class="rp-sec rp-sec-grn">

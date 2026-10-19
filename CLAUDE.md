@@ -76,6 +76,11 @@ biết phạm vi/giới hạn). Thứ tự nạp trong `index.html` quyết đ�
 - Nhân sự (`S.staff`, `config/staff`) có các trường tuỳ chọn cộng dồn qua nhiều lần mở rộng: `years` (kinh
   nghiệm, chỉ gợi ý), `factor` (hệ số năng lực, 5 mức cố định), `title` (chức danh, dùng cho KPI & Năng
   lực Giai đoạn 2) – tài liệu cũ thiếu trường nào thì coi như rỗng/0, không cần script chuyển đổi.
+- Người của dự án/đầu việc là **mảng** (nhiều người): dự án `owners[]` (TM), `ses[]` (SE); đầu việc `owners[]` (TM), `collabs[]`
+  (người thực hiện) – chỉnh riêng từng đầu việc, sửa TM dự án không đổi đầu việc cũ. Dữ liệu cũ (chuỗi `owner/se/collab`) đọc
+  được qua `peopleOf()` (`core/constants.js`, bản tương đương ở `backend/server.js`); lưu thì ghi mảng và xoá trường chuỗi
+  (`normalizeProjectPeople()` ở `core/data.js`, máy chủ chuẩn hoá lại). Luôn dùng `pOwners/pSes/tOwners/tCollabs`, không đọc
+  thẳng `p.owner`. Đổi hàng loạt (tuỳ chọn): `backend/scripts/migrate-multi-people.js`.
 - Dự án (`projects/<id>`) có 2 trường tường thuật hiện ở Kế hoạch dự án/Tổng quan dự án: `milestones` (Mốc
   hợp đồng), `situation` (Tình hình/vướng mắc chung); và 2 trường thêm sau, nhập chung 1 form `projectForm`
   (plan.js) nhưng **chỉ hiện ở Báo cáo → Báo cáo tổng hợp dự án**, không hiện lại ở thẻ dự án: `progress`

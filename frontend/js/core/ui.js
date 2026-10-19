@@ -274,6 +274,26 @@ function imgFieldHTML(list){
     <div class="img-pick"><button type="button" class="btn" data-imgpick>+ Chọn ảnh / chụp ảnh</button><input type="file" accept="image/*" multiple hidden data-imgfile></div>`;
 }
 
+/* ================= ô chọn nhiều ("multi"): xổ xuống + hộp kiểm =================
+   Nút hiện tóm tắt những người đã chọn; bấm để xổ danh sách hộp kiểm ngay dưới (đẩy nội dung xuống chứ không đè lên, để
+   không bị khung cuộn của hộp thoại cắt). Từ 7 lựa chọn trở lên có thêm ô tìm tên và danh sách cuộn riêng nên vẫn dùng
+   tốt khi phòng đông người. vals[key] luôn là mảng theo thứ tự của danh sách (không theo thứ tự bấm). */
+const MSEL_SEARCH_MIN = 7;
+function mselSummary(f, sel){
+  const label = new Map((f.options||[]).map(o => [o[0], o[1]??o[0]])), names = (sel||[]).map(n => label.get(n)||n);
+  if(!names.length) return '<span class="msel-ph">Chọn người…</span>';
+  return `<span class="msel-names">${esc(names.join(", "))}</span><span class="msel-n">${names.length}</span>`;
+}
+function mselHTML(f, v){
+  const sel = new Set(v||[]), opts = (f.options||[]).filter(o => o[0]);
+  return `<button type="button" class="msel-btn" data-msel-toggle aria-expanded="false" ${f.disabled?"disabled":""}><span class="msel-sum">${mselSummary(f, v)}</span><span class="msel-caret" aria-hidden="true">▾</span></button>
+    <div class="msel-panel" hidden>
+      ${opts.length>=MSEL_SEARCH_MIN?'<input type="search" class="inp msel-q" placeholder="Tìm tên…" data-msel-q aria-label="Tìm tên">':""}
+      <div class="msel-list">${opts.map(o=>`<label class="msel-item"><input type="checkbox" data-mv="${esc(o[0])}" ${sel.has(o[0])?"checked":""}><span>${esc(o[1]??o[0])}</span></label>`).join("")}</div>
+      <div class="msel-foot"><span class="small muted msel-count"></span><button type="button" class="btn ghost" data-msel-clear>Bỏ chọn hết</button></div>
+    </div>`;
+}
+
 /* ================= form drawer ================= */
 function openForm(cfg){
   const layer = document.getElementById("layer");
@@ -288,6 +308,8 @@ function openForm(cfg){
     const dis = f.disabled ? "disabled" : "";
     if(f.type==="text"||f.type==="number"||f.type==="password") ctl = `<input class="inp" id="${id}" type="${f.type==="number"?"number":f.type==="password"?"password":"text"}" ${f.type==="password"?'autocomplete="new-password"':""} ${f.type==="number"&&f.min!=null?`min="${f.min}"`:""} ${f.type==="number"&&f.max!=null?`max="${f.max}"`:""} ${f.type==="number"&&f.step!=null?`step="${f.step}"`:""} value="${esc(v??"")}" ${f.required?"required":""} ${dis}>`;
     else if(f.type==="date") ctl = `<input class="inp" id="${id}" type="date" value="${esc(v||"")}" ${dis}>`;
+    /* "multi": chọn NHIỀU giá trị bằng các nút bật/tắt (vd nhiều TM/SE); vals[key] là mảng; f.options = [[giá trị, nhãn], …] */
+    else if(f.type==="multi") ctl = `<div class="msel" id="${id}" data-mk="${esc(f.key)}">${mselHTML(f, v)}</div>`;
     else if(f.type==="datetime") ctl = `<input class="inp" id="${id}" type="datetime-local" value="${esc(v||"")}" ${f.required?"required":""} ${dis}>`; // giá trị dạng "YYYY-MM-DDTHH:MM"
     else if(f.type==="textarea") ctl = `<textarea class="inp" id="${id}" ${dis}>${esc(v||"")}</textarea>`;
     else if(f.type==="check") ctl = `<label style="display:flex;gap:8px;align-items:center;font-weight:500;color:var(--ink)"><input type="checkbox" id="${id}" ${v?"checked":""} ${dis}> ${esc(f.label)}</label>`;
@@ -320,19 +342,27 @@ function openForm(cfg){
   const api = { setOptions(key, opts){ optsOverride[key]=opts; vals[key]=""; const f = cfg.fields.find(x=>x.key===key); const wrap = dlg.querySelector(`[data-field="${key}"]`); if(f && wrap){ const tmp=document.createElement("div"); tmp.innerHTML=fieldHTML(f); wrap.replaceWith(tmp.firstElementChild); } } };
   /* f.showIf(vals) → ẩn/hiện ô theo giá trị các ô khác (vd "Cả ngày" ẩn ô giờ); chạy lại sau mỗi lần đổi giá trị */
   const applyShowIf = () => { for(const f of cfg.fields){ if(!f.showIf) continue; const w = dlg.querySelector(`[data-field="${f.key}"]`); if(w) w.hidden = !f.showIf(vals); } };
-  const readInputs = () => { for(const f of cfg.fields){ if(!f.key) continue; const el = dlg.querySelector("#f_"+f.key); if(!el) continue; if(f.type==="check") vals[f.key]=el.checked; else if(f.type==="number") vals[f.key]=el.value===""?null:+el.value; else if(f.type!=="seg" && f.type!=="images") vals[f.key]=el.value||(f.type==="date"?null:""); } };
+  const readInputs = () => { for(const f of cfg.fields){ if(!f.key) continue; const el = dlg.querySelector("#f_"+f.key); if(!el) continue; if(f.type==="check") vals[f.key]=el.checked; else if(f.type==="number") vals[f.key]=el.value===""?null:+el.value; else if(f.type!=="seg" && f.type!=="images" && f.type!=="multi") vals[f.key]=el.value||(f.type==="date"?null:""); } };
   const close = () => { layer.innerHTML=""; document.removeEventListener("keydown", onKey); if(prevFocus && prevFocus.focus) prevFocus.focus(); };
   const onKey = e => { if(e.key==="Escape") close(); };
   document.addEventListener("keydown", onKey);
   dlg.addEventListener("click", async e => {
     const sb = e.target.closest(".seg-in button");
+    /* Ô chọn nhiều: bấm ra ngoài thì thu các ô đang xổ; bấm nút thì xổ/thu; "Bỏ chọn hết" */
+    for(const p of dlg.querySelectorAll(".msel-panel:not([hidden])")){ if(!p.parentElement.contains(e.target)){ p.hidden = true; p.parentElement.querySelector("[data-msel-toggle]").setAttribute("aria-expanded","false"); } }
+    const mt = e.target.closest("[data-msel-toggle]");
+    if(mt){ const panel = mt.parentElement.querySelector(".msel-panel"), open = panel.hidden; panel.hidden = !open; mt.setAttribute("aria-expanded", open?"true":"false");
+      if(open){ const q = panel.querySelector("[data-msel-q]"); if(q) q.focus(); } return; }
+    const mc = e.target.closest("[data-msel-clear]");
+    if(mc){ const box = mc.closest(".msel"), k = box.dataset.mk, fm = cfg.fields.find(x=>x.key===k); vals[k] = [];
+      box.querySelectorAll("input[data-mv]").forEach(c => c.checked = false); box.querySelector(".msel-sum").innerHTML = mselSummary(fm, []); applyShowIf(); if(fm.onChange) fm.onChange([], api); return; }
     if(sb){ const k=sb.dataset.k; const v=JSON.parse(sb.dataset.v); vals[k]=v; applyShowIf(); sb.parentElement.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed", b===sb)); const f=cfg.fields.find(x=>x.key===k); const hn=dlg.querySelector(`[data-hint="${k}"]`); if(f && hn && typeof f.hint==="function") hn.textContent=f.hint(v, vals); return; }
     if(e.target.closest("[data-imgpick]")){ const inp = dlg.querySelector("[data-imgfile]"); if(inp) inp.click(); return; }
     const ix = e.target.closest("[data-imgdel]");
     if(ix){ const fi = cfg.fields.find(x=>x.type==="images"); if(fi){ vals[fi.key] = (vals[fi.key]||[]).filter((_, j) => j!==+ix.dataset.imgdel); dlg.querySelector("#f_"+fi.key).innerHTML = imgFieldHTML(vals[fi.key]); } return; }
     if(e.target.closest("[data-save]")){
       readInputs();
-      for(const f of cfg.fields){ if(f.required && !(f.showIf && !f.showIf(vals)) && (vals[f.key]==null || vals[f.key]==="")){ toast("Còn thiếu: "+f.label); return; } }
+      for(const f of cfg.fields){ if(f.required && !(f.showIf && !f.showIf(vals)) && (vals[f.key]==null || vals[f.key]==="" || (Array.isArray(vals[f.key]) && !vals[f.key].length))){ toast("Còn thiếu: "+f.label); return; } }
       const btn = e.target.closest("[data-save]"); btn.disabled=true;
       try{ await cfg.onSave(vals); close(); }catch(err){ btn.disabled=false; if(err && err.message) toast(err.message); }
       return;
@@ -340,7 +370,16 @@ function openForm(cfg){
     if(e.target.closest("[data-del]")){ try{ const r = await cfg.onDelete(); if(r!==false) close(); }catch(err){} return; }
     if(e.target.closest("[data-extra]")){ close(); cfg.extraBtn.onClick(); return; }
   });
+  dlg.addEventListener("input", e => { // tìm tên trong ô chọn nhiều (bỏ dấu, không phân biệt hoa thường)
+    const q = e.target.closest && e.target.closest("[data-msel-q]"); if(!q) return;
+    const norm = t => String(t).normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/đ/gi,"d").toLowerCase(), key = norm(q.value.trim());
+    q.parentElement.querySelectorAll(".msel-item").forEach(it => { it.hidden = !!key && !norm(it.textContent).includes(key); });
+  });
   dlg.addEventListener("change", e => {
+    const mcb = e.target.closest && e.target.closest(".msel input[data-mv]");
+    if(mcb){ const box = mcb.closest(".msel"), k = box.dataset.mk, fm = cfg.fields.find(x=>x.key===k);
+      vals[k] = [...box.querySelectorAll("input[data-mv]")].filter(c=>c.checked).map(c=>c.dataset.mv); // theo thứ tự danh sách
+      box.querySelector(".msel-sum").innerHTML = mselSummary(fm, vals[k]); applyShowIf(); if(fm.onChange) fm.onChange(vals[k], api); return; }
     const el = e.target; if(!el.id || !el.id.startsWith("f_")) return;
     const key = el.id.slice(2); const f = cfg.fields.find(x=>x.key===key); readInputs();
     if(f && f.onChange) f.onChange(vals[key], api);

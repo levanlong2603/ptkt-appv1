@@ -73,13 +73,13 @@ function derive(){
       const updDate = latestDate ? dmy(iso(latestDate)) : "";
       const lastWeek = la ? la.week : null;
       const doerSet = new Set(doersByTask.get(k) || []);
-      if(t.collab) doerSet.add(t.collab);
+      for(const n of tCollabs(t)) doerSet.add(n);
       const doers = [...doerSet].sort((a,b)=>a.localeCompare(b,"vi"));
       const done = status==="Hoàn thành" ? (doneWk.get(k) || null) : null;
       const ontime = done && t.deadline ? (done <= t.deadline) : null;
       const warns = [];
       if(p.type!=="Nội bộ"){
-        if(!t.owner) warns.push(["bad","Chưa có người phụ trách"]);
+        if(!tOwners(t).length) warns.push(["bad","Chưa có người phụ trách"]);
         if(OPEN.has(status) && t.deadline && t.deadline < today) warns.push(["bad","Quá hạn"]);
         if(OPEN.has(status) && t.deadline && t.deadline >= today && days(today,t.deadline) <= 14) warns.push(["warn","Sắp đến hạn"]);
         if(OPEN.has(status) && (ms||0) >= 3) warns.push(["bad","Ma sát cao"]);

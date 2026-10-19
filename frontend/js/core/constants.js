@@ -24,8 +24,22 @@ const PLAN_FILTERS = [
   {key:"Thầu", label:"Thầu", type:"Thầu"}
 ];
 function planIsDone(p){ return !!p._allDone; }
+/* ----- Người phụ trách / SE / thực hiện: NHIỀU người ở mỗi dự án và mỗi đầu việc -----
+   Dự án: owners[] (TM), ses[] (SE). Đầu việc: owners[] (TM), collabs[] (người thực hiện). Dữ liệu cũ chỉ có chuỗi đơn
+   (owner/se/collab) vẫn đọc được: peopleOf() lấy mảng nếu có, không thì bọc chuỗi cũ thành mảng 1 phần tử; kết quả luôn bỏ
+   rỗng và bỏ trùng. Khi LƯU thì chỉ ghi mảng và xoá trường cũ (xem savePeople() ở plan.js). */
+function peopleOf(x, plural, single){
+  if(!x) return [];
+  const raw = Array.isArray(x[plural]) ? x[plural] : (x[single] ? [x[single]] : []);
+  const out = [];
+  for(const n of raw){ const s = String(n==null?"":n).trim(); if(s && !out.includes(s)) out.push(s); }
+  return out;
+}
+const pOwners = p => peopleOf(p, "owners", "owner"), pSes = p => peopleOf(p, "ses", "se");
+const tOwners = t => peopleOf(t, "owners", "owner"), tCollabs = t => peopleOf(t, "collabs", "collab");
+const peopleText = (arr, empty="–") => (arr && arr.length) ? arr.join(", ") : empty;
 /* TM (Phụ trách) hoặc SE của dự án – dùng để giới hạn những dự án nhân viên được thấy */
-function projectAssigned(p, name){ return !!name && (p.owner===name || p.se===name); }
+function projectAssigned(p, name){ return !!name && (pOwners(p).includes(name) || pSes(p).includes(name)); }
 function planMatchFilter(p, key){
   const f = PLAN_FILTERS.find(x=>x.key===key) || PLAN_FILTERS[0];
   if(f.key==="Tất cả") return true;
@@ -43,8 +57,22 @@ const PT_HINT = {1:"Đơn giản",2:"Quen thuộc",3:"Cần chuyên môn",4:"C�
    QM_HINT), nhân với hệ số của Độ phức tạp — để Workload (giờ) chia cho Capacity (giờ/tuần, xem
    settings.js) ra đúng % tải thực tế. Độ phức tạp đầu việc (không phải "Độ khó dự án") là yếu tố duy nhất
    cộng thêm vào Quy mô; workload sau đó còn được chia cho Hệ số năng lực người phụ trách (xem model.js). */
+/* Thang "Hệ số năng lực" của nhân sự (nhân vào Capacity – model.js): 5 cấp cố định. Tên cấp/mô tả (do trưởng phòng quy định) chỉ để người nhập hiểu mức
+   đang chọn, không tham gia tính toán; gợi ý theo số năm kinh nghiệm (factorSuggest) chỉ để tham khảo, trưởng phòng tự chọn.
+   Dữ liệu cũ dùng thang 1–4 phải chuyển 1 lần bằng backend/scripts/migrate-factor.js. */
+const FACTOR_LEVELS = [
+  {v:1,   label:"1",   name:"Cấp 1 – Biết / Cơ bản",     desc:"Cần hướng dẫn"},
+  {v:1.2, label:"1,2", name:"Cấp 2 – Hiểu / Vận dụng",   desc:"Làm được việc quen thuộc"},
+  {v:1.5, label:"1,5", name:"Cấp 3 – Thành thạo",        desc:"Làm độc lập, xử lý được sự cố phát sinh"},
+  {v:2,   label:"2",   name:"Cấp 4 – Nâng cao",          desc:"Cải tiến quy trình, hướng dẫn người khác"},
+  {v:3,   label:"3",   name:"Cấp 5 – Chuyên gia",        desc:"Tầm nhìn chiến lược, chuyên gia đầu ngành"}
+];
+const factorLevel = v => FACTOR_LEVELS.find(l => l.v === +v) || null;
+const factorSuggest = years => { const y = +years || 0; return y<1 ? 1 : y<3 ? 1.2 : y<5 ? 1.5 : y<8 ? 2 : 3; };
 const QM_HOURS = {1:1.25, 2:5, 3:10, 4:18, 5:28};
-const PT_MULT = {1:0.8, 2:0.9, 3:1.1, 4:1.3, 5:1.5};
+/* Hệ số thời gian của Độ phức tạp 1–5: là bộ số RIÊNG (trước đây trùng thang Hệ số năng lực: 0,8 · 1 · 1,2 · 1,5 · 2; Hệ số năng lực nay là 1 · 1,2 · 1,5 · 2 · 3).
+   Đổi ở đây là đổi workload của MỌI lượt nhập (tính động từ e.pt, không lưu sẵn) kể cả tuần cũ, và cả điểm KPI (kpi-calc.js dùng chung). */
+const PT_MULT = {1:0.8, 2:1, 3:1.2, 4:1.5, 5:2};
 /* Thiếu Độ phức tạp (cả theo kế hoạch lẫn danh mục chuẩn đều không có) → coi như hệ số 1 (trung tính),
    không chặn tính workload; Quy mô vẫn là trường bắt buộc nên thiếu qm thì không tính được (null). */
 function wlOf(qm, pt){
@@ -110,4 +138,4 @@ function registerView({id, label, icon, iconSvg, render, position = "main"}){
 }
 /* Cho máy chủ (Node) dùng lại đúng bảng hệ số workload khi tính KPI lúc chốt kỳ (modules/kpi-calc.js);
    trên trình duyệt `module` không tồn tại nên dòng này không làm gì. */
-if(typeof module!=="undefined" && module.exports) module.exports = {QM_HOURS, PT_MULT, wlOf};
+if(typeof module!=="undefined" && module.exports) module.exports = {QM_HOURS, PT_MULT, wlOf, peopleOf, pOwners, pSes, tOwners, tCollabs};

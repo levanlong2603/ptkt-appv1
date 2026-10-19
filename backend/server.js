@@ -196,6 +196,15 @@ app.get("/api/collection/:coll", auth, A(async (req, res) => {
   res.json(rows.map(r => ({ id: r.doc_id, data: JSON.parse(r.body) })));
 }));
 
+/* Danh sách người của dự án/đầu việc: mảng (owners/ses/collabs) nếu có, không thì bọc chuỗi cũ (owner/se/collab) – cùng quy tắc với
+   peopleOf() ở frontend/js/core/constants.js. Luôn bỏ rỗng, bỏ trùng, tối đa 20 người. */
+function peopleOf(x, plural, single) {
+  if (!x) return [];
+  const raw = Array.isArray(x[plural]) ? x[plural] : (x[single] ? [x[single]] : []), out = [];
+  for (const n of raw) { const s = typeof n === "string" ? n.trim().slice(0, 200) : ""; if (s && !out.includes(s)) out.push(s); }
+  return out.slice(0, 20);
+}
+const isPM = (doc, name) => !!name && (peopleOf(doc, "owners", "owner").includes(name) || peopleOf(doc, "ses", "se").includes(name));
 /* Thứ 2 của tuần hiện tại theo giờ máy chủ, dạng YYYY-MM-DD (cùng cách tính với mondayOf(todayISO())
    phía client ở frontend/js/core/utils.js, để khớp tuần giữa hai bên). */
 function mondayOfToday() {
@@ -223,7 +232,7 @@ function canWrite(user, coll, id, body, existing, op = "write") {
     if (!existing) return false; // dự án mới chỉ trưởng phòng tạo được
     if (existing.created_by === user.username) return true;
     // TM (phụ trách) hoặc SE của dự án: được sửa dự án và đầu việc, nhưng KHÔNG được xoá cả dự án
-    if (op === "write" && user.staff_name && (existing.owner === user.staff_name || existing.se === user.staff_name)) return true;
+    if (op === "write" && user.staff_name && isPM(existing, user.staff_name)) return true;
     return false;
   }
   if (rule === "own") {
@@ -253,6 +262,9 @@ app.put("/api/doc/:coll/:id", auth, A(async (req, res) => {
   if (!canWrite(req.user, coll, id, body, exBody, "write")) return res.status(403).json({ error: "Bạn không có quyền sửa phần này" });
   if (coll === "projects") {
     body.created_by = exBody ? (exBody.created_by ?? null) : req.user.username;
+    /* Người: luôn lưu dạng mảng (owners/ses ở dự án; owners/collabs ở đầu việc), bỏ trường chuỗi cũ – dữ liệu cũ vẫn đọc được qua peopleOf() */
+    body.owners = peopleOf(body, "owners", "owner"); body.ses = peopleOf(body, "ses", "se"); delete body.owner; delete body.se;
+    if (Array.isArray(body.tasks)) for (const t of body.tasks) { t.owners = peopleOf(t, "owners", "owner"); t.collabs = peopleOf(t, "collabs", "collab"); delete t.owner; delete t.collab; }
     // Đánh giá khi hoàn thành (task.eval) và Ghi chú của trưởng phòng (task.note) chỉ trưởng phòng
     // được ghi; nhân viên gửi gì cũng giữ nguyên giá trị cũ (ẩn/khoá ô nhập ở giao diện chỉ là gợi ý,
     // quyền thật sự phải chặn ở đây)
@@ -342,8 +354,8 @@ app.patch("/api/doc/projects/:id/task-pt", auth, A(async (req, res) => {
   if (!task) return res.status(404).json({ error: "Không tìm thấy đầu việc" });
   const u = req.user;
   const allowed = FULL_ROLES.has(u.role) || body.created_by === u.username
-    || (u.staff_name && (body.owner === u.staff_name || body.se === u.staff_name))
-    || (u.staff_name && (task.owner === u.staff_name || task.collab === u.staff_name));
+    || (u.staff_name && isPM(body, u.staff_name))
+    || (u.staff_name && (peopleOf(task, "owners", "owner").includes(u.staff_name) || peopleOf(task, "collabs", "collab").includes(u.staff_name)));
   if (!allowed) return res.status(403).json({ error: "Bạn không có quyền sửa đầu việc này" });
   task.pt = pt;
   await store.upsertDoc(p, "projects", id, JSON.stringify(body), u.username);

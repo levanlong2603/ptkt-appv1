@@ -123,7 +123,7 @@ function pimpParseSheet(ws){
 /* Đối chiếu các đầu việc đã đọc với quy trình chuẩn của loại dự án, trả về danh sách đầu việc sẵn sàng lưu
    + số liệu tóm tắt để hiện trong form. Mỗi đầu việc chuẩn chỉ được dùng cho 1 dòng Excel (ghép theo điểm
    giống cao nhất trước). */
-function pimpBuild(parsed, type, owner){
+function pimpBuild(parsed, type, owners){
   const phases = phasesFor(type);
   const cat = S.catalog.filter(c=>c.type===type).map(c=>({name:c.name, code:phaseOf(c.name), tok:pimpTokens(planShortName(c.name))}));
   const phaseCache = new Map();
@@ -153,7 +153,7 @@ function pimpBuild(parsed, type, owner){
   for(const it of items) if(!it.dv)         // 3) ngoài quy trình chuẩn: giữ tên trong Excel
     it.dv = it.ph ? `${it.ph.code}. ${it.ph.name} – ${it.t.name}` : (it.t.hm ? `${it.t.hm} – ${it.t.name}` : it.t.name);
   const tasks = items.map((it, i) => ({
-    id:"t"+String(i+1).padStart(3,"0"), dv:it.dv, detail:it.t.details.join("\n"), owner:owner||"", collab:"",
+    id:"t"+String(i+1).padStart(3,"0"), dv:it.dv, detail:it.t.details.join("\n"), owners:[...(owners||[])], collabs:[],
     deadline: it.t.dates.length ? it.t.dates.reduce((a,d)=>d>a?d:a) : null, qm:null, pt:null, pr:"P2",
     init:{status:pimpStatus(it.t.sts), ms:null, nn:"", note:it.t.issues.join("\n")}, note:it.t.sols.join("\n"), eval:{}
   }));
@@ -173,7 +173,7 @@ function pimpForm(fileName, sheets){
   const staffOpts = [["",""], ...M.staff.map(s=>[s.name, s.name])];
   openForm({
     title:"Nhập dự án từ Excel", subtitle:fileName,
-    values:{sheet:sheets[0].name, name:"", type:"Triển khai", owner:"", se:""},
+    values:{sheet:sheets[0].name, name:"", type:"Triển khai", owners:[], ses:[]},
     fields:[
       {key:"sheet", label:"Sheet cần nhập", type:"select", required:true, options:sheets.map(s=>[s.name, `${s.name} (${s.parsed.tasks.length} đầu việc)`]),
         hint:()=>sheets.length>1 ? "Mỗi lần nhập tạo 1 dự án từ 1 sheet." : ""},
@@ -182,17 +182,17 @@ function pimpForm(fileName, sheets){
         return ((v||"").trim() ? "" : `Để trống = lấy tên sheet “${vals.sheet}”. `) + (M.projects.some(p=>p.name.trim().toLowerCase()===nm) ? "Đã có dự án cùng tên – vẫn tạo thành một dự án mới riêng." : "");
       }},
       {key:"type", label:"Loại", type:"seg", options:["Triển khai","Thầu"].map(t=>[t,t]), hint:(v, vals) => pimpSummary(byName(vals.sheet), v)},
-      {key:"owner", label:"Người phụ trách", type:"select", options:staffOpts, half:true, hint:()=>"Cũng là người phụ trách của từng đầu việc."},
-      {key:"se", label:"SE", type:"select", options:staffOpts, half:true}
+      {key:"owners", label:"Người phụ trách (TM) – chọn một hoặc nhiều người", type:"multi", options:staffOpts, hint:()=>"Cũng là người phụ trách của từng đầu việc (chỉnh riêng từng đầu việc sau khi tạo)."},
+      {key:"ses", label:"SE – chọn một hoặc nhiều người", type:"multi", options:staffOpts}
     ],
     saveLabel:"Tạo dự án",
     onSave: async x => {
       const sheet = byName(x.sheet); if(!sheet) throw new Error("Chọn sheet cần nhập.");
       const name = (x.name||"").trim() || sheet.name.trim();
-      const b = pimpBuild(sheet.parsed, x.type, x.owner);
+      const b = pimpBuild(sheet.parsed, x.type, x.owners);
       let id = "p-"+slug(name); if(M.pById.get(id)) id += "-"+Math.random().toString(36).slice(2,5);
       const order = Math.max(0, ...M.projects.map(q=>q.order||0)) + 1;
-      await saveProject({id, name, type:x.type, owner:x.owner||"", se:x.se||"", milestones:"", progress:"", situation:"", proposal:"", difficulty:1, order, tasks:b.tasks});
+      await saveProject({id, name, type:x.type, owners:x.owners||[], ses:x.ses||[], milestones:"", progress:"", situation:"", proposal:"", difficulty:1, order, tasks:b.tasks});
       S.planSel = id; S.openProject = id; S.typeFilter = "Tất cả";
       toast(`Đã tạo dự án “${name}” với ${b.tasks.length} đầu việc`);
     }

@@ -52,7 +52,7 @@ function dashContent(){
     if(!ps.length) left += `<div class="empty">${q?`Không có ${f.label.toLowerCase()} nào khớp “${esc(S.dashQuery)}”.`:`Chưa có ${f.label.toLowerCase()} nào.${S.canEdit?" Bấm “+ Dự án mới” để thêm.":""}`}</div>`;
     for(const p of ps){
       left += `<div class="prow" data-act="openp" data-id="${esc(p.id)}" role="button" tabindex="0">
-        <div><div class="nm">${esc(p.name)}</div><div class="ow">${esc(p.owner||"Chưa có người phụ trách")}</div></div>
+        <div><div class="nm">${esc(p.name)}</div><div class="ow">${esc(peopleText(pOwners(p), "Chưa có người phụ trách"))}</div></div>
         <div><div class="pct">${pct(p._prog)}</div><div class="pbar"><i style="width:${Math.round((p._prog||0)*100)}%"></i></div></div>
         <div class="next small"><div class="muted">Mốc tiếp theo</div><div style="font-weight:600">${p._next?dmy(p._next):"–"}</div></div>
         <div class="strip-cell">${strip(p, "openProject")}</div>
@@ -85,8 +85,8 @@ function projectPage(p){
   return `<div class="head"><div><h1>Dự án</h1></div><div class="ex-ctl">${dashToolbar()}</div></div>
     <section class="panel" style="margin-bottom:18px"><div class="panel-b me-sum me-sum-end">
       ${cell("Dự án", typeDot(p.type)+esc(p.name))}
-      ${cell("Phụ trách", esc(p.owner||"–"))}
-      ${cell("SE", esc(p.se||"–"))}
+      ${cell("Phụ trách", esc(peopleText(pOwners(p))))}
+      ${cell("SE", esc(peopleText(pSes(p))))}
       ${cell("Tiến độ", pct(p._prog))}
       ${cell("Mốc tiếp theo", p._next?dmy(p._next):"–")}
       <div class="badges">${projBadges(p)}</div>

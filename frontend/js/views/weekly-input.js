@@ -140,7 +140,7 @@ function entryForm(entry, person){
      áp dụng cho Nội bộ: đầu việc ở đó dùng lặp lại hằng tuần, "Hoàn thành" chỉ là trạng thái của lượt nhập
      gần nhất chứ không phải dự án đã đóng. */
   const internal = p => p.type==="Nội bộ";
-  const assigned = p => S.canEdit || internal(p) || projectAssigned(p, who) || (p.tasks||[]).some(t=>t.owner===who || t.collab===who);
+  const assigned = p => S.canEdit || internal(p) || projectAssigned(p, who) || (p.tasks||[]).some(t=>tOwners(t).includes(who) || tCollabs(t).includes(who));
   const closed = p => planIsDone(p) && !internal(p);
   /* Gom theo loại dự án (Triển khai/Thầu/Nội bộ) bằng optgroup, để phân biệt rõ Thầu với dự án triển khai
      thay vì liệt kê lẫn lộn một danh sách phẳng. */
