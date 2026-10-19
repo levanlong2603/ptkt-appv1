@@ -4,7 +4,7 @@
 function viewInput(){
   const w = S.week;
   S.wkMode = S.wkMode || "tasks"; // "tasks" (bảng đầu việc) | "journal" (Nhật ký tuần, xem worklog.js)
-  let h = `<div class="head"><div><h1>Việc trong tuần</h1></div>${weekNav()}</div>`;
+  let h = `<div class="head"><div><h1>Việc trong tuần</h1></div>${weekNav()}</div>${weekTabs()}`;
   if(S.me==="__all__") return h + viewInputAll(w);
   if(!S.me && S.user && !isFullRole(S.user.role)) return h + `<section class="panel"><div class="empty"><b>Tài khoản chưa gắn với nhân sự</b>Nhờ trưởng phòng vào Cài đặt → Tài khoản đăng nhập để gắn tài khoản của bạn với tên nhân sự.</div></section>`;
   if(!S.me) return h + `<section class="panel"><div class="empty"><b>Chọn tên của bạn</b>Chọn tên ở mục “Tôi là” (góc dưới thanh bên) để nhập công việc của mình.</div>
@@ -21,11 +21,9 @@ function viewInput(){
     <div><div class="small muted">Workload tuần</div><div style="font-weight:700; font-size:17px">${fmt1(L.wl)} <span class="muted small">/ ${fmt1(st.cap)} điểm</span></div></div>
     <div><div class="small muted">Mức sử dụng</div><div style="font-weight:700; font-size:17px; color:${u>1?"var(--bad)":u>=.8?"var(--warn)":"var(--ok)"}">${L.es.length?pct(u):"–"}</div></div>
     <div class="toolbar" style="margin-left:auto">
-    ${S.wkMode==="journal" ? `<button class="btn" data-act="wkback">← Quay lại tổng quan</button>` : `
-    <button class="btn" data-act="wkjournal" title="Ghi chú tự do việc đã làm trong tuần, dạng nhật ký – không ảnh hưởng dữ liệu/báo cáo khác">Nhật ký tuần</button>
+    ${`
     ${locked?"":`<button class="btn" data-act="copyprev" ${canCopy?"":"disabled"} title="${canCopy?"Chép các việc chưa xong của tuần trước":"Tuần trước không có việc dở dang"}">Chép việc dở dang từ tuần trước</button>
     <button class="btn primary" data-act="addentry">+ Thêm việc</button>`}`}</div></div></section>`;
-  if(S.wkMode==="journal") return h + worklogPanelHtml();
   if(locked) h += `<p class="small muted" style="margin:-8px 0 14px">Tuần ${isoWeek(w)} đã qua, chỉ trưởng phòng mới sửa được dữ liệu tuần này.</p>`;
   if(!L.es.length) return h + `<section class="panel"><div class="empty"><b>Chưa có việc nào trong tuần ${isoWeek(w)}</b>${locked?"":"Thêm việc bạn làm trong tuần, hoặc chép các việc dở dang từ tuần trước."}</div></section>`;
   return h + `<section class="panel tbl-wrap"><table style="table-layout:fixed"><thead><tr><th style="width:20%">Đầu việc</th><th style="width:20%">Việc đã làm</th><th style="width:8%; text-align:center">Giờ</th><th style="width:10%; text-align:center">Workload</th><th style="width:14%">Trạng thái cuối tuần</th><th style="width:12%">Ma sát</th><th style="width:16%">Vướng / cần hỗ trợ</th></tr></thead><tbody>${inputTreeRows(L.es, locked)}</tbody></table></section>
@@ -252,4 +250,21 @@ async function copyPrev(){
 }
 
 
-VIEW_RENDER.input = viewInput;
+/* Mục "Việc trong tuần" = 2 tab ngang hàng (.rp-tabs, như màn Dự án): "Tải tuần" (cả phòng/1 người theo "Tôi là", xem
+   weekly-load.js) và "Đầu việc" (bảng nhập việc từng tuần, viewInput() ở trên). Mặc định: trưởng phòng/phó phòng/admin
+   mở Tải tuần, nhân viên mở Đầu việc (đúng màn mỗi nhóm hay dùng nhất trước khi gộp). */
+function weekTabs(){
+  const t = S.weekTab==="load" ? "load" : S.weekTab==="calendar" ? "calendar" : "tasks";
+  return `<div class="rp-tabs" role="tablist">
+    <button type="button" role="tab" data-act="weektab" data-t="load" aria-selected="${t==="load"}">Tải tuần</button>
+    <button type="button" role="tab" data-act="weektab" data-t="tasks" aria-selected="${t==="tasks"}">Đầu việc</button>
+    <button type="button" role="tab" data-act="weektab" data-t="calendar" aria-selected="${t==="calendar"}">Lịch</button>
+  </div>`;
+}
+function viewWeek(){
+  if(!S.weekTab) S.weekTab = S.canEdit ? "load" : "tasks";
+  if(S.weekTab==="calendar") return viewCalendar(); // modules/calendar.js (nạp sau, chỉ gọi lúc vẽ)
+  return S.weekTab==="load" ? viewLoad() : viewInput();
+}
+ACTIONS["weektab"] = el => { S.weekTab = ["load","calendar"].includes(el.dataset.t) ? el.dataset.t : "tasks"; render(); };
+VIEW_RENDER.input = viewWeek;

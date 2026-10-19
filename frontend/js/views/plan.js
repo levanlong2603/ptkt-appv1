@@ -5,64 +5,10 @@
    Xoá cả dự án thì chặt hơn: chỉ người tạo hoặc trưởng phòng, xem canDeleteProject bên dưới. */
 function canManageProject(p){ return !!p && (S.canEdit || (!!S.user && (p.created_by === S.user.username || projectAssigned(p, S.user.staff_name)))); }
 function canDeleteProject(p){ return !!p && (S.canEdit || (!!S.user && p.created_by === S.user.username)); }
-/* Kế hoạch dự án giờ là 1 tab bên trong màn "Dự án" (gộp chung với Tổng quan, xem project-overview.js:
-   viewProject()) thay vì màn riêng – tách thanh công cụ (planToolbar, đặt lên hàng tiêu đề "Dự án" chung)
-   khỏi phần nội dung (planContent, đặt dưới hàng tab), đúng kiểu đã làm cho Báo cáo (reports.js). */
-function planToolbar(){
-  /* Trang này tự lọc theo "Tôi là" riêng (S.me đọc thẳng ở planContent(), không qua effectiveSimAs()),
-     nên ô kỳ và dropdown Cá nhân/Tổng thể ở đây CHƯA có tác dụng lọc gì, chỉ thêm cho đồng bộ giao diện
-     (đã xác nhận với người dùng), dùng chung S.week/S.period/periodInfo()/exnav/exper/exrefresh với
-     Dashboard/tab Tổng quan nên đổi kỳ ở đâu cũng khớp nơi khác. */
-  const kind = S.period || "week", per = periodInfo(S.week, kind);
-  return `<div class="ex-wk"><button data-act="exnav" data-d="-1" aria-label="Kỳ trước">‹</button><div class="lb">${esc(per.label)}</div><button data-act="exnav" data-d="1" aria-label="Kỳ sau">›</button></div>
-    <div class="ex-seg" role="group" aria-label="Kỳ báo cáo">${[["week","Tuần"],["month","Tháng"],["quarter","Quý"]].map(([k,l])=>`<button data-act="exper" data-k="${k}" aria-pressed="${kind===k}">${l}</button>`).join("")}</div>
-    ${scopeToggleHtml(true)}
-    <button class="btn icon" data-act="exrefresh" title="Làm mới" aria-label="Làm mới">${ICONS.refresh}</button>`;
-}
-function planContent(){
-  /* Góc nhìn theo "Tôi là": chọn một người (kể cả khi tài khoản là trưởng phòng) thì chỉ thấy dự án
-     người đó là TM (phụ trách) hoặc SE. Chọn "Tất cả" (chỉ trưởng phòng chọn được) hoặc chưa gắn với
-     ai thì thấy mọi dự án. Muốn xem toàn bộ dự án của phòng mà không đổi "Tôi là" thì sang tab Tổng quan. */
-  const ps = (!S.me || S.me==="__all__") ? M.projects : M.projects.filter(p=>projectAssigned(p, S.me));
-  const filt = S.typeFilter || "Tất cả";
-  const q = S.planQuery.toLowerCase();
-  const pool = ps.filter(p=>planMatchFilter(p, filt) && (!q || p.name.toLowerCase().includes(q)))
-    .sort((a,b)=>(b._stuck-a._stuck) || (b._late-a._late) || a.name.localeCompare(b.name,"vi"));
-  /* Lọc "Đang triển khai": chỉ tự mở dự án vướng nhiều nhất một lần đầu tiên; sau đó tôn trọng việc đóng/mở thủ công,
-     kể cả khi rời trang rồi quay lại (không tự mở lại mỗi lần vẽ lại trang) */
-  S.planAutoOpened = S.planAutoOpened || {};
-  if(filt==="Đang triển khai" && pool.length && !S.planAutoOpened[filt]){
-    if(!pool.some(p=>p.id===S.planSel)) S.planSel = pool[0].id;
-    S.planAutoOpened[filt] = true;
-  }
-  const chips = `<div class="chips" role="group" aria-label="Lọc dự án">${PLAN_FILTERS.map(f=>`<button class="chip-btn" data-act="tf" data-t="${esc(f.key)}" aria-pressed="${filt===f.key}">${esc(f.label)}</button>`).join("")}</div>`;
-  let h = `<div class="head-ctl" style="margin-bottom:16px">${chips}
-      <input class="inp" type="search" placeholder="Tìm dự án" style="width:180px" data-act="pq" value="${esc(S.planQuery)}" aria-label="Tìm dự án">
-      ${S.canEdit?'<button class="btn primary" data-act="newp">+ Dự án mới</button><button class="btn" data-act="planimport" title="Tạo dự án mới từ bảng theo dõi dự án (.xlsx): Hạng mục, Đầu việc, Chi tiết thực hiện, Deadline, Trạng thái, Vướng mắc, Hướng giải quyết">Nhập từ Excel</button>':""}</div>`;
-  let body = "";
-  for(const t of TYPES){
-    const g = pool.filter(p=>p.type===t);
-    if(!g.length) continue;
-    body += `<section class="panel" style="margin-bottom:18px"><div class="panel-h"><h2>${typeDot(t)}${t} <span class="muted small">· ${g.length}</span></h2></div>`;
-    for(const p of g){
-      const open = S.planSel===p.id;
-      body += `<div class="prow" data-act="psel" data-id="${esc(p.id)}" role="button" tabindex="0" aria-expanded="${open}">
-        <div><div class="nm">${esc(p.name)}</div><div class="ow">${esc(p.owner||"Chưa có người phụ trách")}</div></div>
-        <div><div class="pct">${pct(p._prog)}</div><div class="pbar"><i style="width:${Math.round((p._prog||0)*100)}%"></i></div></div>
-        <div class="next small"><div class="muted">Mốc tiếp theo</div><div style="font-weight:600">${p._next?dmy(p._next):"–"}</div></div>
-        <div class="strip-cell">${strip(p, "planSel")}</div>
-        <div class="badges">${p._late?`<span class="pill bad">${p._late} quá hạn</span>`:""}${p._stuck?`<span class="pill warn">${p._stuck} vướng</span>`:""}${p._soon?`<span class="pill info">${p._soon} sắp hạn</span>`:""}${!(p.tasks||[]).length?'<span class="pill mute">Chưa có đầu việc</span>':!p._late&&!p._stuck&&!p._soon?'<span class="pill ok">Đúng tiến độ</span>':""}</div>
-      </div>`;
-      if(open) body += planDetail(p);
-    }
-    body += `</section>`;
-  }
-  if(!body) body = `<section class="panel"><div class="empty"><b>${ps.length?"Không có dự án nào trong bộ lọc này":"Chưa có dự án"}</b>${!ps.length ? (S.canEdit?`“${esc(S.me)}” chưa được gán làm TM hoặc SE của dự án nào. Đổi “Tôi là” thành “— Tất cả —” để xem hết, hoặc bấm “+ Dự án mới” để tạo.`:"Bạn chưa được gán làm TM hoặc SE của dự án nào. Xem toàn bộ dự án (chỉ xem) ở tab \"Tổng quan\".") : ""}</div></section>`;
-  return h + body;
-}
-/* Bảng đầu việc đầy đủ của 1 dự án – dùng ở 2 nơi: xổ ra ngay dưới dòng dự án ở tab Kế hoạch dự án, và
-   chiếm cả trang riêng của dự án mở từ tab Tổng quan (full=true, xem projectPage() ở project-overview.js;
-   khung bảng khi đó cao gần hết màn hình thay vì 520px – .pdetail.full ở plan.css).
+/* "Kế hoạch dự án" không còn là tab/màn riêng: đã gộp vào trang "Dự án" (project-overview.js) – danh sách ở viewProject(),
+   còn phần kế hoạch là trang riêng của từng dự án (projectPage()) với bảng đầu việc dưới đây. */
+/* Bảng đầu việc đầy đủ của 1 dự án – hiện ở trang riêng của dự án (full=true, xem projectPage() ở project-overview.js;
+   khung bảng cao gần hết màn hình thay vì 520px – .pdetail.full ở plan.css).
    Khung bảng khoá chiều cao + cuộn riêng cả ngang lẫn dọc (giống bảng Excel/Báo cáo đóng băng tiêu đề),
    không đẩy giãn cả trang nữa; kèm nút thu/phóng (S.planZoom, %) qua CSS zoom – phóng to để đọc dễ hơn ở
    màn hình lớn, thu nhỏ để nhìn được nhiều cột hơn mà không phải cuộn ngang liên tục. */
@@ -187,7 +133,7 @@ function projectForm(p){
         const tasks = S.catalog.filter(c=>c.type===x.type && !/Việc khác/.test(c.name)).map((c,i)=>({id:"t"+String(i+1).padStart(3,"0"), dv:c.name, detail:"", owner:x.owner||"", collab:"", deadline:null, qm:null, pt:null, pr:"P2", init:{status:"",ms:null,nn:""}, note:"", eval:{}}));
         const order = Math.max(0,...M.projects.map(q=>q.order||0))+1;
         await saveProject({id, name:x.name.trim(), type:x.type, owner:x.owner||"", se:x.se||"", milestones:x.milestones||"", progress:x.progress||"", situation:x.situation||"", proposal:x.proposal||"", difficulty:x.difficulty||1, order, tasks});
-        S.planSel = id; toast(`Đã tạo dự án${tasks.length?" với "+tasks.length+" đầu việc":""}`);
+        S.planSel = id; S.openProject = id; toast(`Đã tạo dự án${tasks.length?" với "+tasks.length+" đầu việc":""}`);
       } else {
         await saveProject({...p, name:x.name.trim(), type:x.type, owner:x.owner||"", se:x.se||"", milestones:x.milestones||"", progress:x.progress||"", situation:x.situation||"", proposal:x.proposal||"", difficulty:x.difficulty||1}); toast("Đã lưu thông tin dự án");
       }

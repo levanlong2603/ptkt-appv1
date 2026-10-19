@@ -396,3 +396,4 @@ textarea.inp{min-height:74px; resize:vertical}
 .tb-app:hover,.tb-app:focus-visible{background:var(--hover)}
 .tb-app-ico{width:48px; height:48px; border-radius:12px; background:var(--teal-soft); color:var(--teal-hover); display:flex; align-items:center; justify-content:center}
 .tb-app-ico svg{width:26px; height:26px}
+.field[hidden]{display:none}

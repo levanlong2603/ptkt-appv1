@@ -79,8 +79,7 @@ const ICONS = {
 const VIEWS = [
   {id:"exec", label:"Dashboard", icon:"exec"},
   {id:"dash", label:"Dự án", icon:"dash"},
-  {id:"load", label:"Tải tuần", icon:"load"},
-  {id:"input", label:"Việc trong tuần", icon:"input"},
+  {id:"input", label:"Việc trong tuần", icon:"input"}, // gồm 2 tab: Tải tuần (weekly-load.js) | Đầu việc (weekly-input.js) – xem viewWeek()
   {sep:true},
   {id:"settings", label:"Cài đặt", icon:"set"},
   {id:"help", label:"Hướng dẫn", icon:"help"}

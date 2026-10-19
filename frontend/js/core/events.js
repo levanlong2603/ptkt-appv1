@@ -10,8 +10,8 @@ main.addEventListener("click", e => {
   if(a==="exper"){ S.period = t.dataset.k; render(); return; }
   if(a==="exrefresh"){ render(); toast("Đã làm mới"); return; }
   if(a==="expr"){ S.exPr = t.dataset.p; render(); return; }
-  if(a==="golo"){ S.view="load"; store("view","load"); render(); return; }
-  if(a==="godash"){ S.view="dash"; S.projTab="overview"; S.openProject=null; store("view","dash"); render(); return; }
+  if(a==="golo"){ S.view="input"; S.weekTab="load"; store("view","input"); render(); return; }
+  if(a==="godash"){ S.view="dash"; S.openProject=null; store("view","dash"); render(); return; }
   if(a==="wk"){ const d=+t.dataset.d; S.week = d===0 ? mondayOf(todayISO()) : addDays(S.week, d); render(); }
   else if(a==="tf"){ S.typeFilter=t.dataset.t; render(); }
   else if(a==="openp"){ S.openProject = t.dataset.id; render(); main.scrollTop = 0; }

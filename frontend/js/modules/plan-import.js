@@ -193,7 +193,7 @@ function pimpForm(fileName, sheets){
       let id = "p-"+slug(name); if(M.pById.get(id)) id += "-"+Math.random().toString(36).slice(2,5);
       const order = Math.max(0, ...M.projects.map(q=>q.order||0)) + 1;
       await saveProject({id, name, type:x.type, owner:x.owner||"", se:x.se||"", milestones:"", progress:"", situation:"", proposal:"", difficulty:1, order, tasks:b.tasks});
-      S.planSel = id; S.typeFilter = "Tất cả";
+      S.planSel = id; S.openProject = id; S.typeFilter = "Tất cả";
       toast(`Đã tạo dự án “${name}” với ${b.tasks.length} đầu việc`);
     }
   });

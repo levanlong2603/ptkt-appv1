@@ -21,7 +21,7 @@ ACTIONS["exinfo"] = t => {
          Trưởng phòng/phó phòng/admin (S.canEdit) luôn có nút, không giới hạn theo dự án. */
       const canGo = S.canEdit || canManageProject(p);
       openInfo(p, tk, canGo ? {label:"Đi đến xử lý", onClick:()=>{
-        S.view="dash"; S.projTab="plan"; S.openProject=null; S.planSel=pid; S.typeFilter="Tất cả"; store("view",S.view); render();
+        S.view="dash"; S.openProject=pid; S.typeFilter="Tất cả"; store("view",S.view); render();
         const p2=M.pById.get(pid); const tk2=p2&&p2._tasks.find(x=>x.id===tid); if(p2&&tk2) taskForm(p2, tk2);
       }} : null);
       return;
@@ -31,14 +31,14 @@ ACTIONS["exinfo"] = t => {
     const pid = g.slice(2); const p = M.pById.get(pid);
     const canGo = S.canEdit || (p && canManageProject(p));
     openForm({title:"Dự án", subtitle:a.project, values:{}, fields:[], readOnly:true,
-      extraBtn: canGo ? {label:"Đi đến xử lý", onClick:()=>{ S.view="dash"; S.projTab="plan"; S.openProject=null; S.planSel=pid; S.typeFilter="Tất cả"; store("view",S.view); render(); }} : undefined,
+      extraBtn: canGo ? {label:"Đi đến xử lý", onClick:()=>{ S.view="dash"; S.openProject=pid; S.typeFilter="Tất cả"; store("view",S.view); render(); }} : undefined,
       info:`<h3 style="margin-bottom:12px">${esc(a.title)}</h3><div class="kv"><dt>Dự án</dt><dd>${esc(a.project)}</dd><dt>Người phụ trách</dt><dd>${esc(a.person)}</dd>
       <dt>Tình trạng</dt><dd>${esc(a.desc)}</dd>${p?`<dt>Tiến độ</dt><dd>${pct(p._prog)}</dd>`:""}</div>`});
     return;
   }
   // còn lại: "load:" (nhân sự quá tải)
   openForm({title:"Nhân sự", subtitle:a.person, values:{}, fields:[], readOnly:true,
-    extraBtn:{label:"Đi đến xử lý", onClick:()=>{ S.me=a.person; store("me",S.me); S.view="load"; store("view",S.view); render(); }},
+    extraBtn:{label:"Đi đến xử lý", onClick:()=>{ S.me=a.person; store("me",S.me); S.view="input"; S.weekTab="load"; store("view",S.view); render(); }},
     info:`<h3 style="margin-bottom:12px">${esc(a.title)}</h3><div class="kv"><dt>Nhân sự</dt><dd>${esc(a.person)}</dd><dt>Mức sử dụng</dt><dd>${esc(a.desc)}</dd></div>`});
 };
 function periodInfo(anchor, kind){

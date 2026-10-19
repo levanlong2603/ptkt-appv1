@@ -1,0 +1,51 @@
+/* Lịch & sự kiện tuần (modules/calendar.js) – tiền tố .cal-*. Màu chỉ dùng token trong theme.css (tự đổi theo chế độ tối).
+   Lưới: cột giờ 56px + 7 cột ngày bằng nhau; cuộn ngang trong .cal-scroll khi màn hẹp (min-width), vùng giờ cuộn dọc riêng. */
+.cal{--cal-hour:44px; padding:0; overflow:hidden}
+.cal-bar{display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; padding:14px 18px; border-bottom:1px solid var(--line-2)}
+.cal-title{font-size:15px; font-weight:700}
+.cal-scroll{overflow-x:auto}
+.cal-grid{min-width:760px}
+.cal-row{display:grid; grid-template-columns:56px repeat(7, minmax(0,1fr))}
+.cal-corner{display:flex; align-items:center; justify-content:center; color:var(--ink-3); font-size:12px; border-right:1px solid var(--line-2)}
+/* hàng tiêu đề ngày */
+.cal-headrow{border-bottom:1px solid var(--line)}
+.cal-dh{padding:10px 6px; text-align:center; font-size:13px; color:var(--ink-2); border-right:1px solid var(--line-2)}
+.cal-dh:last-child{border-right:0}
+.cal-dh b{font-size:15px; color:var(--ink)}
+.cal-dh.today{background:var(--teal-soft); color:var(--teal-hover); font-weight:600}
+.cal-dh.today b{color:var(--teal-hover)}
+/* hàng "Cả ngày": lưới 7 cột riêng để sự kiện nhiều ngày kéo dài qua các cột */
+.cal-adrow{border-bottom:1px solid var(--line); min-height:34px}
+.cal-adgrid{display:grid; grid-template-columns:repeat(7, minmax(0,1fr)); grid-auto-rows:minmax(28px, auto); gap:2px 0; padding:3px 0; cursor:cell}
+/* vùng giờ */
+.cal-body{height:560px; overflow-y:auto}
+.cal-rows{height:calc(24 * var(--cal-hour))}
+.cal-gutter{border-right:1px solid var(--line-2)}
+.cal-hr{height:var(--cal-hour); position:relative}
+.cal-hr span{position:absolute; top:-8px; right:8px; font-size:11.5px; color:var(--ink-3); background:var(--surface); padding:0 2px}
+.cal-col{position:relative; border-right:1px solid var(--line-2); cursor:cell;
+  background-image:repeating-linear-gradient(to bottom, var(--line-2) 0, var(--line-2) 1px, transparent 1px, transparent var(--cal-hour))}
+.cal-col:last-child{border-right:0}
+.cal-col.today{background-color:var(--teal-soft)}
+.cal-now{position:absolute; left:0; right:0; height:0; border-top:2px solid var(--ok); z-index:2; pointer-events:none}
+.cal-now::before{content:""; position:absolute; left:-4px; top:-5px; width:8px; height:8px; border-radius:50%; background:var(--ok)}
+/* sự kiện */
+.cal-ev{all:unset; box-sizing:border-box; position:absolute; z-index:1; overflow:hidden; cursor:pointer; padding:3px 7px; border-radius:6px; border-left:3px solid var(--teal);
+  background:var(--teal-soft); color:var(--ink); font-size:12px; line-height:1.3; display:flex; flex-direction:column; gap:1px; box-shadow:0 0 0 1px var(--surface)}
+.cal-ev.own{background:color-mix(in srgb, var(--teal) 22%, var(--surface)); border-left-color:var(--teal-hover)}
+.cal-ev.team{background:color-mix(in srgb, var(--indigo) 22%, var(--surface)); border-left-color:var(--indigo)}
+.cal-ev:hover{filter:brightness(.96)}
+.cal-ev:focus-visible{outline:2px solid var(--focus); outline-offset:1px}
+.cal-ev b{font-weight:600; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; word-break:break-word}
+/* Sự kiện ngắn (< ~1 giờ) hoặc cột bị chia hẹp (≥3 sự kiện chồng giờ): gọn 1 dòng, ẩn địa điểm – xem đủ ở gợi ý (title) hoặc bấm mở */
+.cal-ev.short{flex-direction:row; align-items:center; gap:6px; padding-top:1px; padding-bottom:1px}
+.cal-ev.short b{-webkit-line-clamp:1; flex:0 1 auto; min-width:0}
+.cal-ev.short span,.cal-ev.narrow span,.cal-ev.narrow em{display:none}
+.cal-ev.narrow{padding:3px 4px}
+.cal-ev.narrow b{-webkit-line-clamp:3; font-size:11.5px}
+.cal-ev em{font-style:normal; color:var(--ink-2); font-size:11.5px}
+.cal-ev span{color:var(--ink-2); font-size:11.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.cal-ad{position:static; flex-direction:row; align-items:center; gap:8px; margin:0 2px; min-height:26px}
+.cal-ad b{white-space:nowrap}
+.cal-empty{padding:12px 18px; border-top:1px solid var(--line-2)}
+@media (max-width:860px){ .cal-bar{padding:12px} .cal-body{height:480px} }

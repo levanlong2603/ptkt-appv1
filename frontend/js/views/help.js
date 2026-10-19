@@ -22,7 +22,7 @@ const HELP_DEFAULT = `
 <h2>Trưởng phòng / Phó phòng</h2>
 <p><b>Dự án mới:</b> mục “Dự án” → tab “Kế hoạch dự án” → “+ Dự án mới”, chọn loại Triển khai / Thầu — hệ thống tự tạo sẵn đầu việc theo quy trình chuẩn của loại đó.</p>
 <p><b>Kế hoạch dự án – ai thấy gì:</b> danh sách dự án lọc theo “Tôi là”; chọn “— Tất cả —” để thấy hết. Sửa được dự án nếu là người tạo, TM, SE, hoặc trưởng phòng/phó phòng; chỉ người tạo hoặc trưởng phòng/phó phòng xoá được cả dự án.</p>
-<p><b>Mỗi tuần:</b> xem “Tải tuần” (ai quá tải, ai còn khả năng) và tab “Tổng quan” trong mục “Dự án” (quá hạn, sắp đến hạn, tiến độ theo giai đoạn).</p>
+<p><b>Mỗi tuần:</b> xem tab “Tải tuần” trong mục “Việc trong tuần” (ai quá tải, ai còn khả năng) và tab “Tổng quan” trong mục “Dự án” (quá hạn, sắp đến hạn, tiến độ theo giai đoạn).</p>
 <p><b>Đánh giá:</b> đầu việc hoàn thành có nhãn “Chờ đánh giá” — bấm vào để chấm đạt yêu cầu, chất lượng, tự chủ, nhận xét.</p>
 <h3>Cách tính (tóm tắt)</h3>
 <p><b>Workload:</b> ước lượng theo Quy mô × Độ phức tạp đầu việc — không phải thành tích.</p>

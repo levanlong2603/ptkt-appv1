@@ -41,7 +41,7 @@ function viewLoad(){
   const blocked = wkE.filter(e=>e.status==="Đang vướng" || (e.ms||0)>=3);
   const over = rows.filter(r=>r.u>1).length;
   const meRatio = simAs ? ratioOf(wkE) : null;
-  let h = `<div class="head"><h1>Tải tuần</h1><div class="head-ctl">${weekNav()}${scopeToggleHtml()}</div></div>`;
+  let h = `<div class="head"><h1>Việc trong tuần</h1><div class="head-ctl">${weekNav()}${scopeToggleHtml()}</div></div>${weekTabs()}`;
   const uAll = capE ? wlE/capE : null;
   h += `<div class="band">
     <div class="stat ${uAll>1?"bad":uAll>=.8?"warn":uAll!=null?"ok":""}"><div class="v">${pct(uAll)}</div><div class="l">Mức sử dụng (người đã nhập)</div></div>

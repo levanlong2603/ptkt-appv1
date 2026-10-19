@@ -4,7 +4,8 @@
 const S = {
   db:null, user:null, canEdit:false, conn:"wait",
   staff:[], catalog:[], projects:[], weeks:[], feedback:[],
-  view: store("view") || "exec", period:"week", exPr:"Tất cả",
+  view: (store("view")==="load" ? "input" : store("view")) || "exec", period:"week", // "load" (Tải tuần) đã gộp vào "input" thành 1 tab
+  weekTab: store("view")==="load" ? "load" : "", exPr:"Tất cả",
   week: mondayOf(todayISO()),
   me: store("me") || "",
   typeFilter:"Đang triển khai", openProject:null, planSel:null, planQuery:"", dashQuery:""

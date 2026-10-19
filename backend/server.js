@@ -72,6 +72,7 @@ const RULES = {
   projects: "own-project",  // projects/<mã dự án>  (thông tin dự án + đầu việc)
   weeks: "own-week",        // weeks/<thứ 2 của tuần>__<tên>  (dữ liệu nhập theo tuần)
   feedback: "own",          // feedback/<id>  (góp ý, yêu cầu cải tiến)
+  events: "own",            // events/<id>  (Lịch & sự kiện tuần: {title, allDay, start, end, place, note, person}; person="" = sự kiện cả phòng)
   feedbackReply: "own",     // feedbackReply/<id>  (phản hồi/thảo luận dưới 1 góp ý: {fbId, text, images}; ai cũng viết được)
   kpiNote: "admin",         // kpiNote/<kỳ>__<tên nhân sự>  (nhận xét của trưởng phòng ở trang KPI & Năng lực)
   kpiReview: "server",      // kpiReview/<kind>-<mã kỳ>__<tên>  (bản đánh giá KPI: nháp/đã chốt, điểm lúc chốt, lịch sử
@@ -273,6 +274,34 @@ app.put("/api/doc/:coll/:id", auth, A(async (req, res) => {
     // created_by/person/createdAt luôn do máy chủ ghi, không nhận từ client, và không đổi được sau khi tạo
     body.created_by = exBody ? exBody.created_by : req.user.username;
     body.person = exBody ? exBody.person : (req.user.staff_name || req.user.display_name || req.user.username);
+    body.createdAt = exBody ? exBody.createdAt : new Date().toISOString();
+  }
+  if (coll === "events") {
+    /* Sự kiện lịch: chỉ giữ các trường khai báo, kiểm tra định dạng/độ dài. "person" = nhân sự sở hữu: nhân viên luôn là
+       chính mình (không tạo hộ người khác, không tạo sự kiện cả phòng); trưởng phòng/phó phòng/admin chọn được 1 nhân sự
+       có trong danh sách hoặc "" (cả phòng – hiện ở lịch của mọi người). created_by/createdAt do máy chủ ghi. */
+    const str = (v, max) => typeof v === "string" ? v.trim().slice(0, max) : "";
+    const title = str(body.title, 200);
+    if (!title) return res.status(400).json({ error: "Nhập tên sự kiện" });
+    const allDay = body.allDay === true;
+    const re = allDay ? /^\d{4}-\d{2}-\d{2}$/ : /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
+    const real = s => { const d = new Date(s.slice(0, 10) + "T00:00:00Z"); return !isNaN(d) && d.toISOString().slice(0, 10) === s.slice(0, 10) && (allDay || (+s.slice(11, 13) < 24 && +s.slice(14, 16) < 60)); };
+    if (typeof body.start !== "string" || typeof body.end !== "string" || !re.test(body.start) || !re.test(body.end) || !real(body.start) || !real(body.end))
+      return res.status(400).json({ error: "Thời gian sự kiện không hợp lệ" });
+    if (allDay ? body.end < body.start : body.end <= body.start) return res.status(400).json({ error: "Thời gian kết thúc phải sau thời gian bắt đầu" });
+    let person;
+    if (FULL_ROLES.has(req.user.role)) {
+      person = typeof body.person === "string" ? body.person : "";
+      const names = ((JSON.parse((await store.getDoc("config/staff")) || "{}").list) || []).map(s => s.name);
+      if (person && !names.includes(person)) return res.status(400).json({ error: "Nhân sự không tồn tại" });
+    } else {
+      person = exBody ? exBody.person : (req.user.staff_name || "");
+      if (!person) return res.status(400).json({ error: "Tài khoản chưa gắn với nhân sự nên chưa tạo được sự kiện" });
+    }
+    const keep = { title, allDay, start: body.start, end: body.end, place: str(body.place, 200), note: str(body.note, 2000), person };
+    for (const k of Object.keys(body)) delete body[k];
+    Object.assign(body, keep);
+    body.created_by = exBody ? exBody.created_by : req.user.username;
     body.createdAt = exBody ? exBody.createdAt : new Date().toISOString();
   }
   if (coll === "feedbackReply") {

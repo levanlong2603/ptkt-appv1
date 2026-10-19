@@ -1,26 +1,15 @@
 "use strict";
-/* Màn hình: Dự án – gộp "Tổng quan dự án" (chỉ xem) và "Kế hoạch dự án" (quản trị, plan.js) thành 1 mục
-   menu "Dự án" với 2 tab ngang hàng (S.projTab, dùng chung .rp-tabs với Báo cáo – reports.js). Tách thanh
-   công cụ (toolbar, lên hàng tiêu đề chung) khỏi nội dung từng tab (content), đúng kiểu reports.js:
-   viewReports(). Giữ nguyên 2 bộ lọc/trạng thái độc lập của 2 tab (S.dashQuery/S.typeFilter cho Tổng quan,
-   S.planQuery/S.me cho Kế hoạch – xem plan.js) – gộp giao diện, không gộp cơ chế lọc dữ liệu.
-   Bấm 1 dự án ở tab Tổng quan → mở trang riêng của dự án đó (S.openProject, projectPage() bên dưới) thay
-   cho cả màn 2 tab, không còn xổ chi tiết tại chỗ. */
+/* Màn hình: Dự án – 1 trang duy nhất (đã gộp "Tổng quan dự án" và "Kế hoạch dự án"): danh sách + thống kê (dashContent),
+   người quản lý có thêm "+ Dự án mới"/"Nhập từ Excel". Bấm 1 dự án → trang riêng của dự án đó (S.openProject,
+   projectPage() bên dưới) với bảng đầu việc đầy đủ (planDetail ở plan.js) để xem/sửa/đánh giá. */
 function viewProject(){
   const cur = S.openProject && M.pById.get(S.openProject);
   if(cur) return projectPage(cur);
   S.openProject = null;
-  S.projTab = S.projTab || "overview";
-  const toolbar = S.projTab==="plan" ? planToolbar() : dashToolbar();
-  let h = `<div class="head"><div><h1>Dự án</h1></div><div class="ex-ctl">${toolbar}</div></div>`;
-  h += `<div class="rp-tabs" role="tablist">
-    <button type="button" role="tab" data-act="projtab" data-t="overview" aria-selected="${S.projTab==="overview"}">Tổng quan</button>
-    <button type="button" role="tab" data-act="projtab" data-t="plan" aria-selected="${S.projTab==="plan"}">Kế hoạch dự án</button>
-  </div>`;
-  h += S.projTab==="plan" ? planContent() : dashContent();
-  return h;
+  /* 1 trang duy nhất (đã gộp tab "Kế hoạch dự án" vào đây): danh sách + thống kê, thêm "+ Dự án mới"/"Nhập từ Excel" cho
+     người quản lý; bấm 1 dự án mở trang riêng của nó (bảng đầu việc đầy đủ, sửa/đánh giá/thêm đầu việc) */
+  return `<div class="head"><div><h1>Dự án</h1></div><div class="ex-ctl">${dashToolbar()}</div></div>` + dashContent();
 }
-ACTIONS["projtab"] = el => { S.projTab = el.dataset.t; render(); };
 /* Thanh điều khiển giống hệt Dashboard (ô kỳ + Tuần/Tháng/Quý + Tổng thể/Cá nhân + làm mới) – tab này
    chưa dùng kỳ để lọc gì, chỉ thêm sẵn cho đồng bộ giao diện, dùng chung S.week/S.period/periodInfo()/
    exnav/exper (exec-dashboard.js, events.js) với Dashboard nên đổi kỳ ở đâu cũng khớp nơi khác. */
@@ -46,6 +35,7 @@ function dashContent(){
   let h = `<div class="head-ctl" style="margin-bottom:16px">
       <div class="chips" role="group" aria-label="Lọc theo loại">${PLAN_FILTERS.map(f=>`<button class="chip-btn" data-act="tf" data-t="${esc(f.key)}" aria-pressed="${S.typeFilter===f.key}">${esc(f.label)}</button>`).join("")}</div>
       <input class="inp" type="search" placeholder="Tìm dự án" style="width:180px" data-act="dashq" value="${esc(S.dashQuery||"")}" aria-label="Tìm dự án">
+      ${S.canEdit?'<button class="btn primary" data-act="newp">+ Dự án mới</button><button class="btn" data-act="planimport" title="Tạo dự án mới từ bảng theo dõi dự án (.xlsx): Hạng mục, Đầu việc, Chi tiết thực hiện, Deadline, Trạng thái, Vướng mắc, Hướng giải quyết">Nhập từ Excel</button>':""}
     </div>`;
   h += `<div class="band">
     <div class="stat"><div class="v">${running("Triển khai")}</div><div class="l">${typeDot("Triển khai")}Dự án triển khai đang chạy</div></div>
@@ -59,7 +49,7 @@ function dashContent(){
     if(S.typeFilter!=="Tất cả" && S.typeFilter!==f.key) continue;
     const ps = P.filter(p=>planMatchFilter(p, f.key) && (!q || p.name.toLowerCase().includes(q))).sort((a,b)=>(b._stuck-a._stuck) || (b._late-a._late) || a.name.localeCompare(b.name,"vi"));
     left += `<section class="panel"><div class="panel-h"><h2>${typeDot(f.type)}${esc(f.label)} <span class="muted small">· ${ps.length}</span></h2></div>`;
-    if(!ps.length) left += `<div class="empty">${q?`Không có ${f.label.toLowerCase()} nào khớp “${esc(S.dashQuery)}”.`:`Chưa có ${f.label.toLowerCase()} nào. Thêm ở tab "Kế hoạch dự án".`}</div>`;
+    if(!ps.length) left += `<div class="empty">${q?`Không có ${f.label.toLowerCase()} nào khớp “${esc(S.dashQuery)}”.`:`Chưa có ${f.label.toLowerCase()} nào.${S.canEdit?" Bấm “+ Dự án mới” để thêm.":""}`}</div>`;
     for(const p of ps){
       left += `<div class="prow" data-act="openp" data-id="${esc(p.id)}" role="button" tabindex="0">
         <div><div class="nm">${esc(p.name)}</div><div class="ow">${esc(p.owner||"Chưa có người phụ trách")}</div></div>
@@ -70,6 +60,14 @@ function dashContent(){
       </div>`;
     }
     left += `</section>`;
+  }
+  /* Dự án loại Nội bộ ("Việc chung của phòng") không nằm trong thống kê/bộ lọc ở trên, nhưng người quản lý vẫn cần mở để
+     sửa các đầu việc chung của phòng (trước đây thấy ở tab Kế hoạch dự án) – hiện thêm 1 khối riêng khi lọc "Tất cả" */
+  if(S.canEdit && S.typeFilter==="Tất cả"){
+    const ins = M.projects.filter(p=>p.type==="Nội bộ" && (!q || p.name.toLowerCase().includes(q)));
+    if(ins.length) left += `<section class="panel"><div class="panel-h"><h2>${typeDot("Nội bộ")}Nội bộ <span class="muted small">· ${ins.length}</span></h2></div>${ins.map(p=>`<div class="prow" data-act="openp" data-id="${esc(p.id)}" role="button" tabindex="0">
+        <div><div class="nm">${esc(p.name)}</div><div class="ow">${(p.tasks||[]).length} đầu việc dùng chung</div></div>
+      </div>`).join("")}</section>`;
   }
   return h + left;
 }
