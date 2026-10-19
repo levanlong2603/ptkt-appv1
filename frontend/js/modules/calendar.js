@@ -74,8 +74,8 @@ function viewCalendar(){
       const top = sg.s/60*CAL_HOUR_H, h = Math.max((sg.e-sg.s)/60*CAL_HOUR_H - 2, 20);
       const wpc = 100/sg.lanes, left = sg.lane*wpc;
       return `<button type="button" class="cal-ev ${cls(sg.ev)}${h<52?" short":""}${sg.lanes>=3?" narrow":""}" data-act="calev" data-id="${esc(sg.ev.id)}" style="top:${top}px; height:${h}px; left:calc(${left}% + 2px); width:calc(${wpc}% - 4px)"
-        title="${esc(sg.ev.title)} · ${calHHMM(sg.s)}–${sg.e>=1440?"24:00":calHHMM(sg.e)}">
-        <b>${esc(label(sg.ev))}</b><em>${calHHMM(sg.s)}–${sg.e>=1440?"24:00":calHHMM(sg.e)}</em>${sg.ev.place?`<span>${esc(sg.ev.place)}</span>`:""}</button>`;
+        title="${esc(sg.ev.title)} · ${calHHMM(sg.s)}–${sg.e>=1440?"24:00":calHHMM(sg.e)}${sg.ev.note?" – "+esc(sg.ev.note):""}">
+        <b>${esc(label(sg.ev))}</b><em>${calHHMM(sg.s)}–${sg.e>=1440?"24:00":calHHMM(sg.e)}</em>${sg.ev.place?`<span>${esc(sg.ev.place)}</span>`:""}${sg.ev.note?`<p class="cal-note">${esc(sg.ev.note)}</p>`:""}</button>`;
     }).join("");
     return `<div class="cal-col${d===today?" today":""}" data-act="calslot" data-day="${d}" aria-label="Thêm sự kiện ngày ${dmy(d)}">${blocks}${d===today?`<i class="cal-now" style="top:${nowM/60*CAL_HOUR_H}px"></i>`:""}</div>`;
   }).join("");

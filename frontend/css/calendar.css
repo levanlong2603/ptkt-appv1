@@ -40,7 +40,7 @@
 /* Sự kiện ngắn (< ~1 giờ) hoặc cột bị chia hẹp (≥3 sự kiện chồng giờ): gọn 1 dòng, ẩn địa điểm – xem đủ ở gợi ý (title) hoặc bấm mở */
 .cal-ev.short{flex-direction:row; align-items:center; gap:6px; padding-top:1px; padding-bottom:1px}
 .cal-ev.short b{-webkit-line-clamp:1; flex:0 1 auto; min-width:0}
-.cal-ev.short span,.cal-ev.narrow span,.cal-ev.narrow em{display:none}
+.cal-ev.short span,.cal-ev.narrow span,.cal-ev.narrow em,.cal-ev.short .cal-note,.cal-ev.narrow .cal-note{display:none}
 .cal-ev.narrow{padding:3px 4px}
 .cal-ev.narrow b{-webkit-line-clamp:3; font-size:11.5px}
 .cal-ev em{font-style:normal; color:var(--ink-2); font-size:11.5px}
@@ -49,3 +49,5 @@
 .cal-ad b{white-space:nowrap}
 .cal-empty{padding:12px 18px; border-top:1px solid var(--line-2)}
 @media (max-width:860px){ .cal-bar{padding:12px} .cal-body{height:480px} }
+/* Ghi chú trong khối sự kiện: tối đa 4 dòng, giữ xuống dòng người nhập; hiện đủ khi bấm mở sự kiện */
+.cal-note{margin:2px 0 0; color:var(--ink-2); font-size:11.5px; line-height:1.35; white-space:pre-wrap; overflow:hidden; display:-webkit-box; -webkit-line-clamp:4; -webkit-box-orient:vertical; word-break:break-word}
