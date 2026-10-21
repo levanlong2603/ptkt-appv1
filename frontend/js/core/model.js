@@ -4,7 +4,7 @@
 let M = null;
 function derive(){
   const today = todayISO(), thisMon = mondayOf(today);
-  const staff = S.staff.map(s => ({...s, cap: Math.round((+s.hours||0)*(1-(+s.pct||0))*(+s.factor||1)*10)/10}));
+  const staff = S.staff.map(s => ({...s, cap: 40}));
   const capOf = new Map(staff.map(s => [s.name, s.cap]));
   const projects = [...S.projects].sort((a,b)=>(a.order??999)-(b.order??999) || a.name.localeCompare(b.name,"vi"));
   const pById = new Map(projects.map(p => [p.id, p]));
@@ -14,12 +14,8 @@ function derive(){
   const entries = [];
   for(const w of S.weeks) for(const e of (w.entries||[])){
     const ref = taskMap.get(e.projectId+"|"+e.taskId);
-    /* Workload của một lượt nhập tuần = e.hours (số giờ thực tế đã làm, người nhập tự gõ trong ô "Thời
-       gian thực hiện") × PT_MULT[Độ phức tạp] – Quy mô (e.qm) ở màn Nhập theo tuần giờ chỉ để tham
-       khảo/ước lượng, KHÔNG tham gia công thức này nữa (tránh tính trùng với giờ thật đã gõ). Thiếu Độ
-       phức tạp → hệ số mặc định 1,0 (không chặn). Các lượt nhập cũ chỉ có e.qm (từ trước khi có ô giờ
-       thật) vẫn đọc lại qua wlOf(e.qm, e.pt) để không đổi dữ liệu lịch sử. */
-    const wl = e.hours!=null ? Math.round(e.hours*(e.pt?PT_MULT[e.pt]:1)*10)/10 : wlOf(e.qm, e.pt);
+    /* Tải tuần bằng giờ thực hiện. Dòng cũ thiếu giờ dùng ước lượng Quy mô; độ phức tạp chỉ tham khảo. */
+    const wl = e.hours!=null ? Math.round(e.hours*10)/10 : wlOf(e.qm, e.pt);
     entries.push({...e, week:w.week, person:w.person, docId:w._id, ref, wl, type: ref ? ref.p.type : (pById.get(e.projectId)||{}).type || "Nội bộ"});
   }
   // latest per task
@@ -48,10 +44,7 @@ function derive(){
     p._tasks = (p.tasks||[]).map(t => {
       const k = p.id+"|"+t.id;
       const qm = t.qm, pt = t.pt;
-      /* Workload (giờ) = số giờ đại diện của Quy mô × hệ số thời gian của Độ phức tạp (xem wlOf() ở
-         constants.js) — không chia cho Hệ số năng lực nữa, vì hệ số đó đã nhân vào Capacity (cap ở trên)
-         rồi; chia thêm ở đây sẽ tính hệ số năng lực hai lần.
-         "Độ khó dự án" (p.difficulty) chỉ là nhãn phân loại dự án, không tham gia công thức tính tải. */
+      /* Ước lượng kế hoạch theo Quy mô, không nhân hệ số độ phức tạp. */
       const wl = wlOf(qm, pt);
       const le = latest.get(k), la = lastAny.get(k);
       const status = le ? le.status : (t.init && t.init.status) || "Chưa bắt đầu";

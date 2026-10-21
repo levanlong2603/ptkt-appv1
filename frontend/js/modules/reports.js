@@ -750,6 +750,6 @@ document.addEventListener("click", e => {
 VIEW_RENDER.reports = viewReports;
 ICONS.reports = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/><path d="m15 15 2 2 3-4" stroke="var(--teal)"/></svg>';
 {
-  const i = VIEWS.findIndex(v=>v.id==="dash");
+  const i = VIEWS.findIndex(v=>v.id==="input");
   VIEWS.splice(i+1, 0, {id:"reports", label:"Báo cáo", icon:"reports"});
 }

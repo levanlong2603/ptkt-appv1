@@ -17,9 +17,9 @@ function viewSettings(){
       <input type="file" accept=".json,application/json" id="impFile" hidden></div>`:""}
     </div></section>`;
   h += `<section class="panel" style="margin-bottom:18px"><div class="panel-h"><h2>Nhân sự & capacity</h2>${ro?"":'<button class="btn primary" data-act="addstaff">+ Nhân sự</button>'}</div>
-    <div class="tbl-wrap"><table style="table-layout:fixed"><thead><tr><th style="width:24%">Họ tên</th><th style="width:13%; text-align:center">Giờ / tuần</th><th style="width:15%; text-align:center">% trừ họp, phát sinh</th><th style="width:14%; text-align:center">Kinh nghiệm (năm)</th><th style="width:16%; text-align:center">Hệ số năng lực</th><th style="width:18%; text-align:center">Capacity (điểm/tuần)</th></tr></thead><tbody>
-    ${M.staff.map((s,i)=>`<tr class="${ro?"":"click"}" data-act="${ro?"":"editstaff"}" data-i="${i}" tabindex="0"><td class="cell-main">${esc(s.name)}${s.title?`<div class="small muted">${esc(s.title)}</div>`:""}</td><td style="text-align:center">${s.hours}</td><td style="text-align:center">${Math.round(s.pct*100)}%</td><td style="text-align:center">${s.years||"–"}</td><td style="text-align:center">${fmt1(s.factor)}</td><td style="text-align:center; font-weight:600">${fmt1(s.cap)}</td></tr>`).join("")||'<tr><td colspan="6" class="muted">Chưa có nhân sự.</td></tr>'}
-    </tbody></table></div><div class="panel-b small muted">Capacity = Giờ/tuần × (1 − % họp, phát sinh) × Hệ số năng lực. Hệ số năng lực chọn theo 5 cấp (gợi ý theo kinh nghiệm, trưởng phòng tự chọn): &lt;1 năm → 1 · 1–3 năm → 1,2 · 3–5 năm → 1,5 · 5–8 năm → 2 · ≥8 năm → 3.</div></section>`;
+    <div class="tbl-wrap"><table class="settings-staff-table" style="table-layout:fixed"><thead><tr><th style="width:26%">Họ tên</th><th style="width:18%">Chức danh</th><th style="width:16%">Kinh nghiệm (năm)</th><th style="width:25%">Mức năng lực</th><th style="width:15%">Capacity (giờ/tuần)</th></tr></thead><tbody>
+    ${M.staff.map((s,i)=>`<tr class="${ro?"":"click"}" data-act="${ro?"":"editstaff"}" data-i="${i}" tabindex="0"><td class="cell-main">${esc(s.name)}</td><td>${esc(s.title||"–")}</td><td>${s.years!=null?fmt1(s.years):"–"}</td><td><span class="pill mute">${esc(factorLevel(s.factor)?.name||"Chưa chọn")}</span></td><td><strong class="settings-staff-cap">${fmt1(s.cap)}</strong></td></tr>`).join("")||'<tr><td colspan="5" class="muted">Chưa có nhân sự.</td></tr>'}
+    </tbody></table></div><div class="panel-b small muted">Mọi nhân sự có 40 giờ làm việc mỗi tuần. Mức năng lực chỉ để tham khảo, không thay đổi capacity.</div></section>`;
   h += staffOrphanPanel();
   for(const t of TYPES){
     const list = S.catalog.map((c,i)=>({...c,i})).filter(c=>c.type===t);
@@ -50,24 +50,19 @@ function catTreeRows(list, ro, type){
   return out;
 }
 function staffForm(i){
-  const isNew = i==null; const s = isNew ? {name:"", title:"", hours:40, pct:0.2, factor:1.0, years:0} : {...S.staff[i]};
-  const factorHint = (val,vals) => {
-    const y = +vals.years||0, lv = factorLevel(val);
-    /* hệ số cũ (thang 1–4, chưa chạy migrate-factor.js) không thuộc thang mới → nhắc chọn lại thay vì hiện sai */
-    const own = lv ? `${lv.name}: ${lv.desc}.` : (val ? `Hệ số hiện tại (${val}) chưa thuộc thang mới – hãy chọn lại một mức.` : "");
-    return `${own} Gợi ý theo ${y||0} năm kinh nghiệm: ${fmt1(factorSuggest(y))}`.trim();
-  };
-  openForm({title:isNew?"Thêm nhân sự":"Sửa nhân sự", values:{...s, pctV:Math.round(s.pct*100)},
-    fields:[{key:"name", label:"Họ tên", type:"text", required:true},
-      {key:"title", label:"Chức danh (chỉ để tham khảo, dùng cho KPI & Năng lực)", type:"text", hint:()=>"Vd: Network Engineer, Security Engineer…"},
-      {key:"hours", label:"Giờ làm / tuần", type:"number", half:true}, {key:"pctV", label:"% trừ họp, phát sinh", type:"number", half:true, hint:()=>"Khuyến nghị 15–25"},
-      {key:"years", label:"Số năm kinh nghiệm (chỉ để tham khảo)", type:"number", half:true, hint:()=>"Dùng để gợi ý hệ số năng lực bên cạnh"},
-      {key:"factor", label:"Hệ số năng lực", type:"seg", options:FACTOR_LEVELS.map(l=>[l.v, l.label]), half:true, hint:factorHint}],
+  const isNew = i==null; const s = isNew ? {name:"", department:"", title:"", hours:40, pct:0, factor:1.0, years:0} : {...S.staff[i]};
+  openForm({title:isNew?"Thêm nhân sự":"Sửa nhân sự", values:{...s, hours:40},
+    fields:[{key:"name", label:"Họ và tên", type:"text", required:true},
+      {key:"department", label:"Bộ phận", type:"text", half:true},
+      {key:"title", label:"Chức danh", type:"text", half:true},
+      {key:"factor", label:"Năng lực (tham khảo)", type:"select", half:true, options:[["", "Chọn mức năng lực"], ...FACTOR_LEVELS.map(l=>[l.v, l.name])], hint:val=>factorLevel(val)?.desc||"Chọn một trong 5 cấp năng lực."},
+      {key:"hours", label:"Giờ chuẩn / tuần (= 100% tải)", type:"number", half:true, disabled:true, hint:"Cố định 40 giờ/tuần cho mọi nhân sự."},
+      {key:"years", label:"Kinh nghiệm (năm, tham khảo)", type:"number", min:0, step:0.5, half:true}],
     onSave: async x => {
       const name = x.name.trim(), old = isNew ? null : S.staff[i].name;
       if(!name) throw new Error("Nhập họ tên.");
       if(S.staff.some((q,k)=>k!==i && q.name===name)) throw new Error("Đã có nhân sự tên này.");
-      const list=[...S.staff]; const row={name, title:x.title||"", hours:+x.hours||40, pct:(+x.pctV||0)/100, factor:+x.factor||1, years:+x.years||0};
+      const list=[...S.staff]; const row={...s, name, department:(x.department||"").trim(), title:(x.title||"").trim(), hours:40, pct:0, factor:factorLevel(x.factor)?.v ?? null, years:+x.years||0};
       if(isNew) list.push(row); else list[i]=row;
       /* Đổi tên: tên là khoá nối dữ liệu (dự án, đầu việc, tuần, nhật ký, tài khoản…) nên phải chuyển hết
          dữ liệu sang tên mới ở máy chủ TRƯỚC (POST /api/staff/rename, server.js), rồi mới lưu các ô còn lại. */

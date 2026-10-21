@@ -180,6 +180,11 @@ h3{font-size:14px; font-weight:600; margin:0}
 .pill.bad{background:var(--bad-soft); color:var(--bad)} .pill.warn{background:var(--warn-soft); color:var(--warn)}
 .pill.ok{background:var(--ok-soft); color:var(--ok)} .pill.info{background:var(--teal-soft); color:var(--teal-hover)}
 .pill.mute{background:var(--line-2); color:var(--ink-2)}
+/* Căn cột bảng nhân sự, giữ nhịp hàng đồng đều khi tên hoặc chức danh dài. */
+.settings-staff-table th,.settings-staff-table td{vertical-align:middle; padding:14px 20px}
+.settings-staff-table th:not(:first-child),.settings-staff-table td:not(:first-child){text-align:center}
+.settings-staff-table .pill{white-space:normal; text-align:left; line-height:1.6; padding:4px 12px}
+.settings-staff-cap{display:inline-block; color:var(--teal-hover); font-variant-numeric:tabular-nums}
 .tdot{display:inline-block; width:9px; height:9px; border-radius:2px; margin-right:6px; vertical-align:0}
 /* tables */
 .tbl-wrap{overflow-x:auto}

@@ -25,8 +25,8 @@ const HELP_DEFAULT = `
 <p><b>Mỗi tuần:</b> xem tab “Tải tuần” trong mục “Việc trong tuần” (ai quá tải, ai còn khả năng) và tab “Tổng quan” trong mục “Dự án” (quá hạn, sắp đến hạn, tiến độ theo giai đoạn).</p>
 <p><b>Đánh giá:</b> đầu việc hoàn thành có nhãn “Chờ đánh giá” — bấm vào để chấm đạt yêu cầu, chất lượng, tự chủ, nhận xét.</p>
 <h3>Cách tính (tóm tắt)</h3>
-<p><b>Workload:</b> ước lượng theo Quy mô × Độ phức tạp đầu việc — không phải thành tích.</p>
-<p><b>Capacity:</b> Giờ/tuần × (1 − % họp, phát sinh) × hệ số năng lực.</p>
+<p><b>Workload:</b> tải tuần bằng giờ thực hiện; kế hoạch ước lượng theo Quy mô, độ phức tạp chỉ tham khảo — không phải thành tích.</p>
+<p><b>Capacity:</b> 40 giờ/tuần cho mọi nhân sự.</p>
 <p><b>Mức sử dụng tuần:</b> Workload / Capacity — dưới 80% còn khả năng, 80–100% theo dõi, trên 100% quá tải.</p>
 <p><b>Ma sát:</b> cho biết vì sao việc không chạy — không dùng để đánh giá nhân viên.</p>
 `.trim();

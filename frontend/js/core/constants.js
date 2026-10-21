@@ -53,11 +53,8 @@ const OPEN = new Set(["Chưa bắt đầu","Đang làm","Đang vướng","Tạm 
 const CAUSES = ["Khách hàng","Hãng","Hàng hóa / thiết bị","Cộng sự","Hệ thống","Thay đổi yêu cầu","Chờ quyết định"];
 const QM_HINT = {1:"0,5–2 giờ",2:"2–8 giờ",3:"8–12 giờ",4:"12–24 giờ",5:"24–32 giờ"};
 const PT_HINT = {1:"Đơn giản",2:"Quen thuộc",3:"Cần chuyên môn",4:"Cần chuyên gia",5:"Chưa có tiền lệ"};
-/* Công thức Workload: quy Quy mô (bậc thời gian) ra số giờ đại diện thực tế (trung điểm khoảng giờ ở
-   QM_HINT), nhân với hệ số của Độ phức tạp — để Workload (giờ) chia cho Capacity (giờ/tuần, xem
-   settings.js) ra đúng % tải thực tế. Độ phức tạp đầu việc (không phải "Độ khó dự án") là yếu tố duy nhất
-   cộng thêm vào Quy mô; workload sau đó còn được chia cho Hệ số năng lực người phụ trách (xem model.js). */
-/* Thang "Hệ số năng lực" của nhân sự (nhân vào Capacity – model.js): 5 cấp cố định. Tên cấp/mô tả (do trưởng phòng quy định) chỉ để người nhập hiểu mức
+/* Workload kế hoạch theo Quy mô; tải tuần theo giờ nhập, không nhân độ phức tạp. */
+/* Thang "Hệ số năng lực" của nhân sự (chỉ tham khảo, không thay đổi Capacity): 5 cấp cố định. Tên cấp/mô tả (do trưởng phòng quy định) chỉ để người nhập hiểu mức
    đang chọn, không tham gia tính toán; gợi ý theo số năm kinh nghiệm (factorSuggest) chỉ để tham khảo, trưởng phòng tự chọn.
    Dữ liệu cũ dùng thang 1–4 phải chuyển 1 lần bằng backend/scripts/migrate-factor.js. */
 const FACTOR_LEVELS = [
@@ -70,14 +67,12 @@ const FACTOR_LEVELS = [
 const factorLevel = v => FACTOR_LEVELS.find(l => l.v === +v) || null;
 const factorSuggest = years => { const y = +years || 0; return y<1 ? 1 : y<3 ? 1.2 : y<5 ? 1.5 : y<8 ? 2 : 3; };
 const QM_HOURS = {1:1.25, 2:5, 3:10, 4:18, 5:28};
-/* Hệ số thời gian của Độ phức tạp 1–5: là bộ số RIÊNG (trước đây trùng thang Hệ số năng lực: 0,8 · 1 · 1,2 · 1,5 · 2; Hệ số năng lực nay là 1 · 1,2 · 1,5 · 2 · 3).
-   Đổi ở đây là đổi workload của MỌI lượt nhập (tính động từ e.pt, không lưu sẵn) kể cả tuần cũ, và cả điểm KPI (kpi-calc.js dùng chung). */
+/* Hệ số cũ giữ để tương thích các nơi xuất/nhập hằng số, không dùng tính tải. */
 const PT_MULT = {1:0.8, 2:1, 3:1.2, 4:1.5, 5:2};
-/* Thiếu Độ phức tạp (cả theo kế hoạch lẫn danh mục chuẩn đều không có) → coi như hệ số 1 (trung tính),
-   không chặn tính workload; Quy mô vẫn là trường bắt buộc nên thiếu qm thì không tính được (null). */
+/* Quy mô bắt buộc để tính ước lượng; độ phức tạp chỉ tham khảo. */
 function wlOf(qm, pt){
   if(!qm) return null;
-  return Math.round(QM_HOURS[qm]*(pt ? PT_MULT[pt] : 1)*10)/10;
+  return Math.round(QM_HOURS[qm]*10)/10;
 }
 const ICONS = {
   dash:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>',
@@ -103,7 +98,7 @@ const ICONS = {
 /* "dash" gộp chung "Tổng quan dự án" + "Kế hoạch dự án" (2 tab trong 1 màn – xem project-overview.js:
    viewProject()/plan.js) từ khi có yêu cầu gộp 2 mục menu, không còn mục "plan" riêng nữa. Giữ nguyên id
    "dash" (không đổi tên) để không phải sửa lại các chỗ đang tham chiếu S.view==="dash"/VIEW_RENDER.dash/
-   VIEWS.findIndex(v=>v.id==="dash") (reports.js chèn "Báo cáo" ngay sau mục này). */
+   VIEWS.findIndex(v=>v.id==="dash"). reports.js chèn "Báo cáo" sau "Việc trong tuần". */
 const VIEWS = [
   {id:"exec", label:"Dashboard", icon:"exec"},
   {id:"dash", label:"Dự án", icon:"dash"},

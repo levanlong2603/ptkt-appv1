@@ -148,9 +148,9 @@ module.exports = core => {
     async validate(s) {
       const d = s.d;
       if (!(d.hours >= 0.5 && d.hours <= 32)) return "Thời gian thực hiện phải từ 0,5 đến 32 giờ.";
-      const wl = W.r1(d.hours * (d.pt ? W.C.PT_MULT[d.pt] : 1)), rem = await remaining(s);
+      const wl = W.r1(d.hours), rem = await remaining(s);
       if (d.status !== "Hủy" && wl > rem.left)
-        return `Việc này tính tải ${n1(wl)}h (giờ × Độ phức tạp), vượt phần còn lại của tuần (${n1(rem.left)}h / ${n1(rem.cap)}h). Bấm Sửa để giảm giờ hoặc Độ phức tạp.`;
+        return `Việc này tính tải ${n1(wl)}h, vượt phần còn lại của tuần (${n1(rem.left)}h / ${n1(rem.cap)}h). Bấm Sửa để giảm giờ.`;
       return null;
     },
     async commit(s) {

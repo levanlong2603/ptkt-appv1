@@ -177,13 +177,7 @@ function entryForm(entry, person){
       {key:"hours", label:"Thời gian thực hiện", type:"number", min:0.5, max:32, step:0.5, required:true, half:true,
         hint:"Số giờ dự kiến làm trong tuần cho đầu việc này, có thể nhập lẻ 0,5 giờ."},
       {key:"pt", label:"Độ phức tạp", type:"seg", options:[[null,"Mặc định"],...[1,2,3,4,5].map(n=>[n,String(n)])],
-        /* Nhân vào Thời gian thực hiện để ra tải – đồng thời vẫn đồng bộ Độ phức tạp vừa chọn về đúng đầu
-           việc trong Kế hoạch dự án khi lưu (xem onSave bên dưới), để dùng chung cho ước lượng kế hoạch. */
-        hint:(v,vals)=>{
-          const mult = v ? PT_MULT[v] : 1;
-          const base = v ? `${PT_HINT[v]} (×${fmt1(mult)})` : "Mặc định, không điều chỉnh (×1)";
-          return vals.hours ? `${base} — ${fmt1(vals.hours)}h × ${fmt1(mult)} = ${fmt1(Math.round(vals.hours*mult*10)/10)}h tính vào tải tuần.` : base;
-        }},
+        hint:v=>v?PT_HINT[v]:""},
       {key:"status", label:"Trạng thái", type:"seg", options:ST_WEEK.map(s=>[s,s])},
       /* Ma sát = chọn cả mức độ lẫn nguyên nhân cùng lúc (2 ô cạnh nhau), tách hẳn khỏi "Vướng mắc / cần
          hỗ trợ" bên dưới – trước đây Nguyên nhân đứng riêng 1 dòng, dễ hiểu nhầm là đi cùng ghi chú vướng
@@ -200,9 +194,9 @@ function entryForm(entry, person){
     saveLabel: isNew ? "Thêm việc" : "Lưu thay đổi",
     onSave: async v => {
       if(!(v.hours>=0.5 && v.hours<=32)) throw new Error("Thời gian thực hiện phải từ 0,5 đến 32 giờ.");
-      /* Tải tính vào hệ thống = Thời gian thực hiện (giờ thật) × hệ số Độ phức tạp, khớp với model.js/derive(). */
-      const thisWl = Math.round(v.hours*(v.pt?PT_MULT[v.pt]:1)*10)/10;
-      if(thisWl>budgetH) throw new Error(`Việc này tính tải ${fmt1(thisWl)}h (giờ × Độ phức tạp), vượt quá phần còn lại dành cho việc này trong tuần (còn ${fmt1(budgetH)}h, sau khi đã trừ các việc khác). Giảm giờ, giảm Độ phức tạp, hoặc giảm bớt việc khác trước.`);
+      /* Tải tuần bằng số giờ thực hiện; độ phức tạp chỉ tham khảo. */
+      const thisWl = Math.round(v.hours*10)/10;
+      if(thisWl>budgetH) throw new Error(`Việc này tính tải ${fmt1(thisWl)}h, vượt quá phần còn lại dành cho việc này trong tuần (còn ${fmt1(budgetH)}h, sau khi đã trừ các việc khác). Giảm giờ hoặc giảm bớt việc khác trước.`);
       const doc = weekDoc(S.week, who); const list = doc ? [...(doc.entries||[])] : [];
       const taskRef = M.taskMap.get(v.projectId+"|"+v.taskId);
       /* Mỗi đầu việc chỉ 1 dòng/tuần – trừ MỌI đầu việc của dự án Nội bộ ("Việc chung của phòng": hỗ trợ, đào

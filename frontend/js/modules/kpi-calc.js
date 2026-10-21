@@ -76,11 +76,11 @@ const KPI_CALC = (() => {
      CSDL trả về theo thứ tự nào (chỉ ảnh hưởng khi 2 người cùng báo trạng thái khác nhau cho 1 đầu việc
      trong cùng tuần mới nhất). */
   function prepare(data){
-    const cap = new Map((data.staff||[]).map(s => [s.name, Math.round((+s.hours||0)*(1-(+s.pct||0))*(+s.factor||1)*10)/10]));
+    const cap = new Map((data.staff||[]).map(s => [s.name, 40]));
     const docs = [...(data.weeks||[])].sort((a,b) => String(a.week).localeCompare(String(b.week)) || String(a.id||a._id||"").localeCompare(String(b.id||b._id||"")));
     const entries = [], latest = new Map(), doneWk = new Map();
     for(const w of docs) for(const e of (w.entries||[])){
-      const wl = e.hours!=null ? Math.round(e.hours*(e.pt ? K.PT_MULT[e.pt] : 1)*10)/10 : K.wlOf(e.qm, e.pt);
+      const wl = e.hours!=null ? Math.round(e.hours*10)/10 : K.wlOf(e.qm, e.pt);
       const en = {week:w.week, person:w.person, projectId:e.projectId, taskId:e.taskId, status:e.status||"", pt:e.pt||null, wl, hours:e.hours!=null ? +e.hours||0 : null};
       entries.push(en);
       const k = e.projectId+"|"+e.taskId;

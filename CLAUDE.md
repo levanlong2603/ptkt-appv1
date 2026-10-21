@@ -62,16 +62,9 @@ biết phạm vi/giới hạn). Thứ tự nạp trong `index.html` quyết đ�
 - Giao diện: `frontend/js/modules/telegram.js` (menu tài khoản → "Liên kết Telegram"; trưởng phòng thêm "Lịch tự động Telegram").
 
 ## Công thức Workload / Capacity (`frontend/js/core/constants.js`, `model.js`)
-- **Đầu việc theo kế hoạch** (`p._tasks`, Kế hoạch dự án): `Workload (giờ) = QM_HOURS[Quy mô] ×
-  PT_MULT[Độ phức tạp]` (hàm `wlOf()`); thiếu Quy mô → `null` (bắt buộc); thiếu Độ phức tạp → hệ số mặc
-  định 1,0 (không chặn). Đây là ước lượng/kế hoạch.
-- **Một lượt nhập trong tuần** (Nhập theo tuần): `Workload (giờ) = e.hours (ô "Thời gian thực hiện", giờ
-  thật người nhập tự gõ) × PT_MULT[e.pt]`. `e.qm` (ô "Quy mô") ở màn này chỉ còn là ước lượng/tham khảo,
-  **không** tham gia công thức. Chọn Độ phức tạp trong tuần vẫn đồng bộ ngược về `t.pt` của đầu việc trong
-  Kế hoạch dự án khi lưu (dùng chung cho ước lượng kế hoạch ở trên). Các lượt nhập cũ chỉ có `e.qm` (từ
-  trước khi có ô giờ thật) đọc lại qua `wlOf(e.qm, e.pt)` để không đổi dữ liệu lịch sử.
-- `Capacity (giờ/tuần) = Giờ/tuần × (1 − % họp, phát sinh) × Hệ số năng lực` (`model.js`, `derive()`).
-  Hệ số năng lực **chỉ nhân ở Capacity**, Workload không chia lại cho hệ số (tránh tính trùng).
+- **Đầu việc theo kế hoạch**: `Workload (giờ) = QM_HOURS[Quy mô]`, thiếu Quy mô thì `null`.
+- **Một lượt nhập tuần**: Workload bằng `e.hours`, không nhân hệ số độ phức tạp. Dòng cũ thiếu giờ dùng `wlOf(e.qm, e.pt)` theo Quy mô. Quy mô và Độ phức tạp vẫn giữ để tham khảo; Độ phức tạp vẫn đồng bộ về đầu việc khi lưu. Công thức này áp dụng cho cả web, KPI và Telegram, kể cả khi đọc tuần cũ.
+- `Capacity (giờ/tuần) = 40` cố định cho mọi nhân sự trên web, KPI và bot Telegram. Không áp dụng hệ số năng lực hay phần trăm trừ họp/phát sinh; giữ tương thích các trường dữ liệu cũ.
 - Tiến độ dự án (`p._prog`, `p._phases`, `planStat()`) dùng trọng số `t.wl ?? 1` (không phải `t.wl || 0`)
   để đầu việc thiếu Quy mô không "biến mất" khỏi mẫu số gây tiến độ ảo 100%.
 - `planIsDone(p)` dựa vào `p._allDone` (mọi đầu việc chưa Hủy đều Hoàn thành), không dùng `p._prog===1`.
@@ -123,3 +116,4 @@ biết phạm vi/giới hạn). Thứ tự nạp trong `index.html` quyết đ�
 
 ## Triển khai
 Máy chủ thật: mã ở `/opt/ptkt`, CSDL MariaDB `ptkt` (user `ptkt`@localhost), dịch vụ systemd `ptkt`, Nginx. Quy trình cập nhật: sao lưu (`deploy/backup.sh`) → chép mã mới vào `/opt/ptkt` (giữ `.env` và dữ liệu) → `npm ci --omit=dev` → `systemctl restart ptkt`. Luôn sao lưu trước khi cập nhật.
+

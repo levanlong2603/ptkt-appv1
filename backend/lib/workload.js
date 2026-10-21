@@ -4,8 +4,8 @@
    - Hằng số (QM_HOURS, PT_MULT, wlOf, ST_WEEK, OPEN, CAUSES…) nạp THẲNG từ frontend/js/core/constants.js bằng
      `vm` → một nguồn duy nhất, sửa hằng số ở frontend thì máy chủ dùng theo luôn.
    - Phần tổng hợp theo người/đầu việc viết lại ở đây, bám đúng model.js/derive():
-       Capacity = giờ/tuần × (1 − % họp) × hệ số năng lực
-       Workload lượt nhập = e.hours × PT_MULT[e.pt] (thiếu pt → ×1); lượt cũ chỉ có e.qm → wlOf(e.qm, e.pt)
+       Capacity = 40 giờ/tuần cho mọi nhân sự
+       Workload lượt nhập = e.hours; độ phức tạp chỉ tham khảo; lượt cũ chỉ có e.qm → wlOf(e.qm, e.pt)
        Trạng thái hiện tại của đầu việc = trạng thái ở lượt nhập tuần GẦN NHẤT có trạng thái, nếu chưa có
        lượt nào thì lấy t.init.status, mặc định "Chưa bắt đầu".
    Sửa công thức ở model.js thì nhớ sửa tương ứng ở đây. */
@@ -22,8 +22,8 @@ const C = (() => {
 })();
 
 const r1 = x => Math.round(x * 10) / 10;
-const capOf = s => r1((+s.hours || 0) * (1 - (+s.pct || 0)) * (+s.factor || 1));
-const entryWl = e => e.hours != null ? r1(e.hours * (e.pt ? C.PT_MULT[e.pt] : 1)) : C.wlOf(e.qm, e.pt);
+const capOf = s => 40;
+const entryWl = e => e.hours != null ? r1(e.hours) : C.wlOf(e.qm, e.pt);
 /* Quy mô (ước lượng, chỉ để tham khảo) suy ra từ số giờ thật – bot không hỏi riêng bước này; khớp khoảng giờ ở QM_HINT */
 const qmFromHours = h => h <= 2 ? 1 : h <= 8 ? 2 : h <= 12 ? 3 : h <= 24 ? 4 : 5;
 /* Tên ngắn của đầu việc (bỏ tiền tố "01. Hạng mục – "), khớp planShortName() ở frontend/js/views/plan.js */
