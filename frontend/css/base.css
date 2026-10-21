@@ -217,7 +217,7 @@ td.num,th.num{text-align:right}
 .legend{display:flex; flex-wrap:wrap; gap:4px 14px; font-size:12px; color:var(--ink-3)}
 .legend b{color:var(--ink-2); font-weight:600; margin-right:3px}
 /* load bars */
-.lrow{display:grid; grid-template-columns:200px minmax(140px,1fr) 140px 110px 150px; gap:18px; align-items:center; padding:14px 22px; border-top:1px solid var(--line-2)}
+.lrow{display:grid; grid-template-columns:200px minmax(140px,1fr) 140px 150px; gap:18px; align-items:center; padding:14px 22px; border-top:1px solid var(--line-2)}
 .lrow:first-of-type{border-top:0}
 .lrow-h{padding:8px 22px; border-top:0; border-bottom:1px solid var(--line-2); text-transform:uppercase; letter-spacing:.03em; font-size:11px}
 .lbar{position:relative; height:20px; background:var(--line-2); border-radius:5px; overflow:visible}

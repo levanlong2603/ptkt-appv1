@@ -52,7 +52,7 @@ function viewLoad(){
     <div class="stat ${blocked.length?"bad":""}"><div class="v">${blocked.length}</div><div class="l">Đầu việc bị vướng</div></div></div>`;
   const legend = `<div class="legend">${TYPES.map(t=>`<span>${typeDot(t)}${t}</span>`).join("")}<span><span class="tdot" style="background:transparent;border-left:2px dashed var(--ink-3)"></span>80%</span></div>`;
   h += `<section class="panel"><div class="panel-h"><h2>Workload từng người</h2>${legend}</div>`;
-  h += `<div class="lrow lrow-h small muted"><div>Nhân sự</div><div>Tải tuần</div><div class="hide-m">Workload / Capacity</div><div class="hide-m" style="text-align:center">Hoàn thành</div><div>Trạng thái</div></div>`;
+  h += `<div class="lrow lrow-h small muted"><div>Nhân sự</div><div>Tải tuần</div><div class="hide-m">Workload / Capacity</div><div>Trạng thái</div></div>`;
   h += rows.map(r => {
     /* % của mỗi đoạn màu tính theo tỉ trọng trong tổng workload người này (không chia lại maxScale) – vì
        đoạn màu nằm bên trong .fill, mà .fill đã co theo maxScale rồi; chia thêm lần nữa sẽ làm thanh co
@@ -63,7 +63,6 @@ function viewLoad(){
         <i class="tick" style="left:80%"></i>
         <span class="lbar-pct" style="color:${r.u>1?"var(--bad)":r.u>=.8?"var(--warn)":"var(--ink)"}">${r.L.es.length?pct(r.u):"–"}</span></div>
       <div class="small muted hide-m">${fmt1(r.L.wl)} / ${fmt1(r.s.cap)} điểm</div>
-      <div class="upct hide-m" style="text-align:center; color:${!r.L.es.length?"inherit":r.done.ratio>=1?"var(--ok)":r.done.ratio>0?"var(--teal-hover)":"inherit"}">${r.L.es.length?pct(r.done.ratio):"–"}</div>
       <div><span class="pill ${r.state[0]}">${r.state[1]}</span></div></div>`;
   }).join("") || `<div class="empty">Chưa có nhân sự. Thêm ở mục Cài đặt.</div>`;
   h += `</section>`;

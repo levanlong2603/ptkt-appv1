@@ -37,6 +37,12 @@
 .ex-t td.w{white-space:normal; min-width:150px}
 .ex-t td.w2{white-space:normal; min-width:84px}
 .ex-t td.c,.ex-t th.c{text-align:center}
+/* Bảng "Công việc đang thực hiện": tỷ lệ cột cố định (colgroup), không co giãn theo nội dung; hẹp màn hình thì cuộn ngang */
+.ex-t-fix{table-layout:fixed; min-width:1040px}
+.ex-t-fix th,.ex-t-fix td{padding:10px 8px; overflow-wrap:anywhere}
+.ex-t-fix th{white-space:nowrap}
+.ex-t-fix td{white-space:normal}
+.ex-t-fix td.w,.ex-t-fix td.w2{min-width:0}
 .ex-t td.late{color:var(--bad); font-weight:700}
 .ex-scroll{max-height:372px; overflow:auto}
 .ex-ubar{display:flex; align-items:center; gap:8px}

@@ -47,15 +47,16 @@ function periodInfo(anchor, kind){
   const y = d.getFullYear();
   let m0, m1, label;
   if(kind==="month"){ m0 = d.getMonth(); m1 = m0; label = `Tháng ${m0+1}/${y}`; }
+  else if(kind==="year"){ m0 = 0; m1 = 11; label = `Năm ${y}`; }
   else { const qn = Math.floor(d.getMonth()/3); m0 = qn*3; m1 = m0+2; label = `Quý ${qn+1}/${y}`; }
   const weeks = []; let w = mondayOf(iso(new Date(y, m0, 1)));
   if(parse(w).getMonth()!==m0) w = addDays(w,7);
   while(true){ const wd = parse(w); if(wd.getFullYear()!==y || wd.getMonth()>m1) break; weeks.push(w); w = addDays(w,7); }
-  return {weeks, label, short: kind==="month"?"tháng":"quý"};
+  return {weeks, label, short: kind==="month"?"tháng":kind==="year"?"năm":"quý"};
 }
 function shiftAnchor(anchor, kind, dir){
   if(kind==="week") return addDays(anchor, 7*dir);
-  const d = parse(anchor); const step = kind==="month"?1:3;
+  const d = parse(anchor); const step = kind==="month"?1:kind==="year"?12:3;
   const nd = new Date(d.getFullYear(), d.getMonth()+step*dir, 1);
   const w = mondayOf(iso(nd)); return parse(w).getMonth()===nd.getMonth() ? w : addDays(w,7);
 }
@@ -123,7 +124,7 @@ function viewExec(){
   let h = `<div class="ex">
   <div class="head"><h1>Dashboard</h1>
     <div class="ex-ctl"><div class="ex-wk"><button data-act="exnav" data-d="-1" aria-label="Kỳ trước">‹</button><div class="lb">${esc(P.label)}</div><button data-act="exnav" data-d="1" aria-label="Kỳ sau">›</button></div>
-      <div class="ex-seg" role="group" aria-label="Kỳ báo cáo">${[["week","Tuần"],["month","Tháng"],["quarter","Quý"]].map(([k,l])=>`<button data-act="exper" data-k="${k}" aria-pressed="${kind===k}">${l}</button>`).join("")}</div>
+      <div class="ex-seg" role="group" aria-label="Kỳ báo cáo">${[["week","Tuần"],["month","Tháng"],["year","Năm"]].map(([k,l])=>`<button data-act="exper" data-k="${k}" aria-pressed="${kind===k}">${l}</button>`).join("")}</div>
       ${scopeToggleHtml()}
       <button class="btn icon" data-act="exrefresh" title="Làm mới" aria-label="Làm mới">${ICONS.refresh}</button></div></div>`;
   // KPI row
@@ -149,7 +150,7 @@ function viewExec(){
     <div class="ex-card"><div class="ex-h"><h3>CÔNG VIỆC ĐANG THỰC HIỆN</h3>
       <div class="ex-chips" role="group" aria-label="Lọc ưu tiên">${["Tất cả","P1","P2","P3","P4"].map(x=>`<button data-act="expr" data-p="${x}" aria-pressed="${pr===x}">${x}</button>`).join("")}</div></div>
       <div class="panel-b" style="padding:0 16px 12px"><input type="search" data-act="exq" value="${esc(S.exQ||"")}" placeholder="Tìm công việc, dự án, người phụ trách…" style="width:100%; max-width:360px"></div>
-      <div class="ex-scroll"><table class="ex-t"><thead><tr><th class="c">#</th><th>Công việc</th><th>Dự án</th><th>Phụ trách</th><th class="c">Quy<br>mô</th><th class="c">Độ phức<br>tạp</th><th class="c">Work-<br>load</th><th class="c">Ưu<br>tiên</th><th class="c">Hạn</th><th class="c">Ma sát</th><th class="c">Rủi ro</th><th class="c">Trạng thái</th></tr></thead><tbody>
+      <div class="ex-scroll"><table class="ex-t ex-t-fix"><colgroup><col style="width:3%"><col style="width:19%"><col style="width:13%"><col style="width:9%"><col style="width:6%"><col style="width:8%"><col style="width:8%"><col style="width:6%"><col style="width:6%"><col style="width:7%"><col style="width:6%"><col style="width:9%"></colgroup><thead><tr><th class="c">#</th><th>Công việc</th><th>Dự án</th><th>Phụ trách</th><th class="c">Quy mô</th><th class="c">Độ phức tạp</th><th class="c">Workload</th><th class="c">Ưu tiên</th><th class="c">Hạn</th><th class="c">Ma sát</th><th class="c">Rủi ro</th><th class="c">Trạng thái</th></tr></thead><tbody>
       ${list.map((t,i)=>{ const r=taskRisk(t); return `<tr><td class="c">${i+1}</td><td class="w">${esc(t.dv.replace(/^[0-9A-Z]{1,2}\d?\.\s*[^–]*–\s*/,""))}</td><td class="w2">${esc(t.p.name)}</td><td class="w2">${esc(peopleText(tOwners(t)))}</td>
         <td class="c">${t.qmE??"–"}</td><td class="c">${t.ptE??"–"}</td><td class="c"><b>${t.wl??"–"}</b></td><td class="c">${t.pr?`<span class="ex-tag tg-${t.pr.toLowerCase()}">${esc(t.pr)}</span>`:"–"}</td>
         <td class="c${isLate(t)?" late":""}">${t.deadline?dm(t.deadline):"–"}</td>

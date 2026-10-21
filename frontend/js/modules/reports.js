@@ -426,7 +426,7 @@ function rpProjOptions(withAll, selected, ptype){
   return ph + list.map(p => `<option value="${esc(p.id)}" ${p.id===selected?"selected":""}>${esc(p.name)}</option>`).join("");
 }
 /* Ô tuần kiểu Dashboard (.ex-wk) – đặt lên NGANG HÀNG tiêu đề "Báo cáo" (xem viewReports()). Báo cáo tuần
-   CHỈ chỉnh được theo tuần (không có Tháng/Quý như 2 tab Báo cáo dự án/Báo cáo tổng hợp dự án – đúng tên
+   CHỈ chỉnh được theo tuần (không có Tháng/Năm như 2 tab Báo cáo dự án/Báo cáo tổng hợp dự án – đúng tên
    gọi "Báo cáo tuần"), nên không có .ex-seg kỳ đi kèm như 2 tab kia. */
 function rpWeekTitleNav(){
   return `<div class="ex-wk" style="flex:none">
@@ -462,14 +462,14 @@ function rpExportBtnHtml(canExport){
 }
 /* Tách toolbar (đặt lên ngang hàng tiêu đề "Báo cáo", giống Dashboard) khỏi nội dung bảng – viewReports()
    gọi cả 2 hàm với CÙNG 1 "ov" đã build sẵn, khỏi tính lại 2 lần. */
-/* Đầy đủ như Dashboard (ô kỳ + Tuần/Tháng/Quý + Tổng thể/Cá nhân + làm mới), cả 3 mức Tuần/Tháng/Quý đều
+/* Đầy đủ như Dashboard (ô kỳ + Tuần/Tháng/Năm + Tổng thể/Cá nhân + làm mới), cả 3 mức Tuần/Tháng/Năm đều
    chọn được (khác Báo cáo tuần bị khoá ở Tuần) – ô "Loại dự án" + nút Xuất báo cáo vẫn ở đúng vị trí cũ
    (thanh công cụ riêng, đầu rpOverviewContent()). Riêng ô Tổng thể/Cá nhân khoá cứng ở "Cá nhân"
    (scopeToggleHtml(true)) như Kế hoạch dự án: báo cáo tổng hợp không có khái niệm lọc theo 1 nhân sự nên
    bật "Tổng thể" ở đây không có gì để lọc – để mở tự do sẽ gây hiểu lầm là có tác dụng. */
 function rpOverviewToolbar(ov){
   return `<div class="ex-wk" style="flex:none"><button type="button" data-act="rpovnav" data-d="-1" aria-label="Kỳ trước">‹</button><div class="lb">${esc(ov.P.label)}</div><button type="button" data-act="rpovnav" data-d="1" aria-label="Kỳ sau">›</button></div>
-    <div class="ex-seg" role="group" aria-label="Kỳ báo cáo" style="flex:none">${[["week","Tuần"],["month","Tháng"],["quarter","Quý"]].map(([k,l])=>`<button type="button" data-act="rpovkind" data-k="${k}" aria-pressed="${ov.kind===k}">${l}</button>`).join("")}</div>
+    <div class="ex-seg" role="group" aria-label="Kỳ báo cáo" style="flex:none">${[["week","Tuần"],["month","Tháng"],["year","Năm"]].map(([k,l])=>`<button type="button" data-act="rpovkind" data-k="${k}" aria-pressed="${ov.kind===k}">${l}</button>`).join("")}</div>
     ${scopeToggleHtml(true)}
     <button class="btn icon" data-act="exrefresh" title="Làm mới" aria-label="Làm mới">${ICONS.refresh}</button>`;
 }
@@ -558,8 +558,8 @@ function rpWeekRowsHtml(report){
         <td class="small" style="white-space:pre-wrap; vertical-align:top">${r.solution?esc(r.solution):'<span class="muted">–</span>'}</td></tr>`;
     }).join("")}</tbody></table></div></div>`;
 }
-/* Đầy đủ các nút như Dashboard (ô tuần + Tuần/Tháng/Quý + Tổng thể/Cá nhân + làm mới) – RIÊNG seg kỳ bị
-   khoá chỉ ở "Tuần" (Tháng/Quý disabled, không bấm được) vì Báo cáo tuần chỉ chỉnh được theo tuần. Seg
+/* Đầy đủ các nút như Dashboard (ô tuần + Tuần/Tháng/Năm + Tổng thể/Cá nhân + làm mới) – RIÊNG seg kỳ bị
+   khoá chỉ ở "Tuần" (Tháng/Năm disabled, không bấm được) vì Báo cáo tuần chỉ chỉnh được theo tuần. Seg
    xem/lọc/nút Xuất báo cáo vẫn ở đúng vị trí cũ (thanh công cụ riêng, đầu rpWeekContent()). Ô Tổng thể/Cá
    nhân cũng khoá cứng ở "Cá nhân" (scopeToggleHtml(true)): bộ lọc theo người thật của tab này là ô "Nhân
    sự" riêng (rpWeekFilterHtml(), S.rp.wkStaff) – để ô này mở tự do sẽ trùng/gây hiểu lầm vì không nối gì
@@ -569,7 +569,7 @@ function rpWeekToolbar(report){
     <div class="ex-seg" role="group" aria-label="Kỳ báo cáo">
       <button type="button" aria-pressed="true">Tuần</button>
       <button type="button" disabled title="Báo cáo tuần chỉ chỉnh được theo tuần">Tháng</button>
-      <button type="button" disabled title="Báo cáo tuần chỉ chỉnh được theo tuần">Quý</button>
+      <button type="button" disabled title="Báo cáo tuần chỉ chỉnh được theo tuần">Năm</button>
     </div>
     ${scopeToggleHtml(true)}
     <button class="btn icon" data-act="exrefresh" title="Làm mới" aria-label="Làm mới">${ICONS.refresh}</button>`;
@@ -634,7 +634,7 @@ function rpWeekJournalHtml(){
       return `<tr><td class="cell-main" style="vertical-align:top">${esc(n)}</td>${dates.map(d=>`<td class="small" style="white-space:pre-wrap; vertical-align:top">${m.get(d)?esc(m.get(d)):'<span class="muted">–</span>'}</td>`).join("")}</tr>`;
     }).join("")}</tbody></table></div></div>`;
 }
-/* Đầy đủ như Dashboard (ô kỳ + Tuần/Tháng/Quý + Tổng thể/Cá nhân + làm mới), cả 3 mức Tuần/Tháng/Quý đều
+/* Đầy đủ như Dashboard (ô kỳ + Tuần/Tháng/Năm + Tổng thể/Cá nhân + làm mới), cả 3 mức Tuần/Tháng/Năm đều
    chọn được (khác Báo cáo tuần bị khoá ở Tuần) – ô "Loại dự án"/"Dự án" + nút Xuất báo cáo vẫn ở đúng vị
    trí cũ (thanh công cụ riêng, đầu rpProjectContent()), kể cả khi pr.empty (chưa chọn dự án) – vẫn cần
    hiện để người dùng chọn dự án. Ô Tổng thể/Cá nhân khoá cứng ở "Cá nhân" (scopeToggleHtml(true)) như Kế
@@ -642,7 +642,7 @@ function rpWeekJournalHtml(){
    "Tổng thể" ở đây không có gì để lọc. */
 function rpProjectToolbar(pr){
   return `<div class="ex-wk" style="flex:none"><button type="button" data-act="rppjnav" data-d="-1" aria-label="Kỳ trước">‹</button><div class="lb">${esc(pr.P.label)}</div><button type="button" data-act="rppjnav" data-d="1" aria-label="Kỳ sau">›</button></div>
-    <div class="ex-seg" role="group" aria-label="Kỳ báo cáo" style="flex:none">${[["week","Tuần"],["month","Tháng"],["quarter","Quý"]].map(([k,l])=>`<button type="button" data-act="rppjkind" data-k="${k}" aria-pressed="${pr.kind===k}">${l}</button>`).join("")}</div>
+    <div class="ex-seg" role="group" aria-label="Kỳ báo cáo" style="flex:none">${[["week","Tuần"],["month","Tháng"],["year","Năm"]].map(([k,l])=>`<button type="button" data-act="rppjkind" data-k="${k}" aria-pressed="${pr.kind===k}">${l}</button>`).join("")}</div>
     ${scopeToggleHtml(true)}
     <button class="btn icon" data-act="exrefresh" title="Làm mới" aria-label="Làm mới">${ICONS.refresh}</button>`;
 }

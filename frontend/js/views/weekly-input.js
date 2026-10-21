@@ -26,7 +26,7 @@ function viewInput(){
     <button class="btn primary" data-act="addentry">+ Thêm việc</button>`}`}</div></div></section>`;
   if(locked) h += `<p class="small muted" style="margin:-8px 0 14px">Tuần ${isoWeek(w)} đã qua, chỉ trưởng phòng mới sửa được dữ liệu tuần này.</p>`;
   if(!L.es.length) return h + `<section class="panel"><div class="empty"><b>Chưa có việc nào trong tuần ${isoWeek(w)}</b>${locked?"":"Thêm việc bạn làm trong tuần, hoặc chép các việc dở dang từ tuần trước."}</div></section>`;
-  return h + `<section class="panel tbl-wrap"><table style="table-layout:fixed"><thead><tr><th style="width:20%">Đầu việc</th><th style="width:20%">Việc làm</th><th style="width:8%; text-align:center">Giờ</th><th style="width:10%; text-align:center">Workload</th><th style="width:14%">Trạng thái cuối tuần</th><th style="width:12%">Ma sát</th><th style="width:16%">Vướng / cần hỗ trợ</th></tr></thead><tbody>${inputTreeRows(L.es, locked)}</tbody></table></section>
+  return h + `<section class="panel tbl-wrap"><table style="table-layout:fixed"><thead><tr><th style="width:20%">Đầu việc</th><th style="width:20%">Việc làm</th><th style="width:8%; text-align:center">Giờ</th><th style="width:10%; text-align:center">Workload</th><th style="width:14%">Trạng thái</th><th style="width:12%">Ma sát</th><th style="width:16%">Vướng / cần hỗ trợ</th></tr></thead><tbody>${inputTreeRows(L.es, locked)}</tbody></table></section>
     ${locked?"":'<p class="small muted">Bấm vào một dòng để sửa hoặc xoá.</p>'}`;
 }
 /* "Tất cả" (chỉ trưởng phòng): liệt kê gộp việc đã nhập của mọi người trong tuần, gom theo người.
@@ -44,7 +44,7 @@ function viewInputAll(w){
     rows += inputGroupRow(0, person, `${pes.length} đầu việc · ${fmt1(wl)} điểm`, 7);
     for(const e of pes) rows += inputAllRow(e);
   }
-  return `<section class="panel tbl-wrap"><table style="table-layout:fixed"><thead><tr><th style="width:26%">Đầu việc</th><th style="width:16%">Việc làm</th><th style="width:7%; text-align:center">Giờ</th><th style="width:9%; text-align:center">Workload</th><th style="width:13%">Trạng thái cuối tuần</th><th style="width:12%">Ma sát</th><th style="width:17%">Vướng / cần hỗ trợ</th></tr></thead><tbody>${rows}</tbody></table></section>
+  return `<section class="panel tbl-wrap"><table style="table-layout:fixed"><thead><tr><th style="width:26%">Đầu việc</th><th style="width:16%">Việc làm</th><th style="width:7%; text-align:center">Giờ</th><th style="width:9%; text-align:center">Workload</th><th style="width:13%">Trạng thái</th><th style="width:12%">Ma sát</th><th style="width:17%">Vướng / cần hỗ trợ</th></tr></thead><tbody>${rows}</tbody></table></section>
     <p class="small muted">Bấm vào một dòng để sửa hoặc xoá.</p>`;
 }
 /* Cột "Ma sát" (mức độ + nguyên nhân) và "Vướng / cần hỗ trợ" (ghi chú) tách riêng 2 ô, không ghép chung

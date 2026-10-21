@@ -17,7 +17,7 @@ const HELP_DEFAULT = `
 <p><b>1. Chọn tên:</b> chọn tên ở mục “Tôi là” dưới thanh bên (trình duyệt sẽ nhớ).</p>
 <p><b>2. Việc trong tuần:</b> mở “Việc trong tuần”, chọn đúng tuần. Bấm “+ Thêm việc” cho mỗi đầu việc đã làm, hoặc “Chép việc dở dang từ tuần trước”.</p>
 <p><b>3. Quy mô trong tuần:</b> chấm khối lượng phần việc làm trong tuần, chỉ để tham khảo.</p>
-<p><b>4. Trạng thái cuối tuần:</b> Đang làm / Đang vướng / Tạm dừng / Hoàn thành / Hủy. Nếu vướng: chọn mức ma sát, nguyên nhân, ghi "Vướng mắc / cần ai hỗ trợ". Trạng thái tự cập nhật về Kế hoạch dự án.</p>
+<p><b>4. Trạng thái:</b> Đang làm / Đang vướng / Tạm dừng / Hoàn thành / Hủy. Nếu vướng: chọn mức ma sát, nguyên nhân, ghi "Vướng mắc / cần ai hỗ trợ". Trạng thái tự cập nhật về Kế hoạch dự án.</p>
 <p><b>Việc ngoài dự án:</b> hỗ trợ, việc phát sinh, đào tạo nội bộ — chọn dự án “Việc chung của phòng”.</p>
 <h2>Trưởng phòng / Phó phòng</h2>
 <p><b>Dự án mới:</b> mục “Dự án” → tab “Kế hoạch dự án” → “+ Dự án mới”, chọn loại Triển khai / Thầu — hệ thống tự tạo sẵn đầu việc theo quy trình chuẩn của loại đó.</p>

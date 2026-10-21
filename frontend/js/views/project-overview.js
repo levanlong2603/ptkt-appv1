@@ -10,13 +10,13 @@ function viewProject(){
      người quản lý; bấm 1 dự án mở trang riêng của nó (bảng đầu việc đầy đủ, sửa/đánh giá/thêm đầu việc) */
   return `<div class="head"><div><h1>Dự án</h1></div><div class="ex-ctl">${dashToolbar()}</div></div>` + dashContent();
 }
-/* Thanh điều khiển giống hệt Dashboard (ô kỳ + Tuần/Tháng/Quý + Tổng thể/Cá nhân + làm mới) – tab này
+/* Thanh điều khiển giống hệt Dashboard (ô kỳ + Tuần/Tháng/Năm + Tổng thể/Cá nhân + làm mới) – tab này
    chưa dùng kỳ để lọc gì, chỉ thêm sẵn cho đồng bộ giao diện, dùng chung S.week/S.period/periodInfo()/
    exnav/exper (exec-dashboard.js, events.js) với Dashboard nên đổi kỳ ở đâu cũng khớp nơi khác. */
 function dashToolbar(){
   const kind = S.period || "week", per = periodInfo(S.week, kind);
   return `<div class="ex-wk"><button data-act="exnav" data-d="-1" aria-label="Kỳ trước">‹</button><div class="lb">${esc(per.label)}</div><button data-act="exnav" data-d="1" aria-label="Kỳ sau">›</button></div>
-    <div class="ex-seg" role="group" aria-label="Kỳ báo cáo">${[["week","Tuần"],["month","Tháng"],["quarter","Quý"]].map(([k,l])=>`<button data-act="exper" data-k="${k}" aria-pressed="${kind===k}">${l}</button>`).join("")}</div>
+    <div class="ex-seg" role="group" aria-label="Kỳ báo cáo">${[["week","Tuần"],["month","Tháng"],["year","Năm"]].map(([k,l])=>`<button data-act="exper" data-k="${k}" aria-pressed="${kind===k}">${l}</button>`).join("")}</div>
     ${scopeToggleHtml()}
     <button class="btn icon" data-act="exrefresh" title="Làm mới" aria-label="Làm mới">${ICONS.refresh}</button>`;
 }
@@ -80,7 +80,7 @@ function projBadges(p){
    người không có quyền bấm vào dòng chỉ mở được popup xem. */
 function projectPage(p){
   const cell = (label, val) => `<div><div class="small muted">${label}</div><div style="font-weight:700; font-size:17px">${val}</div></div>`;
-  /* Trang riêng của dự án vẫn giữ thanh kỳ Tuần/Tháng/Quý + Làm mới ở hàng tiêu đề như 2 tab của màn Dự án (cùng
+  /* Trang riêng của dự án vẫn giữ thanh kỳ Tuần/Tháng/Năm + Làm mới ở hàng tiêu đề như 2 tab của màn Dự án (cùng
      toolbar với tab Tổng quan – dashToolbar()), để đổi kỳ ngay khi đang xem 1 dự án mà không phải quay lại */
   return `<div class="head"><div><h1>Dự án</h1></div><div class="ex-ctl">${dashToolbar()}</div></div>
     <section class="panel" style="margin-bottom:18px"><div class="panel-b me-sum me-sum-end">

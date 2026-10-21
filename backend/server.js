@@ -77,6 +77,8 @@ const RULES = {
   kpiNote: "admin",         // kpiNote/<kỳ>__<tên nhân sự>  (nhận xét của trưởng phòng ở trang KPI & Năng lực)
   kpiReview: "server",      // kpiReview/<kind>-<mã kỳ>__<tên>  (bản đánh giá KPI: nháp/đã chốt, điểm lúc chốt, lịch sử
                              // điều chỉnh) – chỉ ghi qua /api/kpi/review*, xem lib/kpi.js
+  skillMatrix: "admin",     // skillMatrix/<slug chức danh>  (ma trận kỹ năng theo chức danh: {title, skills:[{name,target}]})
+  skillAssess: "admin",     // skillAssess/<slug tên nhân sự>  (đánh giá cấp độ kỹ năng: {person, levels:{skillName:cấp}})
   worklog: "own-week",      // worklog/<thứ 2 của tuần>__<tên>  (nhật ký làm việc trong tuần, tự do ghi chú –
                              // đúng cơ chế own-week: tài khoản toàn quyền sửa được của mọi người/mọi tuần,
                              // để bù lại khi ai đó quên ghi lúc làm thêm giờ; nhân viên chỉ sửa tuần hiện
