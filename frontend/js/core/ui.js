@@ -80,7 +80,8 @@ document.getElementById("tbAccountMenu").addEventListener("click", e => {
   const th = e.target.closest("[data-theme-set]");
   if(th){ setTheme(th.dataset.themeSet); return; }
   const b = e.target.closest("[data-uact]"); if(!b) return;
-  tbCloseAll(); if(b.dataset.uact==="pw") passwordForm(); else logout();
+  tbCloseAll(); const a = b.dataset.uact;
+  if(a==="pw") passwordForm(); else if(a==="tg") tgOpen(); else if(a==="tgsched") tgScheduleForm(); else if(a==="out") logout();
 });
 /* Giao diện: "light"/"dark" ép màu, "system" gỡ data-theme để CSS tự theo prefers-color-scheme.
    index.html đã gắn data-theme="light" ngay khi tải trang (đọc localStorage) để không bị chớp màu. */
@@ -137,6 +138,8 @@ function renderHeader(){
     </div>
     <div class="tb-sep"></div>
     <button class="tb-item" data-uact="pw">Đổi mật khẩu</button>
+    <button class="tb-item" data-uact="tg">Liên kết Telegram</button>
+    ${S.canEdit?'<button class="tb-item" data-uact="tgsched">Lịch tự động Telegram</button>':""}
     <button class="tb-item" data-uact="out">Đăng xuất</button>` : "";
   /* Chuông thông báo: CHỈ còn đúng 1 nội dung – vướng mắc nhập trong "Nhập theo tuần" của tuần hiện tại
      (weekIssues() ở model.js, nguồn trực tiếp từ lượt nhập tuần, không lấy theo dữ liệu đã tổng hợp ở

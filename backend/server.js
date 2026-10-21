@@ -83,6 +83,11 @@ const RULES = {
                              // đúng cơ chế own-week: tài khoản toàn quyền sửa được của mọi người/mọi tuần,
                              // để bù lại khi ai đó quên ghi lúc làm thêm giờ; nhân viên chỉ sửa tuần hiện
                              // tại trở đi, của chính mình)
+  telegramLink: "server",   // telegramLink/u<userId>  (liên kết tài khoản ↔ chat Telegram: {userId, chatId, tgName, linkedAt}) –
+                             // chỉ ghi qua /api/telegram/* và bot (backend/bot/), không ai đọc qua API chung (READ_ROLES)
+  telegramState: "server",  // telegramState/<việc>  (mốc "đã gửi" của lịch tự động, tránh gửi trùng khi khởi động lại)
+  telegramCode: "server",   // telegramCode/<mã>  (mã liên kết 1 lần, 10 phút – lưu CSDL để máy nào trong cụm cấp mã cũng được)
+  telegramOutbox: "server", // telegramOutbox/<id>  (tin "được giao việc" chờ bot gửi: {person, text} – xem backend/bot/notify.js)
 };
 const COLLECTIONS = new Set(Object.keys(RULES));
 /* KPI & Năng lực: MỌI tài khoản đã đăng nhập XEM được (kể cả bản đánh giá của người khác – theo yêu cầu mở cho tất
@@ -91,8 +96,9 @@ const COLLECTIONS = new Set(Object.keys(RULES));
    Khớp KPI_WRITE_ROLES ở frontend/js/modules/kpi.js. */
 const KPI_ROLES = new Set(["admin", "head"]);
 /* Giới hạn ĐỌC theo vai trò cho từng collection: hiện không giới hạn collection nào (mặc định mọi tài khoản đăng
-   nhập đọc được hết). Khi cần ẩn lại dữ liệu đánh giá thì thêm `kpiReview: KPI_ROLES` vào đây. */
-const READ_ROLES = {};
+   nhập đọc được hết). Khi cần ẩn lại dữ liệu đánh giá thì thêm `kpiReview: KPI_ROLES` vào đây.
+   Dữ liệu nội bộ của bot Telegram (mã chat, mốc gửi) không ai đọc qua API chung – Set rỗng. */
+const READ_ROLES = { telegramLink: new Set(), telegramState: new Set(), telegramCode: new Set(), telegramOutbox: new Set() };
 const ID_RE = /^[A-Za-z0-9_\-.~:@+]{1,200}$/;
 
 const store = createStore();
@@ -254,23 +260,27 @@ function canWrite(user, coll, id, body, existing, op = "write") {
 }
 /* Ảnh dán kèm góp ý/phản hồi: chỉ data URL ảnh jpeg/png/webp, tối đa 4 ảnh, mỗi ảnh ≤ ~1,2MB chuỗi */
 const imagesBad = a => !Array.isArray(a) || a.length > 4 || a.some(u => typeof u !== "string" || u.length > 1_200_000 || !/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(u));
-app.put("/api/doc/:coll/:id", auth, A(async (req, res) => {
-  const { coll, id } = req.params, body = req.body;
-  if (!COLLECTIONS.has(coll) || !ID_RE.test(id)) return res.status(400).json({ error: "Đường dẫn không hợp lệ" });
-  if (!body || typeof body !== "object" || Array.isArray(body)) return res.status(400).json({ error: "Dữ liệu không hợp lệ" });
+/* GHI 1 TÀI LIỆU – dùng chung cho route PUT /api/doc/:coll/:id (web) và bot Telegram (backend/bot/), để mọi đường
+   ghi đều qua đúng một chỗ kiểm quyền (canWrite), xử lý riêng từng collection, ghi vết (audit) và báo realtime
+   (broadcast). Trả về null nếu ghi thành công, hoặc { status, error } nếu bị từ chối/không hợp lệ.
+   `body` có thể bị sửa tại chỗ (created_by, person… do máy chủ ghi). */
+async function saveDoc(user, coll, id, body) {
+  const fail = (status, error) => ({ status, error });
+  if (!COLLECTIONS.has(coll) || !ID_RE.test(id)) return fail(400, "Đường dẫn không hợp lệ");
+  if (!body || typeof body !== "object" || Array.isArray(body)) return fail(400, "Dữ liệu không hợp lệ");
   const p = `${coll}/${id}`;
   const ex = await store.getDoc(p);
   const exBody = ex && JSON.parse(ex);
-  if (!canWrite(req.user, coll, id, body, exBody, "write")) return res.status(403).json({ error: "Bạn không có quyền sửa phần này" });
+  if (!canWrite(user, coll, id, body, exBody, "write")) return fail(403, "Bạn không có quyền sửa phần này");
   if (coll === "projects") {
-    body.created_by = exBody ? (exBody.created_by ?? null) : req.user.username;
+    body.created_by = exBody ? (exBody.created_by ?? null) : user.username;
     /* Người: luôn lưu dạng mảng (owners/ses ở dự án; owners/collabs ở đầu việc), bỏ trường chuỗi cũ – dữ liệu cũ vẫn đọc được qua peopleOf() */
     body.owners = peopleOf(body, "owners", "owner"); body.ses = peopleOf(body, "ses", "se"); delete body.owner; delete body.se;
     if (Array.isArray(body.tasks)) for (const t of body.tasks) { t.owners = peopleOf(t, "owners", "owner"); t.collabs = peopleOf(t, "collabs", "collab"); delete t.owner; delete t.collab; }
     // Đánh giá khi hoàn thành (task.eval) và Ghi chú của trưởng phòng (task.note) chỉ trưởng phòng
     // được ghi; nhân viên gửi gì cũng giữ nguyên giá trị cũ (ẩn/khoá ô nhập ở giao diện chỉ là gợi ý,
     // quyền thật sự phải chặn ở đây)
-    if (!FULL_ROLES.has(req.user.role) && exBody) {
+    if (!FULL_ROLES.has(user.role) && exBody) {
       const exTasks = new Map((exBody.tasks || []).map(t => [t.id, t]));
       for (const t of body.tasks || []) {
         const ex = exTasks.get(t.id) || {};
@@ -284,10 +294,10 @@ app.put("/api/doc/:coll/:id", auth, A(async (req, res) => {
        images (lệnh cũ, vd đổi trạng thái) thì giữ nguyên ảnh đang có – gửi [] mới là xoá hết ảnh. */
     if (body.images === undefined) { if (exBody && exBody.images) body.images = exBody.images; }
     else if (imagesBad(body.images))
-      return res.status(400).json({ error: "Ảnh đính kèm không hợp lệ (tối đa 4 ảnh jpeg/png/webp)" });
+      return fail(400, "Ảnh đính kèm không hợp lệ (tối đa 4 ảnh jpeg/png/webp)");
     // created_by/person/createdAt luôn do máy chủ ghi, không nhận từ client, và không đổi được sau khi tạo
-    body.created_by = exBody ? exBody.created_by : req.user.username;
-    body.person = exBody ? exBody.person : (req.user.staff_name || req.user.display_name || req.user.username);
+    body.created_by = exBody ? exBody.created_by : user.username;
+    body.person = exBody ? exBody.person : (user.staff_name || user.display_name || user.username);
     body.createdAt = exBody ? exBody.createdAt : new Date().toISOString();
   }
   if (coll === "events") {
@@ -296,26 +306,26 @@ app.put("/api/doc/:coll/:id", auth, A(async (req, res) => {
        có trong danh sách hoặc "" (cả phòng – hiện ở lịch của mọi người). created_by/createdAt do máy chủ ghi. */
     const str = (v, max) => typeof v === "string" ? v.trim().slice(0, max) : "";
     const title = str(body.title, 200);
-    if (!title) return res.status(400).json({ error: "Nhập tên sự kiện" });
+    if (!title) return fail(400, "Nhập tên sự kiện");
     const allDay = body.allDay === true;
     const re = allDay ? /^\d{4}-\d{2}-\d{2}$/ : /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
     const real = s => { const d = new Date(s.slice(0, 10) + "T00:00:00Z"); return !isNaN(d) && d.toISOString().slice(0, 10) === s.slice(0, 10) && (allDay || (+s.slice(11, 13) < 24 && +s.slice(14, 16) < 60)); };
     if (typeof body.start !== "string" || typeof body.end !== "string" || !re.test(body.start) || !re.test(body.end) || !real(body.start) || !real(body.end))
-      return res.status(400).json({ error: "Thời gian sự kiện không hợp lệ" });
-    if (allDay ? body.end < body.start : body.end <= body.start) return res.status(400).json({ error: "Thời gian kết thúc phải sau thời gian bắt đầu" });
+      return fail(400, "Thời gian sự kiện không hợp lệ");
+    if (allDay ? body.end < body.start : body.end <= body.start) return fail(400, "Thời gian kết thúc phải sau thời gian bắt đầu");
     let person;
-    if (FULL_ROLES.has(req.user.role)) {
+    if (FULL_ROLES.has(user.role)) {
       person = typeof body.person === "string" ? body.person : "";
       const names = ((JSON.parse((await store.getDoc("config/staff")) || "{}").list) || []).map(s => s.name);
-      if (person && !names.includes(person)) return res.status(400).json({ error: "Nhân sự không tồn tại" });
+      if (person && !names.includes(person)) return fail(400, "Nhân sự không tồn tại");
     } else {
-      person = exBody ? exBody.person : (req.user.staff_name || "");
-      if (!person) return res.status(400).json({ error: "Tài khoản chưa gắn với nhân sự nên chưa tạo được sự kiện" });
+      person = exBody ? exBody.person : (user.staff_name || "");
+      if (!person) return fail(400, "Tài khoản chưa gắn với nhân sự nên chưa tạo được sự kiện");
     }
     const keep = { title, allDay, start: body.start, end: body.end, place: str(body.place, 200), note: str(body.note, 2000), person };
     for (const k of Object.keys(body)) delete body[k];
     Object.assign(body, keep);
-    body.created_by = exBody ? exBody.created_by : req.user.username;
+    body.created_by = exBody ? exBody.created_by : user.username;
     body.createdAt = exBody ? exBody.createdAt : new Date().toISOString();
   }
   if (coll === "feedbackReply") {
@@ -323,45 +333,56 @@ app.put("/api/doc/:coll/:id", auth, A(async (req, res) => {
        created_by/person/createdAt do máy chủ ghi như góp ý. */
     const fbId = exBody ? exBody.fbId : body.fbId;
     if (typeof fbId !== "string" || !ID_RE.test(fbId) || !(await store.getDoc("feedback/" + fbId)))
-      return res.status(400).json({ error: "Góp ý được phản hồi không tồn tại" });
+      return fail(400, "Góp ý được phản hồi không tồn tại");
     const text = typeof body.text === "string" ? body.text.trim() : "";
-    if (!text || text.length > 2000) return res.status(400).json({ error: "Nội dung phản hồi 1–2000 ký tự" });
+    if (!text || text.length > 2000) return fail(400, "Nội dung phản hồi 1–2000 ký tự");
     const images = body.images === undefined ? [] : body.images;
-    if (imagesBad(images)) return res.status(400).json({ error: "Ảnh đính kèm không hợp lệ (tối đa 4 ảnh jpeg/png/webp)" });
+    if (imagesBad(images)) return fail(400, "Ảnh đính kèm không hợp lệ (tối đa 4 ảnh jpeg/png/webp)");
     const keep = { fbId, text, images };
     for (const k of Object.keys(body)) delete body[k];
     Object.assign(body, keep);
-    body.created_by = exBody ? exBody.created_by : req.user.username;
-    body.person = exBody ? exBody.person : (req.user.staff_name || req.user.display_name || req.user.username);
+    body.created_by = exBody ? exBody.created_by : user.username;
+    body.person = exBody ? exBody.person : (user.staff_name || user.display_name || user.username);
     body.createdAt = exBody ? exBody.createdAt : new Date().toISOString();
   }
-  await store.upsertDoc(p, coll, id, JSON.stringify(body), req.user.username);
-  audit(req.user, "set", p); broadcast(coll);
+  await store.upsertDoc(p, coll, id, JSON.stringify(body), user.username);
+  audit(user, "set", p); broadcast(coll);
+  // Báo Telegram khi có người được giao việc mới (backend/bot/notify.js) – không bao giờ làm hỏng lần ghi
+  Promise.resolve().then(() => bot.onSaved(user, coll, id, exBody, body)).catch(e => console.error("[bot] onSaved:", e.message));
+  return null;
+}
+app.put("/api/doc/:coll/:id", auth, A(async (req, res) => {
+  const err = await saveDoc(req.user, req.params.coll, req.params.id, req.body);
+  if (err) return res.status(err.status).json({ error: err.error });
   res.status(204).end();
 }));
 /* Đồng bộ "Độ phức tạp" từ Nhập theo tuần vào đúng đầu việc ở Kế hoạch dự án. Phạm vi hẹp có chủ đích:
    chỉ sửa trường pt của một đầu việc, không đụng gì khác trong dự án — nên cho phép cả nhân viên chỉ là
    phụ trách/phối hợp của đúng đầu việc đó (không cần là TM/SE/người tạo cả dự án) tự đánh giá độ khó
    việc mình làm. Vẫn phải qua auth, không phải "ai cũng sửa được bất cứ gì". */
-app.patch("/api/doc/projects/:id/task-pt", auth, A(async (req, res) => {
-  const { id } = req.params;
-  const { taskId, pt } = req.body || {};
+/* Dùng chung cho route dưới đây và bot Telegram. Trả về null nếu thành công, hoặc { status, error }. */
+async function setTaskPt(u, id, taskId, pt) {
   if (!ID_RE.test(id) || typeof taskId !== "string" || !(pt === null || (Number.isInteger(pt) && pt >= 1 && pt <= 5)))
-    return res.status(400).json({ error: "Dữ liệu không hợp lệ" });
+    return { status: 400, error: "Dữ liệu không hợp lệ" };
   const p = `projects/${id}`;
   const ex = await store.getDoc(p);
-  if (!ex) return res.status(404).json({ error: "Không tìm thấy dự án" });
+  if (!ex) return { status: 404, error: "Không tìm thấy dự án" };
   const body = JSON.parse(ex);
   const task = (body.tasks || []).find(t => t.id === taskId);
-  if (!task) return res.status(404).json({ error: "Không tìm thấy đầu việc" });
-  const u = req.user;
+  if (!task) return { status: 404, error: "Không tìm thấy đầu việc" };
   const allowed = FULL_ROLES.has(u.role) || body.created_by === u.username
     || (u.staff_name && isPM(body, u.staff_name))
     || (u.staff_name && (peopleOf(task, "owners", "owner").includes(u.staff_name) || peopleOf(task, "collabs", "collab").includes(u.staff_name)));
-  if (!allowed) return res.status(403).json({ error: "Bạn không có quyền sửa đầu việc này" });
+  if (!allowed) return { status: 403, error: "Bạn không có quyền sửa đầu việc này" };
   task.pt = pt;
   await store.upsertDoc(p, "projects", id, JSON.stringify(body), u.username);
   audit(u, "set", p); broadcast("projects");
+  return null;
+}
+app.patch("/api/doc/projects/:id/task-pt", auth, A(async (req, res) => {
+  const { taskId, pt } = req.body || {};
+  const err = await setTaskPt(req.user, req.params.id, taskId, pt);
+  if (err) return res.status(err.status).json({ error: err.error });
   res.status(204).end();
 }));
 /* Đồng bộ "Ghi chú của trưởng phòng" giữa Nhập theo tuần và Kế hoạch dự án – cả 2 nơi đọc/ghi cùng 1
@@ -386,20 +407,26 @@ app.patch("/api/doc/projects/:id/task-note", auth, A(async (req, res) => {
   audit(req.user, "set", p); broadcast("projects");
   res.status(204).end();
 }));
-app.delete("/api/doc/:coll/:id", auth, A(async (req, res) => {
-  const { coll, id } = req.params;
-  if (!COLLECTIONS.has(coll) || !ID_RE.test(id)) return res.status(400).json({ error: "Đường dẫn không hợp lệ" });
+/* XOÁ 1 TÀI LIỆU – dùng chung cho route DELETE (web) và bot Telegram, giống saveDoc(). Trả về null nếu xong (kể
+   cả khi tài liệu không còn), hoặc { status, error }. */
+async function removeDoc(user, coll, id) {
+  if (!COLLECTIONS.has(coll) || !ID_RE.test(id)) return { status: 400, error: "Đường dẫn không hợp lệ" };
   const p = `${coll}/${id}`;
   const ex = await store.getDoc(p);
-  if (!ex) return res.status(204).end();
-  if (!canWrite(req.user, coll, id, null, JSON.parse(ex), "delete")) return res.status(403).json({ error: "Bạn không có quyền xoá phần này" });
+  if (!ex) return null;
+  if (!canWrite(user, coll, id, null, JSON.parse(ex), "delete")) return { status: 403, error: "Bạn không có quyền xoá phần này" };
   await store.deleteDoc(p);
-  audit(req.user, "delete", p); broadcast(coll);
+  audit(user, "delete", p); broadcast(coll);
   if (coll === "feedback") { // xoá góp ý thì xoá luôn các phản hồi của nó, tránh phản hồi mồ côi
     let n = 0;
     for (const r of await store.getDocs("feedbackReply")) if (JSON.parse(r.body).fbId === id) { await store.deleteDoc(`feedbackReply/${r.doc_id}`); n++; }
-    if (n) { audit(req.user, "delete", `feedbackReply/*(${id}) x${n}`); broadcast("feedbackReply"); }
+    if (n) { audit(user, "delete", `feedbackReply/*(${id}) x${n}`); broadcast("feedbackReply"); }
   }
+  return null;
+}
+app.delete("/api/doc/:coll/:id", auth, A(async (req, res) => {
+  const err = await removeDoc(req.user, req.params.coll, req.params.id);
+  if (err) return res.status(err.status).json({ error: err.error });
   res.status(204).end();
 }));
 /* --- bản đánh giá KPI theo người + kỳ (xem lib/kpi.js): lưu nhận xét, chốt (máy chủ tự tính điểm), mở lại --- */
@@ -530,6 +557,25 @@ app.patch("/api/users/:id", auth, A(async (req, res) => {
   res.json(publicUser(await store.getUserById(u.id)));
 }));
 
+/* --- bot Telegram (backend/bot/) ---
+   Chạy CHUNG tiến trình với web (không tách dịch vụ riêng) để ghi qua đúng saveDoc()/setTaskPt() ở trên và để
+   broadcast() tới được các trình duyệt đang mở (danh sách SSE chỉ nằm trong bộ nhớ tiến trình này). Trong cụm 2 máy:
+   TELEGRAM_BOT_TOKEN đặt ở cả hai (máy nào cũng cấp mã liên kết được), TELEGRAM_ENABLED=true chỉ ở MỘT máy (2 máy
+   cùng nhận tin của 1 bot thì Telegram báo lỗi 409). Liên kết: web cấp mã 1 lần → người dùng nhắn bot "/start <mã>". */
+const bot = require("./bot").create({ store, saveDoc, removeDoc, setTaskPt, audit, FULL_ROLES, mondayOfToday });
+app.get("/api/telegram/status", auth, A(async (req, res) => res.json(await bot.status(req.user))));
+app.post("/api/telegram/link-code", auth, A(async (req, res) => {
+  if (!bot.enabled) return res.status(503).json({ error: "Bot Telegram chưa được cấu hình trên máy chủ (thiếu TELEGRAM_BOT_TOKEN)" });
+  if (!req.user.staff_name && !FULL_ROLES.has(req.user.role))
+    return res.status(400).json({ error: "Tài khoản chưa gắn với nhân sự nào – nhờ trưởng phòng gắn trước khi liên kết Telegram" });
+  res.json(await bot.createLinkCode(req.user));
+}));
+app.delete("/api/telegram/link", auth, A(async (req, res) => {
+  await bot.unlink(req.user);
+  audit(req.user, "telegram-unlink");
+  res.status(204).end();
+}));
+
 /* --- giao diện --- */
 app.use(express.static(path.join(__dirname, "..", "frontend"), {
   index: "index.html",
@@ -567,10 +613,12 @@ async function seedIfEmpty() {
   server = app.listen(PORT, HOST, async () => {
     console.log(`[ptkt] Đang chạy tại http://${HOST}:${PORT}  (CSDL: ${store.name} – ${store.describe()})`);
     if (!(await store.countAdmins())) console.log("[ptkt] Chưa có tài khoản trưởng phòng. Chạy: npm run user -- create");
+    bot.start();
   });
 })();
 function shutdown() {
   console.log("[ptkt] Đang dừng…");
+  bot.stop();
   for (const r of clients) { try { r.end(); } catch (e) {} }
   const done = () => store.close().catch(() => {}).finally(() => process.exit(0));
   if (server) server.close(done); else done();

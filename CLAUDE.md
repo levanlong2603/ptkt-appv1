@@ -35,6 +35,32 @@ lúc xuất, không truy hồi lại đúng thời điểm cuối kỳ vì khôn
 trong kỳ" lọc thật theo kỳ đã chọn), KPI & Năng lực (`kpi.js`, Giai đoạn 1 – xem chú thích đầu file để
 biết phạm vi/giới hạn). Thứ tự nạp trong `index.html` quyết định thứ tự hiện trên menu trái.
 
+## Bot Telegram (`backend/bot/`)
+- Chạy **chung tiến trình** với web (server.js gọi `require("./bot").create(...)`, `bot.start()` sau khi listen) để ghi
+  qua đúng `saveDoc()`/`setTaskPt()` của server.js (cùng `canWrite`, audit, `broadcast` SSE). **Mọi đường ghi mới
+  (web hay bot) phải đi qua `saveDoc()`**, không gọi thẳng `store.upsertDoc` cho dữ liệu người dùng.
+- Bật bằng `.env`: `TELEGRAM_BOT_TOKEN` ở **cả 2 máy** (cấp mã liên kết), `TELEGRAM_ENABLED=true` chỉ ở **1 máy**
+  (nhận tin + lịch; 2 máy cùng nhận → 409). Vì web chạy sau A10 nên **không giữ trạng thái bot trong bộ nhớ** – mã
+  liên kết (`telegramCode/*`), liên kết, mốc lịch đều ở CSDL. Long polling – chỉ cần ra Internet tới api.telegram.org.
+  `TELEGRAM_API_BASE` chỉ dùng khi kiểm thử với Telegram giả.
+- `telegram.js` (Bot API qua fetch) · `core.js` (phiên hội thoại, nút, thẻ Xác nhận/Sửa dùng chung – xem chú thích đầu
+  file để biết giao diện 1 "luồng") · `router.js` (lệnh → module; `/help` và menu "/" theo vai trò, lệnh `full:true` chỉ
+  cho FULL_ROLES) · `flows/week.js` (`/nhap`, `/tuannay` + sửa/xoá dòng, `/cheptuan`, AI; bám đúng `entryForm`/`copyPrev`
+  ở weekly-input.js: giờ 0,5–32, không vượt capacity còn lại, 1 dòng/đầu việc/tuần trừ Nội bộ; qm suy ra từ giờ) ·
+  `flows/views.js` (`/tai`, `/duan`, `/hantoi`, `/viectoi` – chỉ đọc) · `flows/manage.js` (`/themduan`, `/themviec`,
+  `/tinhhinh` – bám `projectForm`/`taskForm` ở plan.js) · `flows/misc.js` (`/gopy`, `/nhatky`) · `notify.js` (báo "được
+  giao việc": `saveDoc` gọi `bot.onSaved` → hàng đợi `telegramOutbox/*` → máy chạy bot gửi mỗi 15 giây) ·
+  `scheduler.js` (nhắc nhập tuần, cảnh báo quá tải/vướng, tóm tắt tuần; cấu hình `config/telegram`, mốc đã gửi
+  `telegramState/*`) · `ai/` (đa hãng: `AI_PROVIDER=none|anthropic|openai`, chỉ tạo bản nháp, luôn qua Xác nhận).
+- Thêm lệnh mới: viết vào module phù hợp trong `flows/` (trả về `{flows, commands, handlers, statics}`), thêm tên lệnh
+  vào `GROUPS` ở router.js để hiện trong `/help`. Mọi thao tác ghi phải đi qua thẻ Xác nhận và `saveDoc()`/`removeDoc()`.
+- Liên kết tài khoản: `POST /api/telegram/link-code` (mã 1 lần, 10 phút) → nhắn bot `/start <mã>` →
+  `telegramLink/u<userId>`. `telegramLink`/`telegramState`/`telegramCode`/`telegramOutbox` có quy tắc `"server"` và
+  `READ_ROLES` rỗng.
+- Phía máy chủ tính Workload/Capacity/trạng thái đầu việc/tiến độ dự án (`taskInfo`, `projectSummary`) ở `backend/lib/workload.js` – hằng số nạp thẳng từ
+  `frontend/js/core/constants.js` bằng `vm`; **sửa công thức ở model.js thì sửa tương ứng ở workload.js**.
+- Giao diện: `frontend/js/modules/telegram.js` (menu tài khoản → "Liên kết Telegram"; trưởng phòng thêm "Lịch tự động Telegram").
+
 ## Công thức Workload / Capacity (`frontend/js/core/constants.js`, `model.js`)
 - **Đầu việc theo kế hoạch** (`p._tasks`, Kế hoạch dự án): `Workload (giờ) = QM_HOURS[Quy mô] ×
   PT_MULT[Độ phức tạp]` (hàm `wlOf()`); thiếu Quy mô → `null` (bắt buộc); thiếu Độ phức tạp → hệ số mặc
