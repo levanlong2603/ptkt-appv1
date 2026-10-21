@@ -342,7 +342,11 @@ function openForm(cfg){
     <div class="drawer-b" id="dlgB">${body()}</div>
     <div class="drawer-f"><div>${cfg.onDelete?'<button class="btn danger" data-del>Xoá</button>':""}</div><div class="toolbar">${cfg.extraBtn?`<button class="btn" data-extra>${esc(cfg.extraBtn.label)}</button>`:""}<button class="btn" data-close>${cfg.readOnly?"Đóng":"Huỷ"}</button>${cfg.readOnly?"":`<button class="btn primary" data-save>${esc(cfg.saveLabel||"Lưu")}</button>`}</div></div></div>`;
   const dlg = layer.querySelector(".drawer");
-  const api = { setOptions(key, opts){ optsOverride[key]=opts; vals[key]=""; const f = cfg.fields.find(x=>x.key===key); const wrap = dlg.querySelector(`[data-field="${key}"]`); if(f && wrap){ const tmp=document.createElement("div"); tmp.innerHTML=fieldHTML(f); wrap.replaceWith(tmp.firstElementChild); } } };
+  const api = {
+    setValue(key, value){ vals[key]=value; const el=dlg.querySelector("#f_"+key); if(el) el.value=value??""; },
+    setDisabled(key, disabled){ const f=cfg.fields.find(x=>x.key===key); if(f) f.disabled=disabled; const el=dlg.querySelector("#f_"+key); if(el) el.disabled=disabled; },
+    setOptions(key, opts){ optsOverride[key]=opts; vals[key]=""; const f = cfg.fields.find(x=>x.key===key); const wrap = dlg.querySelector(`[data-field="${key}"]`); if(f && wrap){ const tmp=document.createElement("div"); tmp.innerHTML=fieldHTML(f); wrap.replaceWith(tmp.firstElementChild); } }
+  };
   /* f.showIf(vals) → ẩn/hiện ô theo giá trị các ô khác (vd "Cả ngày" ẩn ô giờ); chạy lại sau mỗi lần đổi giá trị */
   const applyShowIf = () => { for(const f of cfg.fields){ if(!f.showIf) continue; const w = dlg.querySelector(`[data-field="${f.key}"]`); if(w) w.hidden = !f.showIf(vals); } };
   const readInputs = () => { for(const f of cfg.fields){ if(!f.key) continue; const el = dlg.querySelector("#f_"+f.key); if(!el) continue; if(f.type==="check") vals[f.key]=el.checked; else if(f.type==="number") vals[f.key]=el.value===""?null:+el.value; else if(f.type!=="seg" && f.type!=="images" && f.type!=="multi") vals[f.key]=el.value||(f.type==="date"?null:""); } };

@@ -379,6 +379,24 @@ async function setTaskPt(u, id, taskId, pt) {
   audit(u, "set", p); broadcast("projects");
   return null;
 }
+/* Deadline dùng chung giữa dự án và form tuần. Ghi qua saveDoc để giữ quyền, audit và SSE. */
+app.patch("/api/doc/projects/:id/task-deadline", auth, A(async (req, res) => {
+  const { id } = req.params;
+  const { taskId, deadline } = req.body || {};
+  if (!ID_RE.test(id) || typeof taskId !== "string" || !(deadline === null ||
+    (typeof deadline === "string" && /^\d{4}-\d{2}-\d{2}$/.test(deadline) &&
+      Number.isFinite(Date.parse(deadline)) && new Date(deadline).toISOString().slice(0,10) === deadline)))
+    return res.status(400).json({ error: "Deadline không hợp lệ" });
+  const ex = await store.getDoc(`projects/${id}`);
+  if (!ex) return res.status(404).json({ error: "Không tìm thấy dự án" });
+  const body = JSON.parse(ex);
+  const task = (body.tasks || []).find(t => t.id === taskId);
+  if (!task) return res.status(404).json({ error: "Không tìm thấy đầu việc" });
+  task.deadline = deadline;
+  const err = await saveDoc(req.user, "projects", id, body);
+  if (err) return res.status(err.status).json({ error: err.error });
+  res.status(204).end();
+}));
 app.patch("/api/doc/projects/:id/task-pt", auth, A(async (req, res) => {
   const { taskId, pt } = req.body || {};
   const err = await setTaskPt(req.user, req.params.id, taskId, pt);

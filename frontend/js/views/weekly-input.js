@@ -123,6 +123,14 @@ function entryForm(entry, person){
      route PATCH /api/doc/projects/:id/task-note ở server.js). */
   const taskRef0 = e.projectId && e.taskId ? M.taskMap.get(e.projectId+"|"+e.taskId) : null;
   e.mgrNote = taskRef0 ? (taskRef0.t.note||"") : "";
+  e.deadline = taskRef0?.t.deadline || null;
+  let deadlineBefore = e.deadline;
+  const selectDeadline = (pid, tid, form) => {
+    const ref = M.taskMap.get(pid+"|"+tid);
+    deadlineBefore = ref?.t.deadline || null;
+    form.setValue("deadline", deadlineBefore);
+    form.setDisabled("deadline", !ref || !canManageProject(ref.p));
+  };
   /* "Còn lại" hiển thị cho người nhập = capacity − tổng workload cả tuần (giống hệt số "Workload tuần"
      hiện ở đầu trang), để luôn khớp với con số họ vừa thấy, kể cả khi đang sửa một việc đã có sẵn.
      Khi KIỂM TRA lúc Lưu thì vẫn phải trừ riêng phần của chính việc đang sửa ra khỏi tổng trước (budgetH),
@@ -168,16 +176,17 @@ function entryForm(entry, person){
     subtitle: `${who} · tuần ${isoWeek(S.week)} (${dm(S.week)} – ${dm(addDays(S.week,6))}) · còn lại ${fmt1(remainH)}h / ${fmt1(stH.cap)}h`,
     values: e,
     fields: [
-      {key:"projectId", label:"Dự án", type:"select", options:projOpts, required:true, onChange:(v,f)=>{ f.setOptions("taskId", taskOpts(v)); }},
-      {key:"taskId", label:"Đầu việc (theo kế hoạch của dự án)", type:"select", options:taskOpts(e.projectId, e.taskId), required:true},
+      {key:"projectId", label:"Dự án", type:"select", options:projOpts, required:true, onChange:(v,f)=>{ f.setOptions("taskId", taskOpts(v)); selectDeadline(v, "", f); }},
+      {key:"taskId", label:"Đầu việc (theo kế hoạch của dự án)", type:"select", options:taskOpts(e.projectId, e.taskId), required:true, onChange:(v,f)=>selectDeadline(document.getElementById("f_projectId").value, v, f)},
       {key:"work", label:"Việc làm trong tuần", type:"textarea"},
       {key:"qm", label:"Quy mô (ước lượng, chỉ để tham khảo)", type:"seg", options:[[null,"Không"],...[1,2,3,4,5].map(n=>[n,String(n)])], half:true,
         /* Chỉ để ước lượng/tham khảo – không tham gia công thức tính tải nữa (xem hours bên dưới). */
         hint:v=>v?QM_HINT[v]:"Không bắt buộc – chọn mức ước lượng gần đúng nếu cần tham khảo."},
       {key:"hours", label:"Thời gian thực hiện", type:"number", min:0.5, max:32, step:0.5, required:true, half:true,
         hint:"Số giờ dự kiến làm trong tuần cho đầu việc này, có thể nhập lẻ 0,5 giờ."},
-      {key:"pt", label:"Độ phức tạp", type:"seg", options:[[null,"Mặc định"],...[1,2,3,4,5].map(n=>[n,String(n)])],
+      {key:"pt", label:"Độ phức tạp", type:"seg", half:true, options:[[null,"Mặc định"],...[1,2,3,4,5].map(n=>[n,String(n)])],
         hint:v=>v?PT_HINT[v]:""},
+      {key:"deadline", label:"Deadline theo HĐ", type:"date", half:true, disabled:!taskRef0 || !canManageProject(taskRef0.p), hint:"Dùng chung với đầu việc trong dự án; quyền sửa theo dự án."},
       {key:"status", label:"Trạng thái", type:"seg", options:ST_WEEK.map(s=>[s,s])},
       /* Ma sát = chọn cả mức độ lẫn nguyên nhân cùng lúc (2 ô cạnh nhau), tách hẳn khỏi "Vướng mắc / cần
          hỗ trợ" bên dưới – trước đây Nguyên nhân đứng riêng 1 dòng, dễ hiểu nhầm là đi cùng ghi chú vướng
@@ -205,6 +214,9 @@ function entryForm(entry, person){
       const anyTimes = !!taskRef && internal(taskRef.p);
       if(!anyTimes && list.some(x=>x.id!==v.id && x.projectId===v.projectId && x.taskId===v.taskId))
         throw new Error("Đầu việc này đã có trong tuần. Bấm vào dòng đó trong bảng để sửa thay vì thêm mới.");
+      if(taskRef && (v.deadline||null)!==deadlineBefore){
+        await S.db.api("PATCH", `/api/doc/projects/${v.projectId}/task-deadline`, {taskId:v.taskId, deadline:v.deadline||null});
+      }
       const i = list.findIndex(x=>x.id===v.id); const clean = {id:v.id, projectId:v.projectId, taskId:v.taskId, work:v.work||"", qm:v.qm||null, hours:v.hours, pt:v.pt||null, status:v.status||"", ms:v.ms??null, nn:v.nn||"", note:v.note||""};
       if(i>=0) list[i]=clean; else list.push(clean);
       await saveWeek(S.week, who, list); toast(isNew?"Đã thêm việc":"Đã lưu thay đổi");
