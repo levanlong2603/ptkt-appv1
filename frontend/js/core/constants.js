@@ -104,8 +104,7 @@ const VIEWS = [
   {id:"dash", label:"Dự án", icon:"dash"},
   {id:"input", label:"Việc trong tuần", icon:"input"}, // gồm 2 tab: Tải tuần (weekly-load.js) | Đầu việc (weekly-input.js) – xem viewWeek()
   {sep:true},
-  {id:"settings", label:"Cài đặt", icon:"set"},
-  {id:"help", label:"Hướng dẫn", icon:"help"}
+  {id:"settings", label:"Cài đặt", icon:"set"}
 ];
 
 

@@ -176,6 +176,7 @@ function renderHeader(){
 }
 
 function render(){
+  if(S.view==="help"){ S.view="exec"; store("view",S.view); }
   M = derive();
   renderNav();
   renderHeader();
