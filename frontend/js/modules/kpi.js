@@ -1,6 +1,6 @@
 "use strict";
 /* Module mở rộng: KPI & Năng lực.
-   Đang hoàn thiện theo từng bước – hiện MỌI tài khoản xem được; admin + trưởng phòng mới đánh giá (lưu/chốt/mở lại)
+   Đang hoàn thiện theo từng bước – hiện chỉ admin xem được; admin + trưởng phòng mới đánh giá (lưu/chốt/mở lại)
    và cấu hình tiêu chí được (khớp KPI_ROLES ở backend/server.js; khi đổi phạm vi phải sửa cả 2 nơi).
      Bước 1 (file này): KPI tổng quan – kỳ đánh giá, thẻ số liệu, xu hướng, bảng nhân sự, trạng thái đánh giá.
      Bước 2: hồ sơ KPI cá nhân theo tab (hiện kpiDetailView() còn bố cục cũ, chưa có lưu/chốt bản đánh giá).
@@ -15,7 +15,7 @@
    Luôn phân biệt "chưa có dữ liệu" (null, hiện "–") với điểm 0. */
 const KPI_DEFAULT = KPI_CALC.DEFAULT, KPI_CRIT = KPI_CALC.CRIT;
 /* Vai trò xem/đánh giá KPI – phải khớp KPI_ROLES ở backend/server.js (máy chủ mới là nơi chặn thật) */
-const KPI_VIEW_ROLES = new Set(["admin", "head", "deputy", "member"]); // xem: mọi tài khoản
+const KPI_VIEW_ROLES = new Set(["admin"]); // Trang KPI chỉ hiển thị cho admin.
 const KPI_WRITE_ROLES = new Set(["admin", "head"]); // lưu/chốt/mở lại đánh giá: chỉ admin + trưởng phòng (máy chủ chặn y hệt)
 const KPI_STATUS = {none:["Chưa đánh giá","mute"], draft:["Đang đánh giá","info"], locked:["Đã chốt","ok"]};
 const KPI_TREND_N = 6;
