@@ -27,7 +27,7 @@ function rpInit(){
   /* Mặc định ô "Nhân sự" ở Báo cáo tuần tự chọn sẵn đúng người đang xem, đỡ phải tự chọn lại mỗi lần vào:
      trưởng phòng/phó phòng/admin đang chọn 1 người cụ thể ở "Tôi là" (không phải "— Tất cả —") thì theo
      đúng người đó (đồng bộ tiếp khi đổi "Tôi là" – xem events.js); nhân viên có gắn nhân sự thì theo đúng
-     tên mình. Vẫn đổi lại "— Tất cả nhân sự —" được bình thường nếu muốn xem người khác. */
+     tên mình. Tài khoản quản lý chỉ dùng bộ lọc nhân sự ở sidebar. */
   const defStaff = S.canEdit
     ? ((S.me && S.me!=="__all__") ? S.me : "__all__")
     : ((S.user && S.user.staff_name) ? S.user.staff_name : "__all__");
@@ -35,6 +35,11 @@ function rpInit(){
     wkType:"", wkStaff:defStaff, wkView:"input",
     pjProject:"", pjPtype:"Tất cả", pjKind:"week", pjAnchor:S.week,
     ovKind:"week", ovAnchor:S.week, ovPtype:"Tất cả"};
+  // Với tài khoản quản lý, sidebar luôn là nguồn lọc nhân sự duy nhất.
+  if(S.canEdit || S.rp.meSource!==S.me){
+    S.rp.wkStaff = defStaff;
+    S.rp.meSource = S.me;
+  }
 }
 /* Vướng mắc tại đúng thời điểm tuần w (không phải lượt nhập "mới nhất tính tới hiện tại" như t.nn/model.js):
    duyệt mọi lượt nhập của đúng đầu việc đó, theo thứ tự tuần tăng dần, tính TỚI HẾT tuần w – ghi chú nào
@@ -107,20 +112,22 @@ function rpBuildWeek(){
     /* e.ref.t là task THÔ lấy từ taskMap (chưa qua derive()), không có field "phase" lưu sẵn – field này
        luôn được tính động bằng phaseOf(t.dv) (xem model.js, p._tasks) nên phải tính lại giống hệt ở đây,
        không đọc t.phase trực tiếp (lúc nào cũng rỗng → rơi về "Khác"). */
-    const phaseCode = t ? phaseOf(t.dv) : "";
-    const phaseName = (p && t) ? ((p._phases.find(ph=>ph.code===phaseCode)||{}).name || phaseCode || "Khác") : "Khác";
+    const common = p?.type==="Nội bộ";
+    const phaseCode = common ? "" : t ? phaseOf(t.dv) : "";
+    const phaseName = common ? "Việc chung" : (p && t) ? ((p._phases.find(ph=>ph.code===phaseCode)||{}).name || phaseCode || "Khác") : "Khác";
     return {
+      common, hours:e.hours ?? null, workload:e.wl ?? null,
       person: e.person, projectId: e.projectId, projectName: p ? p.name : "(dự án đã xoá)",
       phaseCode, phase: phaseName,
-      name: t ? planShortName(t.dv) : "(đầu việc đã xoá)",
+      name: e.taskName || (common && e.work ? e.work.split("\n")[0] : t ? planShortName(t.dv) : "(đầu việc đã xoá)"),
       detail: e.work || "", deadline: t ? t.deadline : null, status: e.status || "",
       /* Vướng mắc tính TẠI ĐÚNG TUẦN w đang xem (mang sang từ tuần trước nếu tuần này chưa hoàn thành và
          không nhập lại), không chỉ lấy ghi chú của riêng lượt nhập tuần này – xem rpIssueAt() ở trên.
          Nguyên nhân (e.nn) giờ đi cùng Ma sát, không ghép chung với Vướng mắc nữa. */
-      issue: rpIssueAt(e.projectId, e.taskId, w),
+      issue: common ? (e.note || "") : rpIssueAt(e.projectId, e.taskId, w),
       /* Hướng giải quyết = "Ghi chú của trưởng phòng" (t.note) – giờ chỉ sửa được ở Nhập theo tuần/Việc
          trong tuần (field mgrNote, weekly-input.js), cùng 1 trường task.note nên luôn khớp. */
-      solution: t ? (t.note||"") : ""
+      solution: common ? "" : t ? (t.note||"") : ""
     };
   }).sort((a,b) => a.person.localeCompare(b.person,"vi") || a.projectName.localeCompare(b.projectName,"vi") || a.phaseCode.localeCompare(b.phaseCode,"vi"));
   const cols1 = showPerson
@@ -152,6 +159,11 @@ function rpBuildWeek(){
      hay "BÁO CÁO TẢI TUẦN" tuỳ chế độ xem, cộng với kỳ báo cáo. */
   const titleLine = (S.rp.wkView==="load" ? "Báo cáo tải tuần" : "Báo cáo tuần");
   const period = `Tuần ${isoWeek(w)} (${dm(w)} – ${dmy(addDays(w,6))})`;
+  const commonCols = ["Người thực hiện","Đầu việc","Chi tiết thực hiện","Giờ","Workload","Trạng thái","Vướng mắc / cần hỗ trợ"];
+  const commonRows = rows.filter(r=>r.common).map(r=>({
+    "Người thực hiện":r.person, "Đầu việc":r.name, "Chi tiết thực hiện":r.detail,
+    "Giờ":r.hours, "Workload":r.workload, "Trạng thái":r.status, "Vướng mắc / cần hỗ trợ":r.issue
+  }));
   return {
     title:titleLine, scope:`${typeLabel} · ${staffLabel}`,
     period,
@@ -159,7 +171,8 @@ function rpBuildWeek(){
     showPerson, rows,
     sheets:[
       {name:"Chi tiết", cols:cols1.map(h=>({header:h,key:h})), rows:rows1, merges:merges1, rawRows:rows},
-      {name:"Tổng hợp theo người", cols:cols2.map(h=>({header:h,key:h})), rows:rows2}
+      {name:"Tổng hợp theo người", cols:cols2.map(h=>({header:h,key:h})), rows:rows2},
+      ...(commonRows.length ? [{name:"Việc chung của phòng", cols:commonCols.map(h=>({header:h,key:h})), rows:commonRows}] : [])
     ]
   };
 }
@@ -219,7 +232,7 @@ function rpBuildProjectExport(){
     ]
   };
 }
-/* ----- Báo cáo tổng hợp dự án: tình hình toàn bộ dự án đang chạy theo kỳ (tuần/tháng) – chỉ 1 bảng,
+/* ----- Báo cáo tổng hợp dự án: tình hình dự án theo bộ lọc và kỳ (tuần/tháng) – chỉ 1 bảng,
    không có phần tải nhân sự (staffRows vẫn tính để lấy số liệu "Nhân sự quá tải" ở dải KPI, không hiện
    thành bảng riêng nữa). Quá hạn/Sắp hạn/Rủi ro tính theo tình trạng HIỆN TẠI (M.today), không truy hồi
    lại đúng thời điểm cuối kỳ đã chọn – vì hệ thống không lưu ảnh chụp tiến độ ở các mốc trước, đúng như
@@ -234,14 +247,13 @@ function rpBuildOverview(){
   const P = periodInfo(anchor, kind);
   const weekSet = new Set(P.weeks);
   const all = M.projects.filter(p => p.type!=="Nội bộ" && planMatchFilter(p, ptype) && (p.tasks||[]).length);
-  const running = all.filter(p => !p._allDone);
-  const avgProg = running.length ? running.reduce((a,p)=>a+(p._prog||0),0)/running.length : 0;
-  const lateProjectsN = running.filter(p=>p._late>0).length;
-  const lateTasksN = running.reduce((a,p)=>a+(p._late||0),0);
+  const avgProg = all.length ? all.reduce((a,p)=>a+(p._prog||0),0)/all.length : 0;
+  const lateProjectsN = all.filter(p=>p._late>0).length;
+  const lateTasksN = all.reduce((a,p)=>a+(p._late||0),0);
   const doneInPeriod = p => p._tasks.filter(t=>t.done && weekSet.has(t.done)).length;
-  const doneAllN = running.reduce((a,p)=>a+doneInPeriod(p),0);
+  const doneAllN = all.reduce((a,p)=>a+doneInPeriod(p),0);
   const riskOf = p => (p._late>0 || p._maxms>=4) ? "Cao" : (p._soon>0 || p._stuck>0 || p._maxms>=2) ? "Trung bình" : "Thấp";
-  const riskOpenN = running.filter(p=>riskOf(p)!=="Thấp").length, riskHighN = running.filter(p=>riskOf(p)==="Cao").length;
+  const riskOpenN = all.filter(p=>riskOf(p)!=="Thấp").length, riskHighN = all.filter(p=>riskOf(p)==="Cao").length;
   const staffRows = M.staff.map(s => {
     const es = M.entries.filter(e=>e.person===s.name && weekSet.has(e.week) && e.status!=="Hủy" && e.wl!=null);
     const wl = es.reduce((a,e)=>a+e.wl,0), cap = s.cap*P.weeks.length, u = cap ? wl/cap : null;
@@ -249,7 +261,7 @@ function rpBuildOverview(){
   });
   const overloadedN = staffRows.filter(s=>s.u!=null && s.u>1).length;
   const stats = [
-    {v:running.length, l:"Dự án đang chạy"},
+    {v:all.length, l:ptype==="Hoàn thành" ? "Dự án hoàn thành" : "Dự án phù hợp"},
     {v:pct(avgProg), l:"% HT trung bình"},
     {v:lateProjectsN, l:"Chậm tiến độ", bad:lateProjectsN>0},
     {v:lateTasksN, l:"Việc quá hạn", bad:lateTasksN>0},
@@ -274,7 +286,7 @@ function rpBuildOverview(){
     if(lateP1) return `[${lateP1.id}] ${planShortName(lateP1.dv)} – quá hạn ${dm(lateP1.deadline)}, ưu tiên P1`;
     return "";
   };
-  const projRows = running.map(p => ({
+  const projRows = all.map(p => ({
     name:p.name, type:p.type, owner:peopleText(pOwners(p)), se:peopleText(pSes(p)), status:statusOf(p), prog:p._prog,
     late:p._late, soon:p._soon, done:doneInPeriod(p), assess:assessOf(p), riskText:biggestRisk(p),
     milestones:p.milestones||"", progress:p.progress||"", situation:p.situation||"", proposal:p.proposal||""
@@ -435,11 +447,10 @@ function rpWeekTitleNav(){
       <button type="button" data-act="wk" data-d="7" aria-label="Tuần sau">›</button>
     </div>`;
 }
-/* 2 ô lọc (Loại dự án/Nhân sự) – vẫn ở thanh công cụ riêng bên dưới hàng tiêu đề như trước, không chuyển
-   lên cùng ô tuần. */
+/* Quản lý chọn nhân sự ở sidebar; thanh công cụ chỉ giữ bộ lọc loại dự án. */
 function rpWeekFilterHtml(){
   return `<select class="inp" data-act="rpwktype" style="flex:none; width:auto; min-width:160px"><option value="" ${!S.rp.wkType?"selected":""}>— Tất cả loại —</option>${TYPES.map(t=>`<option ${t===S.rp.wkType?"selected":""}>${esc(t)}</option>`).join("")}</select>
-    <select class="inp" data-act="rpstaff" style="flex:none; width:auto; min-width:180px"><option value="__all__" ${S.rp.wkStaff==="__all__"?"selected":""}>— Tất cả nhân sự —</option>${M.staff.map(s=>`<option ${s.name===S.rp.wkStaff?"selected":""}>${esc(s.name)}</option>`).join("")}</select>`;
+    ${S.canEdit ? "" : `<select class="inp" data-act="rpstaff" style="flex:none; width:auto; min-width:180px"><option value="__all__" ${S.rp.wkStaff==="__all__"?"selected":""}>— Tất cả nhân sự —</option>${M.staff.map(s=>`<option ${s.name===S.rp.wkStaff?"selected":""}>${esc(s.name)}</option>`).join("")}</select>`}`;
 }
 function rpPreviewHtml(report){
   if(!report.sheets.some(sh=>sh.rows.length))
@@ -499,7 +510,7 @@ function rpOverviewContent(ov){
         <td class="small" style="white-space:pre-wrap">${p.milestones?esc(p.milestones):'<span class="muted">–</span>'}</td>
         <td class="small" style="white-space:pre-wrap">${p.progress?esc(p.progress):'<span class="muted">–</span>'}</td>
         <td class="small" style="white-space:pre-wrap">${p.situation?esc(p.situation):'<span class="muted">–</span>'}</td>
-        <td class="small" style="white-space:pre-wrap">${p.proposal?esc(p.proposal):'<span class="muted">–</span>'}</td></tr>`).join("") : `<tr><td colspan="8" class="muted" style="padding:14px">Không có dự án đang chạy phù hợp.</td></tr>`}</tbody></table></div></div>
+        <td class="small" style="white-space:pre-wrap">${p.proposal?esc(p.proposal):'<span class="muted">–</span>'}</td></tr>`).join("") : `<tr><td colspan="8" class="muted" style="padding:14px">Không có dự án phù hợp với bộ lọc.</td></tr>`}</tbody></table></div></div>
   </div></section>`;
   return h;
 }
@@ -525,6 +536,21 @@ function rpWeekLoadHtml(sh){
     <tbody>${sh.rows.map(r=>`<tr>${sh.cols.map((c,i)=>`<td class="${i===0?"cell-main":isNum(i)?"num":""}">${esc(r[c.key])}</td>`).join("")}</tr>`).join("")}</tbody></table></div></div>`;
 }
 function rpWeekRowsHtml(report){
+  const common = report.rows.filter(r=>r.common);
+  const projects = report.rows.filter(r=>!r.common);
+  if(!common.length) return rpProjectWeekRowsHtml(report);
+  const hours = common.reduce((sum,r)=>sum+(r.hours||0),0);
+  const done = common.filter(r=>r.status==="Hoàn thành").length;
+  const stuck = common.filter(r=>r.status==="Đang vướng").length;
+  return (projects.length ? rpProjectWeekRowsHtml({...report,rows:projects}) : "") + `
+    <div class="rp-sec rp-sec-grn" style="margin-top:18px">
+      <h2>Việc chung của phòng</h2>
+      <p class="small muted">${common.length} đầu việc · ${fmt1(hours)} giờ · ${done} hoàn thành · ${stuck} đang vướng</p>
+      <div class="tbl-wrap"><table><thead><tr>${report.showPerson?"<th>Người thực hiện</th>":""}<th>Đầu việc</th><th>Chi tiết thực hiện</th><th>Giờ</th><th>Workload</th><th>Trạng thái</th><th>Vướng mắc / cần hỗ trợ</th></tr></thead>
+      <tbody>${common.map(r=>`<tr>${report.showPerson?`<td>${esc(r.person)}</td>`:""}<td class="cell-main">${esc(r.name)}</td><td style="white-space:pre-wrap">${esc(r.detail)}</td><td>${r.hours==null?"–":fmt1(r.hours)}</td><td>${r.workload==null?"–":fmt1(r.workload)}</td><td>${r.status?stPill(r.status):"–"}</td><td style="white-space:pre-wrap">${esc(r.issue)}</td></tr>`).join("")}</tbody></table></div>
+    </div>`;
+}
+function rpProjectWeekRowsHtml(report){
   const rows = report.rows;
   if(!rows.length) return `<div class="empty"><b>Chưa có dữ liệu</b>Không có dữ liệu phù hợp với điều kiện đã chọn.</div>`;
   /* Dùng biến --ok-soft/... (màu nền nhạt đã tính sẵn trong theme.css) thay vì color-mix() động: html2canvas

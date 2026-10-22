@@ -23,6 +23,7 @@ function viewInput(){
     <div class="toolbar" style="margin-left:auto">
     ${`
     ${locked?"":`<button class="btn" data-act="copyprev" ${canCopy?"":"disabled"} title="${canCopy?"Chép các việc chưa xong của tuần trước":"Tuần trước không có việc dở dang"}">Chép việc dở dang từ tuần trước</button>
+    <button class="btn" data-act="addinternal">+ Việc chung của phòng</button>
     <button class="btn primary" data-act="addentry">+ Thêm việc</button>`}`}</div></div></section>`;
   if(locked) h += `<p class="small muted" style="margin:-8px 0 14px">Tuần ${isoWeek(w)} đã qua, chỉ trưởng phòng mới sửa được dữ liệu tuần này.</p>`;
   if(!L.es.length) return h + `<section class="panel"><div class="empty"><b>Chưa có việc nào trong tuần ${isoWeek(w)}</b>${locked?"":"Thêm việc bạn làm trong tuần, hoặc chép các việc dở dang từ tuần trước."}</div></section>`;
@@ -50,7 +51,7 @@ function viewInputAll(w){
 /* Cột "Ma sát" (mức độ + nguyên nhân) và "Vướng / cần hỗ trợ" (ghi chú) tách riêng 2 ô, không ghép chung
    bằng dấu " · " như trước – nguyên nhân đi cùng ma sát, không đi cùng ghi chú vướng mắc nữa. */
 function inputAllRow(e){
-  const name = e.ref ? planShortName(e.ref.t.dv) : "(đầu việc đã xoá)";
+  const name = e.taskName || (e.type==="Nội bộ" && e.work ? e.work.split("\n")[0] : e.ref ? planShortName(e.ref.t.dv) : "(đầu việc đã xoá)");
   const proj = (M.pById.get(e.projectId)||{}).name || "(dự án đã xoá)";
   return `<tr class="click" data-act="editentry" data-id="${esc(e.id)}" data-person="${esc(e.person)}" tabindex="0" title="${e.ref?esc(e.ref.t.dv):""}">
     <td style="padding-left:32px"><div class="small muted">${esc(proj)}</div><div class="cell-main">${esc(name)}</div></td>
@@ -64,7 +65,7 @@ function inputAllRow(e){
 /* Màu viền trái theo cấp: đậm dần khi lên cấp cha, để nhìn ra ngay phân cấp mà không cần gấp/mở */
 const INPUT_LVL_BORDER = ["var(--teal)", "color-mix(in srgb, var(--teal) 45%, var(--line))", "var(--line)"];
 function inputRow(e, lvl=1, locked=false){
-  const name = e.ref ? planShortName(e.ref.t.dv) : "(đầu việc đã xoá)";
+  const name = e.taskName || (e.type==="Nội bộ" && e.work ? e.work.split("\n")[0] : e.ref ? planShortName(e.ref.t.dv) : "(đầu việc đã xoá)");
   return `<tr ${locked?"":'class="click" data-act="editentry" data-id="'+esc(e.id)+'" tabindex="0"'} title="${e.ref?esc(e.ref.t.dv):""}">
     <td style="padding-left:${10+lvl*22}px; border-left:3px solid ${INPUT_LVL_BORDER[lvl]||INPUT_LVL_BORDER[2]}"><div class="cell-main">${esc(name)}</div></td>
     <td style="white-space:pre-wrap">${e.work?esc(e.work):'<span class="muted">–</span>'}</td>
@@ -96,7 +97,7 @@ function inputTreeRows(es, locked=false){
     const order = p ? new Map(p._phases.map((ph,i)=>[ph.code,i])) : new Map();
     const byPhase = new Map();
     for(const e of g.items){
-      const code = e.ref ? phaseOf(e.ref.t.dv) : "";
+      const code = p?.type==="Nội bộ" ? "" : e.ref ? phaseOf(e.ref.t.dv) : "";
       if(!byPhase.has(code)) byPhase.set(code, {code, name: p ? ((p._phases.find(ph=>ph.code===code)||{}).name||"") : "", items:[]});
       byPhase.get(code).items.push(e);
     }
@@ -113,10 +114,13 @@ function inputTreeRows(es, locked=false){
   }
   return out;
 }
-function entryForm(entry, person){
+function entryForm(entry, person, internalOnly=false){
   const isNew = !entry;
   const who = person || (entry && entry.person) || S.me;
   const e = entry ? {...entry} : {id:uid("e"), projectId:"", taskId:"", work:"", qm:null, hours:null, pt:null, status:"", ms:null, nn:"", note:""};
+  if(internalOnly) e.projectId = M.projects.find(p=>p.type==="Nội bộ")?.id || "";
+  const isInternalId = pid => M.pById.get(pid)?.type==="Nội bộ";
+  if(isInternalId(e.projectId) && !e.taskName) e.taskName = e.work?.split("\n")[0] || "";
   /* "Ghi chú của trưởng phòng" – không phải trường của riêng lượt nhập tuần (e.note là "Vướng mắc" của
      người nhập), mà đọc/ghi thẳng task.note của đúng đầu việc đang chọn – CÙNG một trường đang hiện ở
      Kế hoạch dự án (taskForm, plan.js), nên sửa bên nào cũng tự khớp bên kia (xem onSave bên dưới và
@@ -153,7 +157,7 @@ function entryForm(entry, person){
   /* Gom theo loại dự án (Triển khai/Thầu/Nội bộ) bằng optgroup, để phân biệt rõ Thầu với dự án triển khai
      thay vì liệt kê lẫn lộn một danh sách phẳng. */
   const projOpts = (() => {
-    const list = M.projects.filter(p=>(p.tasks||[]).length && (assigned(p) || p.id===e.projectId) && (!closed(p) || p.id===e.projectId));
+    const list = M.projects.filter(p=>(internal(p) || (p.tasks||[]).length) && (assigned(p) || p.id===e.projectId) && (!closed(p) || p.id===e.projectId));
     const byType = new Map();
     for(const p of list){ if(!byType.has(p.type)) byType.set(p.type, []); byType.get(p.type).push([p.id, p.name+(closed(p)?" (đã hoàn thành)":"")]); }
     return TYPES.filter(t=>byType.has(t)).map(t=>({group:t, options:byType.get(t)}));
@@ -177,7 +181,8 @@ function entryForm(entry, person){
     values: e,
     fields: [
       {key:"projectId", label:"Dự án", type:"select", options:projOpts, required:true, onChange:(v,f)=>{ f.setOptions("taskId", taskOpts(v)); selectDeadline(v, "", f); }},
-      {key:"taskId", label:"Đầu việc (theo kế hoạch của dự án)", type:"select", options:taskOpts(e.projectId, e.taskId), required:true, onChange:(v,f)=>selectDeadline(document.getElementById("f_projectId").value, v, f)},
+      {key:"taskId", label:"Đầu việc (theo kế hoạch của dự án)", type:"select", options:taskOpts(e.projectId, e.taskId), required:true, showIf:v=>!isInternalId(v.projectId), onChange:(v,f)=>selectDeadline(document.getElementById("f_projectId").value, v, f)},
+      {key:"taskName", label:"Tên đầu việc chung", type:"text", required:true, showIf:v=>isInternalId(v.projectId), hint:"Tự đặt tên cụ thể, ví dụ: PoC Storage scale, Tư vấn lab bán dẫn PTIT. Mỗi đầu việc có giờ, trạng thái và vướng mắc riêng."},
       {key:"work", label:"Việc làm trong tuần", type:"textarea"},
       {key:"qm", label:"Quy mô (ước lượng, chỉ để tham khảo)", type:"seg", options:[[null,"Không"],...[1,2,3,4,5].map(n=>[n,String(n)])], half:true,
         /* Chỉ để ước lượng/tham khảo – không tham gia công thức tính tải nữa (xem hours bên dưới). */
@@ -186,7 +191,7 @@ function entryForm(entry, person){
         hint:"Số giờ dự kiến làm trong tuần cho đầu việc này, có thể nhập lẻ 0,5 giờ."},
       {key:"pt", label:"Độ phức tạp", type:"seg", half:true, options:[[null,"Mặc định"],...[1,2,3,4,5].map(n=>[n,String(n)])],
         hint:v=>v?PT_HINT[v]:""},
-      {key:"deadline", label:"Deadline theo HĐ", type:"date", half:true, disabled:!taskRef0 || !canManageProject(taskRef0.p), hint:"Dùng chung với đầu việc trong dự án; quyền sửa theo dự án."},
+      {key:"deadline", label:"Deadline theo HĐ", type:"date", half:true, showIf:v=>!isInternalId(v.projectId), disabled:!taskRef0 || !canManageProject(taskRef0.p), hint:"Dùng chung với đầu việc trong dự án; quyền sửa theo dự án."},
       {key:"status", label:"Trạng thái", type:"seg", options:ST_WEEK.map(s=>[s,s])},
       /* Ma sát = chọn cả mức độ lẫn nguyên nhân cùng lúc (2 ô cạnh nhau), tách hẳn khỏi "Vướng mắc / cần
          hỗ trợ" bên dưới – trước đây Nguyên nhân đứng riêng 1 dòng, dễ hiểu nhầm là đi cùng ghi chú vướng
@@ -197,11 +202,16 @@ function entryForm(entry, person){
       /* Cùng 1 trường task.note với "Ghi chú của trưởng phòng" ở Kế hoạch dự án (plan.js) – chỉ trưởng
          phòng/phó phòng/admin ghi được, để đưa hướng giải quyết ngay tại đây khi xem vướng mắc (vd từ
          chuông thông báo) mà không cần sang Kế hoạch dự án. */
-      ...(e.projectId && e.taskId ? [{key:"mgrNote", label:"Ghi chú của trưởng phòng", type:"textarea", disabled:!S.canEdit,
+      ...(e.projectId && e.taskId ? [{key:"mgrNote", label:"Ghi chú của trưởng phòng", type:"textarea", disabled:!S.canEdit, showIf:v=>!isInternalId(v.projectId),
         hint:()=>S.canEdit?"":"Chỉ trưởng phòng/phó phòng sửa được ghi chú này."}] : [])
     ],
     saveLabel: isNew ? "Thêm việc" : "Lưu thay đổi",
     onSave: async v => {
+      const freeTask = isInternalId(v.projectId);
+      if(freeTask){
+        if(!v.taskName?.trim()) throw new Error("Nhập tên đầu việc chung.");
+        v.taskId = entry?.taskName && entry.projectId===v.projectId ? entry.taskId : uid("internal");
+      }
       if(!(v.hours>=0.5 && v.hours<=32)) throw new Error("Thời gian thực hiện phải từ 0,5 đến 32 giờ.");
       /* Tải tuần bằng số giờ thực hiện; độ phức tạp chỉ tham khảo. */
       const thisWl = Math.round(v.hours*10)/10;
@@ -211,13 +221,13 @@ function entryForm(entry, person){
       /* Mỗi đầu việc chỉ 1 dòng/tuần – trừ MỌI đầu việc của dự án Nội bộ ("Việc chung của phòng": hỗ trợ, đào
          tạo, việc khác…): mỗi lần chọn là một việc lặt vặt khác nhau (ghi rõ ở "Việc làm trong tuần"), nên được thêm
          bao nhiêu dòng giống nhau trong tuần cũng được. */
-      const anyTimes = !!taskRef && internal(taskRef.p);
+      const anyTimes = freeTask;
       if(!anyTimes && list.some(x=>x.id!==v.id && x.projectId===v.projectId && x.taskId===v.taskId))
         throw new Error("Đầu việc này đã có trong tuần. Bấm vào dòng đó trong bảng để sửa thay vì thêm mới.");
       if(taskRef && (v.deadline||null)!==deadlineBefore){
         await S.db.api("PATCH", `/api/doc/projects/${v.projectId}/task-deadline`, {taskId:v.taskId, deadline:v.deadline||null});
       }
-      const i = list.findIndex(x=>x.id===v.id); const clean = {id:v.id, projectId:v.projectId, taskId:v.taskId, work:v.work||"", qm:v.qm||null, hours:v.hours, pt:v.pt||null, status:v.status||"", ms:v.ms??null, nn:v.nn||"", note:v.note||""};
+      const i = list.findIndex(x=>x.id===v.id); const clean = {id:v.id, projectId:v.projectId, taskId:v.taskId, ...(freeTask ? {taskName:v.taskName.trim()} : {}), work:v.work||"", qm:v.qm||null, hours:v.hours, pt:v.pt||null, status:v.status||"", ms:v.ms??null, nn:v.nn||"", note:v.note||""};
       if(i>=0) list[i]=clean; else list.push(clean);
       await saveWeek(S.week, who, list); toast(isNew?"Đã thêm việc":"Đã lưu thay đổi");
       /* Nhân viên tự đánh giá Độ phức tạp ngay trong tuần → đồng bộ về đúng đầu việc ở Kế hoạch dự án,
@@ -247,8 +257,9 @@ async function copyPrev(){
   const have = new Set(list.map(x=>x.projectId+"|"+x.taskId));
   let n=0;
   for(const e of prev.entries||[]){
-    if(["Hoàn thành","Hủy"].includes(e.status) || have.has(e.projectId+"|"+e.taskId)) continue;
-    list.push({id:uid("e"), projectId:e.projectId, taskId:e.taskId, work:"", hours:null, pt:e.pt||null, status:"", ms:null, nn:"", note:""}); n++;
+    if(["Hoàn thành","Hủy"].includes(e.status) || have.has(e.projectId+"|"+e.taskId) && (e.taskName || M.pById.get(e.projectId)?.type!=="Nội bộ")) continue;
+    const common = M.pById.get(e.projectId)?.type==="Nội bộ";
+    list.push({id:uid("e"), projectId:e.projectId, taskId:common && !e.taskName ? uid("internal") : e.taskId, ...(common ? {taskName:e.taskName || e.work?.split("\n")[0] || "Việc chung"} : {}), work:"", hours:null, pt:e.pt||null, status:"", ms:null, nn:"", note:""}); n++;
   }
   if(!n){ toast("Không có việc nào cần chép."); return; }
   await saveWeek(S.week, S.me, list); toast(`Đã chép ${n} việc – hãy cập nhật số giờ và trạng thái.`);

@@ -13,7 +13,10 @@ function derive(){
   // weekly entries flat
   const entries = [];
   for(const w of S.weeks) for(const e of (w.entries||[])){
-    const ref = taskMap.get(e.projectId+"|"+e.taskId);
+    let ref = taskMap.get(e.projectId+"|"+e.taskId);
+    const p = pById.get(e.projectId);
+    // Việc chung do người nhập đặt tên, không cần tạo task trong kế hoạch/cài đặt.
+    if(p?.type==="Nội bộ" && e.taskName) ref = {p, t:{id:e.taskId, dv:e.taskName, pt:e.pt}};
     /* Tải tuần bằng giờ thực hiện. Dòng cũ thiếu giờ dùng ước lượng Quy mô; độ phức tạp chỉ tham khảo. */
     const wl = e.hours!=null ? Math.round(e.hours*10)/10 : wlOf(e.qm, e.pt);
     entries.push({...e, week:w.week, person:w.person, docId:w._id, ref, wl, type: ref ? ref.p.type : (pById.get(e.projectId)||{}).type || "Nội bộ"});

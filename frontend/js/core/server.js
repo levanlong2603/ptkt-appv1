@@ -13,7 +13,7 @@ function makeServerDb(){
   }
   async function api(method, url, body){
     let r;
-    try{ r = await fetch(url, {method, credentials:"same-origin", headers: body!==undefined?{"Content-Type":"application/json"}:{}, body: body!==undefined?JSON.stringify(body):undefined}); }
+    try{ r = await fetch(url, {method, credentials:"same-origin", ...(method==="GET"?{cache:"no-store"}:{}), headers: body!==undefined?{"Content-Type":"application/json"}:{}, body: body!==undefined?JSON.stringify(body):undefined}); }
     catch(e){ throw {code:"unavailable", message:"Không kết nối được máy chủ."}; }
     let j = null; try{ j = r.status===204 ? null : await r.json(); }catch(e){}
     if(r.status===401 && !url.endsWith("/api/login") && !url.endsWith("/api/me/password")){ showLogin("Phiên đăng nhập đã hết, vui lòng đăng nhập lại."); throw {code:"unauthenticated"}; }
@@ -29,17 +29,23 @@ function makeServerDb(){
     doc:id => docRef(coll+"/"+id),
     onSnapshot(next, onErr){
       let seq = 0;
-      const run = async () => { const my = ++seq;
+      const run = async (reportError=false) => { const my = ++seq;
         try{ const f = filters[0]; const qs = f ? `?field=${encodeURIComponent(f[0])}&gte=${encodeURIComponent(f[2])}` : "";
           const rows = await api("GET", `/api/collection/${coll}${qs}`); if(my!==seq) return;
           next({docs: rows.map(r => ({id:r.id, exists:true, data:() => r.data})), size: rows.length}); }
-        catch(e){ if(onErr) onErr(e); } };
+        catch(e){ if(onErr) onErr(e); if(reportError) throw e; } };
       if(!listeners.has(coll)) listeners.set(coll, new Set());
       listeners.get(coll).add(run); ensureES(); run();
       return () => listeners.get(coll).delete(run);
     }
   });
-  return { collection: c => query(c, []), doc: docRef, api, close(){ if(es){ es.close(); es=null; } } };
+  return { collection: c => query(c, []), doc: docRef, api,
+    async refresh(){
+      const results = await Promise.allSettled([...listeners.values()].flatMap(set=>[...set].map(run=>run(true))));
+      const failed = results.find(r=>r.status==="rejected");
+      if(failed) throw failed.reason;
+    },
+    close(){ if(es){ es.close(); es=null; } } };
 }
 async function connectServer(){
   try{ const r = await fetch("/api/me", {credentials:"same-origin"}); if(r.ok){ startSession(await r.json()); return; } }

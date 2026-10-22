@@ -27,7 +27,14 @@ function renderNav(){
   sel.innerHTML = allOpt + names.map(n=>`<option ${n===S.me?"selected":""}>${esc(n)}</option>`).join("");
 }
 document.getElementById("nav").addEventListener("click", e => { const b=e.target.closest("button[data-view]"); if(!b) return; S.view=b.dataset.view; S.openProject=null; store("view",S.view); render(); document.getElementById("main").scrollTop=0; });
-document.getElementById("meSel").addEventListener("change", e => { S.me=e.target.value; store("me",S.me); render(); });
+document.getElementById("meSel").addEventListener("change", e => {
+  S.me=e.target.value; store("me",S.me);
+  if(S.rp){
+    S.rp.wkStaff = (S.me && S.me!=="__all__") ? S.me : "__all__";
+    S.rp.meSource = S.me;
+  }
+  render();
+});
 
 /* ================= sidebar thu gọn/phóng to ================= */
 const sideToggleBtn = document.getElementById("sideToggle");

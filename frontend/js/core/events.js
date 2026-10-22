@@ -8,7 +8,7 @@ main.addEventListener("click", e => {
   if(ACTIONS[a]){ ACTIONS[a](t, e); return; }
   if(a==="exnav"){ S.week = shiftAnchor(S.week, S.period||"week", +t.dataset.d); render(); return; }
   if(a==="exper"){ S.period = t.dataset.k; render(); return; }
-  if(a==="exrefresh"){ render(); toast("Đã làm mới"); return; }
+  if(a==="exrefresh"){ refreshViewData(t); return; }
   if(a==="expr"){ S.exPr = t.dataset.p; render(); return; }
   if(a==="golo"){ S.view="input"; S.weekTab="load"; store("view","input"); render(); return; }
   if(a==="godash"){ S.view="dash"; S.openProject=null; store("view","dash"); render(); return; }
@@ -16,6 +16,7 @@ main.addEventListener("click", e => {
   else if(a==="tf"){ S.typeFilter=t.dataset.t; render(); }
   else if(a==="openp"){ S.openProject = t.dataset.id; render(); main.scrollTop = 0; }
   else if(a==="addentry") entryForm(null);
+  else if(a==="addinternal") entryForm(null, null, true);
   else if(a==="editentry"){ const person=t.dataset.person||S.me; const doc=weekDoc(S.week,person); const en=doc&&(doc.entries||[]).find(x=>x.id===t.dataset.id); if(en) entryForm(en, person); }
   else if(a==="copyprev") copyPrev();
   else if(a==="psel"){ S.planSel = S.planSel===t.dataset.id ? null : t.dataset.id; render(); }
@@ -40,13 +41,30 @@ main.addEventListener("click", e => {
   else if(a==="exp-json") exportBackup();
   else if(a==="imp-json") document.getElementById("impFile").click();
 });
+async function refreshViewData(button){
+  if(S.refreshing) return;
+  S.refreshing = true;
+  button.disabled = true;
+  button.setAttribute("aria-busy", "true");
+  try{
+    if(S.db?.refresh) await S.db.refresh();
+    render();
+    toast("Đã tải lại dữ liệu mới nhất");
+  }catch(err){
+    toast(err?.message || "Không tải lại được dữ liệu. Vui lòng thử lại.");
+  }finally{
+    S.refreshing = false;
+    button.disabled = false;
+    button.removeAttribute("aria-busy");
+  }
+}
 main.addEventListener("keydown", e => { if((e.key==="Enter"||e.key===" ") && e.target.matches("[data-act][tabindex]")){ e.preventDefault(); e.target.click(); } });
 main.addEventListener("change", e => { if(e.target.id==="impFile" && e.target.files[0]){ importBackup(e.target.files[0]); e.target.value=""; return; } if(e.target.dataset.act==="pickme"){ S.me=e.target.value; store("me",S.me);
     /* Đổi "Tôi là" thì đồng bộ luôn ô "Nhân sự" ở Báo cáo tuần (nếu đã từng mở Báo cáo trong phiên này) –
        giống đúng cách Dashboard/Tổng quan dự án/Tải tuần tự thu hẹp theo "Tôi là" (effectiveSimAs()), tránh
        phải tự chọn lại 2 nơi. Chỉ set khi S.rp đã có (rpInit() đã chạy) – reports.js nạp sau nên không gọi
        rpInit() thẳng ở đây được. */
-    if(S.rp) S.rp.wkStaff = (S.me && S.me!=="__all__") ? S.me : "__all__";
+    if(S.rp){ S.rp.wkStaff = (S.me && S.me!=="__all__") ? S.me : "__all__"; S.rp.meSource = S.me; }
     render(); } else if(e.target.dataset.act==="scopemode"){ S.scopeMode=e.target.value; render(); } });
 main.addEventListener("input", e => {
   const a = e.target.dataset.act;
