@@ -291,11 +291,18 @@ function imgFieldHTML(list){
    tốt khi phòng đông người. vals[key] luôn là mảng theo thứ tự của danh sách (không theo thứ tự bấm). */
 const MSEL_SEARCH_MIN = 7;
 function mselSummary(f, sel){
-  const label = new Map((f.options||[]).map(o => [o[0], o[1]??o[0]])), names = (sel||[]).map(n => label.get(n)||n);
-  if(!names.length) return '<span class="msel-ph">Chọn người…</span>';
+  const options = (f.options||[]).flatMap(o=>o.group?o.options:[o]);
+  const label = new Map(options.map(o => [o[0], o[1]??o[0]])), names = (sel||[]).map(n => label.get(n)||n);
+  if(!names.length) return `<span class="msel-ph">${esc(f.placeholder||"Chọn người…")}</span>`;
   return `<span class="msel-names">${esc(names.join(", "))}</span><span class="msel-n">${names.length}</span>`;
 }
 function mselHTML(f, v){
+  if(f.listStyle){
+    const sel = new Set(v||[]);
+    const option = o => `<button type="button" class="msel-option" data-msel-option="${esc(o[0])}" aria-pressed="${sel.has(o[0])}">${esc(o[1]??o[0])}</button>`;
+    return `<button type="button" class="msel-btn" data-msel-toggle aria-expanded="false" ${f.disabled?"disabled":""}><span class="msel-sum">${mselSummary(f,v)}</span><span class="msel-caret" aria-hidden="true">▾</span></button>
+      <div class="msel-panel msel-dropdown" hidden><div class="small muted msel-instruction">${esc(f.selectionHint||"Bấm để chọn nhiều đầu việc; bấm lại để bỏ chọn.")}</div><div class="msel-options">${(f.options||[]).filter(o=>o.group||o[0]).map(o=>o.group?`<div class="msel-group"><div class="msel-group-title">${esc(o.group)}</div>${o.options.map(option).join("")}</div>`:option(o)).join("")}</div><div class="msel-foot"><button type="button" class="btn ghost" data-msel-clear>Bỏ chọn hết</button><button type="button" class="btn primary" data-msel-done>Xong</button></div></div>`;
+  }
   const sel = new Set(v||[]), opts = (f.options||[]).filter(o => o[0]);
   return `<button type="button" class="msel-btn" data-msel-toggle aria-expanded="false" ${f.disabled?"disabled":""}><span class="msel-sum">${mselSummary(f, v)}</span><span class="msel-caret" aria-hidden="true">▾</span></button>
     <div class="msel-panel" hidden>
@@ -353,7 +360,7 @@ function openForm(cfg){
   const api = {
     setValue(key, value){ vals[key]=value; const el=dlg.querySelector("#f_"+key); if(el) el.value=value??""; },
     setDisabled(key, disabled){ const f=cfg.fields.find(x=>x.key===key); if(f) f.disabled=disabled; const el=dlg.querySelector("#f_"+key); if(el) el.disabled=disabled; },
-    setOptions(key, opts){ optsOverride[key]=opts; vals[key]=""; const f = cfg.fields.find(x=>x.key===key); const wrap = dlg.querySelector(`[data-field="${key}"]`); if(f && wrap){ const tmp=document.createElement("div"); tmp.innerHTML=fieldHTML(f); wrap.replaceWith(tmp.firstElementChild); } }
+    setOptions(key, opts){ optsOverride[key]=opts; const f = cfg.fields.find(x=>x.key===key); vals[key]=f?.type==="multi"?[]:""; if(f?.type==="multi") f.options=opts; const wrap = dlg.querySelector(`[data-field="${key}"]`); if(f && wrap){ const tmp=document.createElement("div"); tmp.innerHTML=fieldHTML(f); wrap.replaceWith(tmp.firstElementChild); } }
   };
   /* f.showIf(vals) → ẩn/hiện ô theo giá trị các ô khác (vd "Cả ngày" ẩn ô giờ); chạy lại sau mỗi lần đổi giá trị */
   const applyShowIf = () => { for(const f of cfg.fields){ if(!f.showIf) continue; const w = dlg.querySelector(`[data-field="${f.key}"]`); if(w) w.hidden = !f.showIf(vals); } };
@@ -370,7 +377,17 @@ function openForm(cfg){
       if(open){ const q = panel.querySelector("[data-msel-q]"); if(q) q.focus(); } return; }
     const mc = e.target.closest("[data-msel-clear]");
     if(mc){ const box = mc.closest(".msel"), k = box.dataset.mk, fm = cfg.fields.find(x=>x.key===k); vals[k] = [];
-      box.querySelectorAll("input[data-mv]").forEach(c => c.checked = false); box.querySelector(".msel-sum").innerHTML = mselSummary(fm, []); applyShowIf(); if(fm.onChange) fm.onChange([], api); return; }
+      box.querySelectorAll("input[data-mv]").forEach(c => c.checked = false); box.querySelectorAll("[data-msel-option]").forEach(b=>b.setAttribute("aria-pressed","false")); box.querySelector(".msel-sum").innerHTML = mselSummary(fm, []); applyShowIf(); if(fm.onChange) fm.onChange([], api); return; }
+    const mo = e.target.closest("[data-msel-option]");
+    if(mo){
+      const box=mo.closest(".msel"), k=box.dataset.mk, f=cfg.fields.find(x=>x.key===k), value=mo.dataset.mselOption;
+      const selected=new Set(vals[k]||[]); if(selected.has(value)) selected.delete(value); else selected.add(value);
+      vals[k]=[...selected]; mo.setAttribute("aria-pressed",String(selected.has(value)));
+      box.querySelector(".msel-sum").innerHTML=mselSummary(f,vals[k]);
+      if(f.onChange) f.onChange(vals[k],api); applyShowIf(); return;
+    }
+    const md=e.target.closest("[data-msel-done]");
+    if(md){ const box=md.closest(".msel"), toggle=box.querySelector("[data-msel-toggle]"); box.querySelector(".msel-panel").hidden=true; toggle.setAttribute("aria-expanded","false"); toggle.focus(); return; }
     if(sb){ const k=sb.dataset.k; const v=JSON.parse(sb.dataset.v); vals[k]=v; applyShowIf(); sb.parentElement.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed", b===sb)); const f=cfg.fields.find(x=>x.key===k); const hn=dlg.querySelector(`[data-hint="${k}"]`); if(f && hn && typeof f.hint==="function") hn.textContent=f.hint(v, vals); return; }
     if(e.target.closest("[data-imgpick]")){ const inp = dlg.querySelector("[data-imgfile]"); if(inp) inp.click(); return; }
     const ix = e.target.closest("[data-imgdel]");

@@ -118,6 +118,7 @@ function entryForm(entry, person, internalOnly=false){
   const isNew = !entry;
   const who = person || (entry && entry.person) || S.me;
   const e = entry ? {...entry} : {id:uid("e"), projectId:"", taskId:"", work:"", qm:null, hours:null, pt:null, status:"", ms:null, nn:"", note:""};
+  if(isNew) e.taskIds = [];
   if(internalOnly) e.projectId = M.projects.find(p=>p.type==="Nội bộ")?.id || "";
   const isInternalId = pid => M.pById.get(pid)?.type==="Nội bộ";
   if(isInternalId(e.projectId) && !e.taskName) e.taskName = e.work?.split("\n")[0] || "";
@@ -175,23 +176,25 @@ function entryForm(entry, person, internalOnly=false){
     return [...groups.values()].sort((a,b)=>(order.get(a.code)??999)-(order.get(b.code)??999) || a.code.localeCompare(b.code))
       .map(g => ({group:(g.code?g.code+". ":"")+(g.name||"Khác"), options:g.items.map(t=>[t.id, planShortName(t.dv)+(OPEN.has(t.status)||internal(p)?"":" ("+t.status+")")])}));
   };
+  const multiTaskOpts = pid => taskOpts(pid);
   openForm({
     title: isNew ? "Thêm việc trong tuần" : "Sửa việc trong tuần",
     subtitle: `${who} · tuần ${isoWeek(S.week)} (${dm(S.week)} – ${dm(addDays(S.week,6))}) · còn lại ${fmt1(remainH)}h / ${fmt1(stH.cap)}h`,
     values: e,
     fields: [
-      {key:"projectId", label:"Dự án", type:"select", options:projOpts, required:true, onChange:(v,f)=>{ f.setOptions("taskId", taskOpts(v)); selectDeadline(v, "", f); }},
-      {key:"taskId", label:"Đầu việc (theo kế hoạch của dự án)", type:"select", options:taskOpts(e.projectId, e.taskId), required:true, showIf:v=>!isInternalId(v.projectId), onChange:(v,f)=>selectDeadline(document.getElementById("f_projectId").value, v, f)},
+      {key:"projectId", label:"Dự án", type:"select", options:projOpts, required:true, onChange:(v,f)=>{ f.setOptions(isNew?"taskIds":"taskId", isNew?multiTaskOpts(v):taskOpts(v)); selectDeadline(v, "", f); }},
+      ...(isNew ? [{key:"taskIds", label:"Đầu việc (theo kế hoạch của dự án)", type:"multi", listStyle:true, placeholder:"– chọn –", options:multiTaskOpts(e.projectId), required:true, showIf:v=>!isInternalId(v.projectId), hint:"Mỗi đầu việc được lưu thành một dòng. Giờ và thông tin bên dưới áp dụng cho từng đầu việc đã chọn.", onChange:(ids,f)=>selectDeadline(document.getElementById("f_projectId").value, ids.length===1?ids[0]:"", f)}]
+        : [{key:"taskId", label:"Đầu việc (theo kế hoạch của dự án)", type:"select", options:taskOpts(e.projectId, e.taskId), required:true, showIf:v=>!isInternalId(v.projectId), onChange:(v,f)=>selectDeadline(document.getElementById("f_projectId").value, v, f)}]),
       {key:"taskName", label:"Tên đầu việc chung", type:"text", required:true, showIf:v=>isInternalId(v.projectId), hint:"Tự đặt tên cụ thể, ví dụ: PoC Storage scale, Tư vấn lab bán dẫn PTIT. Mỗi đầu việc có giờ, trạng thái và vướng mắc riêng."},
       {key:"work", label:"Việc làm trong tuần", type:"textarea"},
       {key:"qm", label:"Quy mô (ước lượng, chỉ để tham khảo)", type:"seg", options:[[null,"Không"],...[1,2,3,4,5].map(n=>[n,String(n)])], half:true,
         /* Chỉ để ước lượng/tham khảo – không tham gia công thức tính tải nữa (xem hours bên dưới). */
         hint:v=>v?QM_HINT[v]:"Không bắt buộc – chọn mức ước lượng gần đúng nếu cần tham khảo."},
-      {key:"hours", label:"Thời gian thực hiện", type:"number", min:0.5, max:32, step:0.5, required:true, half:true,
-        hint:"Số giờ dự kiến làm trong tuần cho đầu việc này, có thể nhập lẻ 0,5 giờ."},
+      {key:"hours", label:isNew?"Thời gian thực hiện / đầu việc":"Thời gian thực hiện", type:"number", min:0.5, max:32, step:0.5, required:true, half:true,
+        hint:v=>isNew?"Giờ cho mỗi đầu việc; tổng giờ = giờ nhập × số đầu việc đã chọn.":"Số giờ dự kiến làm trong tuần cho đầu việc này, có thể nhập lẻ 0,5 giờ."},
       {key:"pt", label:"Độ phức tạp", type:"seg", half:true, options:[[null,"Mặc định"],...[1,2,3,4,5].map(n=>[n,String(n)])],
         hint:v=>v?PT_HINT[v]:""},
-      {key:"deadline", label:"Deadline theo HĐ", type:"date", half:true, showIf:v=>!isInternalId(v.projectId), disabled:!taskRef0 || !canManageProject(taskRef0.p), hint:"Dùng chung với đầu việc trong dự án; quyền sửa theo dự án."},
+      {key:"deadline", label:"Deadline theo HĐ", type:"date", half:true, showIf:v=>!isInternalId(v.projectId) && (!isNew || v.taskIds?.length===1), disabled:!taskRef0 || !canManageProject(taskRef0.p), hint:"Dùng chung với đầu việc trong dự án; quyền sửa theo dự án. Khi chọn nhiều, mỗi đầu việc giữ deadline riêng."},
       {key:"status", label:"Trạng thái", type:"seg", options:ST_WEEK.map(s=>[s,s])},
       /* Ma sát = chọn cả mức độ lẫn nguyên nhân cùng lúc (2 ô cạnh nhau), tách hẳn khỏi "Vướng mắc / cần
          hỗ trợ" bên dưới – trước đây Nguyên nhân đứng riêng 1 dòng, dễ hiểu nhầm là đi cùng ghi chú vướng
@@ -208,6 +211,31 @@ function entryForm(entry, person, internalOnly=false){
     saveLabel: isNew ? "Thêm việc" : "Lưu thay đổi",
     onSave: async v => {
       const freeTask = isInternalId(v.projectId);
+      if(isNew && !freeTask){
+        const ids = [...new Set(v.taskIds||[])];
+        if(!ids.length) throw new Error("Chọn ít nhất một đầu việc.");
+        if(!(v.hours>=0.5 && v.hours<=32)) throw new Error("Thời gian thực hiện phải từ 0,5 đến 32 giờ cho mỗi đầu việc.");
+        const refs = ids.map(id=>M.taskMap.get(v.projectId+"|"+id));
+        if(refs.some(ref=>!ref)) throw new Error("Đầu việc không còn trong dự án. Vui lòng chọn lại.");
+        const doc = weekDoc(S.week, who), list = [...(doc?.entries||[])];
+        if(ids.some(id=>list.some(x=>x.projectId===v.projectId && x.taskId===id)))
+          throw new Error("Có đầu việc đã có trong tuần. Bỏ chọn đầu việc đó rồi lưu lại.");
+        const total = Math.round(v.hours*ids.length*10)/10;
+        if(total>budgetH) throw new Error(`${ids.length} đầu việc × ${fmt1(v.hours)}h = ${fmt1(total)}h, vượt số giờ còn lại (${fmt1(budgetH)}h). Giảm giờ hoặc số đầu việc.`);
+        if(ids.length===1 && (v.deadline||null)!==deadlineBefore)
+          await S.db.api("PATCH", `/api/doc/projects/${v.projectId}/task-deadline`, {taskId:ids[0], deadline:v.deadline||null});
+        for(const taskId of ids) list.push({id:uid("e"), projectId:v.projectId, taskId, work:v.work||"", qm:v.qm||null, hours:v.hours, pt:v.pt||null, status:v.status||"", ms:v.ms??null, nn:v.nn||"", note:v.note||""});
+        await saveWeek(S.week, who, list);
+        let syncFailed = false;
+        for(const ref of refs){
+          if(v.pt && v.pt!==ref.t.pt){
+            try{ await S.db.api("PATCH", `/api/doc/projects/${v.projectId}/task-pt`, {taskId:ref.t.id, pt:v.pt}); }
+            catch(err){ syncFailed = true; }
+          }
+        }
+        toast(`Đã thêm ${ids.length} đầu việc (${fmt1(total)}h).${syncFailed?" Có đầu việc chưa đồng bộ được độ phức tạp vào dự án.":""}`);
+        return;
+      }
       if(freeTask){
         if(!v.taskName?.trim()) throw new Error("Nhập tên đầu việc chung.");
         v.taskId = entry?.taskName && entry.projectId===v.projectId ? entry.taskId : uid("internal");

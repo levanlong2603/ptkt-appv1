@@ -111,8 +111,8 @@ function projectForm(p){
     fields:[
       {key:"name", label:"Tên dự án / gói thầu / tư vấn", type:"text", required:true},
       {key:"type", label:"Loại", type:"seg", options:TYPES.map(t=>[t,t]), disabled:!isNew && (p.tasks||[]).length>0, hint:()=>!isNew&&(p.tasks||[]).length?"Không đổi loại khi dự án đã có đầu việc.":"Quyết định quy trình đầu việc áp dụng."},
-      {key:"owners", label:"Người phụ trách (TM) – chọn một hoặc nhiều người", type:"multi", options:staffOpts},
-      {key:"ses", label:"SE – chọn một hoặc nhiều người", type:"multi", options:staffOpts},
+      {key:"owners", label:"Người phụ trách (TM) – chọn một hoặc nhiều người", type:"multi", listStyle:true, selectionHint:"Bấm vào tên để chọn; bấm lại để bỏ chọn.", options:staffOpts},
+      {key:"ses", label:"SE – chọn một hoặc nhiều người", type:"multi", listStyle:true, selectionHint:"Bấm vào tên để chọn; bấm lại để bỏ chọn.", options:staffOpts},
       {key:"milestones", label:"Mốc hợp đồng / hạn nộp", type:"textarea"},
       {key:"situation", label:"Tình hình / vướng mắc chung", type:"textarea"},
       /* progress/proposal: chỉ dùng cho 2 cột "Tiến độ hiện tại"/"Đề xuất" ở Báo cáo → Báo cáo tổng hợp

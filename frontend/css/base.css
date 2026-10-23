@@ -421,4 +421,14 @@ textarea.inp{min-height:74px; resize:vertical}
 .msel-item[hidden]{display:none}
 .msel-item input{width:16px; height:16px; flex:none; accent-color:var(--teal-hover)}
 .msel-foot{display:flex; justify-content:flex-end; margin-top:6px}
+/* Danh sách đầu việc chọn nhiều, chia theo hạng mục như ô chọn dự án. */
+.msel-dropdown{padding:0; overflow:hidden}
+.msel-instruction{padding:9px 12px; border-bottom:1px solid var(--line-2)}
+.msel-options{max-height:340px; overflow-y:auto; padding:6px 0}
+.msel-group-title{padding:8px 12px 4px; font-weight:700; color:var(--ink)}
+.msel-option{display:block; width:100%; border:0; border-radius:0; padding:7px 16px 7px 28px; text-align:left; font:inherit; line-height:1.5; background:var(--surface); color:var(--ink); cursor:pointer}
+.msel-option:hover{background:var(--hover)}
+.msel-option[aria-pressed="true"]{background:var(--teal-soft); color:var(--teal-hover); font-weight:600; box-shadow:inset 3px 0 var(--teal)}
+.msel-option:focus-visible{outline:2px solid var(--teal); outline-offset:-2px}
+.msel-dropdown .msel-foot{margin:0; padding:8px 12px; gap:8px; border-top:1px solid var(--line-2)}
 @media (max-width:860px){ .msel-item{padding:10px 8px} .msel-btn{min-height:44px} }
