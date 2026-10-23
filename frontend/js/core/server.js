@@ -3,9 +3,35 @@
 /* ================= server mode ================= */
 function makeServerDb(){
   const listeners = new Map(); let es = null;
+  const polledCollections=new Set(["config","projects","weeks","events","feedback","feedbackReply","worklog"]);
+  let pollTimer=null,closed=false,polling=false;
+  const knownVersions=new Map();
+  const planPoll=()=>{
+    if(closed) return;
+    clearTimeout(pollTimer);pollTimer=setTimeout(checkVersions,15000);pollTimer?.unref?.();
+  };
+  async function checkVersions(){
+    if(closed || polling) return;
+    if(document.hidden){planPoll();return;}
+    const collections=[...listeners].filter(([c,set])=>set.size&&polledCollections.has(c)).map(([c])=>c);
+    if(!collections.length){planPoll();return;}
+    polling=true;
+    try{
+      const versions=await api("GET","/api/versions?collections="+encodeURIComponent(collections.join(",")));
+      if(closed) return;
+      for(const c of collections){
+        if(typeof versions[c]!=="string") continue;
+        if(knownVersions.get(c)!==versions[c]) fire(c);
+        knownVersions.set(c,versions[c]);
+      }
+    }catch(e){ /* SSE vẫn hoạt động; lần kiểm tra sau sẽ thử lại. */ }
+    finally {polling=false;planPoll();}
+  }
+  const onVisible=()=>{if(!document.hidden) checkVersions();};
   const fire = coll => { const sets = coll==="*" ? [...listeners.values()] : [listeners.get(coll)||new Set()]; sets.forEach(s=>s.forEach(f=>f())); };
   function ensureES(){
     if(es) return;
+    closed=false;planPoll();document.addEventListener("visibilitychange",onVisible);
     es = new EventSource("/api/events");
     es.addEventListener("change", ev => { try{ fire(JSON.parse(ev.data).collection); }catch(e){} });
     es.onerror = () => { if(S.conn!=="reconnect"){ S.conn="reconnect"; setConn(); } };
@@ -18,6 +44,7 @@ function makeServerDb(){
     let j = null; try{ j = r.status===204 ? null : await r.json(); }catch(e){}
     if(r.status===401 && !url.endsWith("/api/login") && !url.endsWith("/api/me/password")){ showLogin("Phiên đăng nhập đã hết, vui lòng đăng nhập lại."); throw {code:"unauthenticated"}; }
     if(r.status===403) throw {code:"invalid_argument", message:(j&&j.error)||"Bạn không có quyền"};
+    if(r.status===409) throw {code:"conflict", message:(j&&j.error)||"Dữ liệu đã được thay đổi ở nơi khác. Hãy tải lại và mở lại form."};
     if(r.status===413) throw {code:"quota_exceeded"};
     if(!r.ok) throw {code:"failed", message:(j&&j.error)||"Lỗi máy chủ"};
     return j;
@@ -45,7 +72,7 @@ function makeServerDb(){
       const failed = results.find(r=>r.status==="rejected");
       if(failed) throw failed.reason;
     },
-    close(){ if(es){ es.close(); es=null; } } };
+    close(){ closed=true;clearTimeout(pollTimer);document.removeEventListener?.("visibilitychange",onVisible); if(es){ es.close(); es=null; } } };
 }
 async function connectServer(){
   try{ const r = await fetch("/api/me", {credentials:"same-origin"}); if(r.ok){ startSession(await r.json()); return; } }
@@ -114,7 +141,7 @@ async function logout(msg){
   document.getElementById("userBox").hidden = true; showLogin(msg);
 }
 /* ---------- tự đăng xuất khi không thao tác ---------- */
-const IDLE_TIMEOUT_MIN = 15;
+const IDLE_TIMEOUT_MIN = 30;
 let idleTimer = null, idleLastReset = 0, idleLastPing = 0;
 function resetIdleTimer(){
   if(!S.user) return;
@@ -125,9 +152,15 @@ function resetIdleTimer(){
      xuất phiên nếu không có thao tác thật trong IDLE_TIMEOUT_MIN phút, kể cả khi đóng hẳn trình duyệt rồi
      mở lại sau đó (không chỉ dựa vào bộ đếm JS này, vì JS ngừng chạy khi đóng tab). Gọi thưa hơn (mỗi phút)
      để đỡ tốn mạng. */
-  if(now - idleLastPing > 60000){ idleLastPing = now; fetch("/api/activity", {method:"POST", credentials:"same-origin"}).catch(()=>{}); }
+  if(now - idleLastPing > 60000){
+    idleLastPing = now;
+    const user = S.user;
+    fetch("/api/activity", {method:"POST", credentials:"same-origin"}).then(r=>{
+      if(r.status===401 && S.user===user) return logout("Phiên đăng nhập đã hết, vui lòng đăng nhập lại.");
+    }).catch(()=>{});
+  }
 }
-function stopIdleTimer(){ clearTimeout(idleTimer); idleTimer = null; }
+function stopIdleTimer(){ clearTimeout(idleTimer); idleTimer = null; idleLastReset = 0; idleLastPing = 0; }
 ["mousemove","keydown","mousedown","touchstart","wheel","scroll"].forEach(ev => document.addEventListener(ev, resetIdleTimer, {passive:true}));
 function passwordForm(){
   openForm({title:"Đổi mật khẩu", subtitle:S.user.display_name, values:{cur:"", n1:"", n2:""},

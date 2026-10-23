@@ -396,7 +396,14 @@ function openForm(cfg){
       readInputs();
       for(const f of cfg.fields){ if(f.required && !(f.showIf && !f.showIf(vals)) && (vals[f.key]==null || vals[f.key]==="" || (Array.isArray(vals[f.key]) && !vals[f.key].length))){ toast("Còn thiếu: "+f.label); return; } }
       const btn = e.target.closest("[data-save]"); btn.disabled=true;
-      try{ await cfg.onSave(vals); close(); }catch(err){ btn.disabled=false; if(err && err.message) toast(err.message); }
+      try{ await cfg.onSave(vals); close(); }catch(err){
+        btn.disabled=false;
+        if(err?.code==="conflict"){
+          let alert=dlg.querySelector("[data-save-conflict]");
+          if(!alert){ alert=document.createElement("div"); alert.dataset.saveConflict="1"; alert.setAttribute("role","alert"); alert.className="form-conflict"; dlg.querySelector(".drawer-b").prepend(alert); }
+          alert.textContent=err.message; alert.scrollIntoView({block:"nearest"});
+        } else if(err && err.message) toast(err.message);
+      }
       return;
     }
     if(e.target.closest("[data-del]")){ try{ const r = await cfg.onDelete(); if(r!==false) close(); }catch(err){} return; }

@@ -25,11 +25,11 @@ function derive(){
   const latest = new Map(), doneWk = new Map();
   for(const e of entries){
     const k = e.projectId+"|"+e.taskId;
-    if(e.status){ const cur = latest.get(k); if(!cur || e.week > cur.week) latest.set(k, e); }
+    if(e.status){ const cur = latest.get(k); if(statusEntryIsNewer(e,cur)) latest.set(k, e); }
     if(e.status==="Hoàn thành"){ const d=doneWk.get(k); if(!d || e.week<d) doneWk.set(k, e.week); }
   }
   const lastAny = new Map();
-  for(const e of entries){ const k=e.projectId+"|"+e.taskId; const cur=lastAny.get(k); if(!cur || e.week>cur.week) lastAny.set(k,e); }
+  for(const e of entries){ const k=e.projectId+"|"+e.taskId; const cur=lastAny.get(k); if(!cur || (e.updatedAt||statusUpdateTime(e))>(cur.updatedAt||statusUpdateTime(cur))) lastAny.set(k,e); }
   /* Những ai thực sự đang làm một đầu việc: gộp người được phân công sẵn (t.collab) với những người đã
      nhập việc đó trong "Nhập theo tuần" ở TUẦN GẦN NHẤT có dữ liệu (không tính mọi tuần từ trước tới giờ –
      nếu không, một người chỉ cần từng nhập 1 lần duy nhất trong quá khứ sẽ dính mãi vào cột này dù không
@@ -50,10 +50,11 @@ function derive(){
       /* Ước lượng kế hoạch theo Quy mô, không nhân hệ số độ phức tạp. */
       const wl = wlOf(qm, pt);
       const le = latest.get(k), la = lastAny.get(k);
-      const status = le ? le.status : (t.init && t.init.status) || "Chưa bắt đầu";
-      const src = le ? "Tuần "+isoWeek(le.week) : "";
-      const ms = le ? (le.ms ?? null) : (t.init ? t.init.ms ?? null : null);
-      const nn = le ? (le.nn||"") : (t.init ? t.init.nn||"" : "");
+      const fromProject = projectStatusIsLatest(t,le);
+      const status = fromProject ? (t.init?.status||"Chưa bắt đầu") : le.status;
+      const src = fromProject ? (t.init?.source==="excel"?"Nhập Excel":"Cập nhật dự án") : "Tuần "+isoWeek(le.week);
+      const ms = !fromProject ? (le.ms ?? null) : (t.init?.ms ?? null);
+      const nn = !fromProject ? (le.nn||"") : (t.init?.nn||"");
       const upd = la ? [la.work, la.note].filter(Boolean).join(" · ") : "";
       /* Vướng mắc của NGƯỜI LÀM, tách riêng khỏi "Ghi chú của trưởng phòng" (t.note, trường gốc trên task) –
          lấy từ lượt nhập tuần gần nhất (la.note), dùng cho cột "Vướng mắc" ở Báo cáo dự án (reports.js),
@@ -63,7 +64,7 @@ function derive(){
       const lastNote = la ? (la.note||"") : ((t.init && t.init.note) || "");
       /* "Ngày cập nhật": tuần/ngày nhân viên lưu lần gần nhất, tách riêng khỏi nội dung "Cập nhật" ở trên */
       /* Ngày cập nhật = mốc gần nhất giữa lần nhập theo tuần và lần trưởng phòng/TM/SE sửa trực tiếp đầu việc ở Kế hoạch dự án */
-      const weekDate = la ? parse(la.week) : null;
+      const weekDate = la ? new Date(la.updatedAt||statusUpdateTime(la)) : null;
       const editDate = t.updatedAt ? new Date(t.updatedAt) : null;
       const latestDate = weekDate && editDate ? (weekDate >= editDate ? weekDate : editDate) : (weekDate || editDate);
       const updDate = latestDate ? dmy(iso(latestDate)) : "";
@@ -71,28 +72,26 @@ function derive(){
       const doerSet = new Set(doersByTask.get(k) || []);
       for(const n of tCollabs(t)) doerSet.add(n);
       const doers = [...doerSet].sort((a,b)=>a.localeCompare(b,"vi"));
-      const done = status==="Hoàn thành" ? (doneWk.get(k) || null) : null;
-      const ontime = done && t.deadline ? (done <= t.deadline) : null;
+      const projectStatusDate = t.init?.statusUpdatedAt ? iso(new Date(t.init.statusUpdatedAt)) : null;
+      const done = status==="Hoàn thành" ? (fromProject && projectStatusDate ? mondayOf(projectStatusDate) : (doneWk.get(k)||null)) : null;
+      const ontime = done && t.deadline ? ((fromProject && projectStatusDate ? projectStatusDate : done) <= t.deadline) : null;
       const warns = [];
       if(p.type!=="Nội bộ"){
         if(!tOwners(t).length) warns.push(["bad","Chưa có người phụ trách"]);
         if(OPEN.has(status) && t.deadline && t.deadline < today) warns.push(["bad","Quá hạn"]);
         if(OPEN.has(status) && t.deadline && t.deadline >= today && days(today,t.deadline) <= 14) warns.push(["warn","Sắp đến hạn"]);
         if(OPEN.has(status) && (ms||0) >= 3) warns.push(["bad","Ma sát cao"]);
-        if((status==="Đang làm"||status==="Đang vướng") && (!lastWeek || lastWeek < addDays(thisMon,-14))) warns.push(["warn","Không cập nhật >2 tuần"]);
+        const activityDay = fromProject && projectStatusDate ? projectStatusDate : (la?.updatedAt ? iso(new Date(la.updatedAt)) : lastWeek);
+        if((status==="Đang làm"||status==="Đang vướng") && (!activityDay || activityDay < addDays(thisMon,-14))) warns.push(["warn","Không cập nhật >2 tuần"]);
       }
       const o = {...t, p, key:k, qmE:qm, ptE:pt, wl, status, src, ms, nn, upd, lastNote, updDate, lastWeek, doers, done, ontime, warns, phase: phaseOf(t.dv)};
       tasks.push(o); return o;
     });
     const live = p._tasks.filter(t => t.status!=="Hủy");
-    /* Đầu việc chưa chấm Quy mô (wl=null) vẫn phải có trọng số (mặc định 1) khi tính tiến độ, nếu không
-       nó "biến mất" khỏi mẫu số — khiến % tiến độ có thể ra 100% dù đầu việc đó còn dang dở (chỉ cần các
-       đầu việc có Quy mô đều đã xong). Áp dụng cùng cách tính này ở p._phases và planStat() (plan.js). */
-    const tot = live.reduce((a,t)=>a+(t.wl??1),0), dn = live.filter(t=>t.status==="Hoàn thành").reduce((a,t)=>a+(t.wl??1),0);
+    /* Mỗi đầu việc có trọng số bằng nhau, bỏ đầu việc Hủy; Quy mô cũ không ảnh hưởng tiến độ. */
+    const tot = live.length, dn = live.filter(t=>t.status==="Hoàn thành").length;
     p._prog = tot ? dn/tot : null;
-    /* "Đã hoàn thành cả dự án" (planIsDone) không được chỉ dựa vào p._prog===1 — nếu các đầu việc còn mở
-       (quá hạn/đang vướng) thiếu Quy mô (wl=null→0), chúng không cộng vào tot, nên dn/tot có thể ra đúng
-       1 dù dự án vẫn còn việc chưa xong. Dùng cờ riêng, đếm theo trạng thái từng đầu việc, không theo wl. */
+    /* Cờ hoàn thành dựa vào trạng thái, không phụ thuộc giá trị làm tròn của thanh tiến độ. */
     p._allDone = live.length>0 && live.every(t=>t.status==="Hoàn thành");
     const nexts = p._tasks.filter(t=>OPEN.has(t.status) && t.deadline && t.deadline>=today).map(t=>t.deadline).sort();
     p._next = nexts[0] || null;
@@ -104,7 +103,7 @@ function derive(){
     const phs = phasesFor(p.type);
     p._phases = phs.map(ph => {
       const ts = live.filter(t => t.phase===ph.code);
-      const tt = ts.reduce((a,t)=>a+(t.wl??1),0), d = ts.filter(t=>t.status==="Hoàn thành").reduce((a,t)=>a+(t.wl??1),0);
+      const tt = ts.length, d = ts.filter(t=>t.status==="Hoàn thành").length;
       return {...ph, n: ts.length, v: ts.length ? d/tt : null};
     });
   }

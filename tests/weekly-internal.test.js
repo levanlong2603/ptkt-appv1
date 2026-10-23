@@ -31,7 +31,7 @@ test('member can add, rename and copy independent common tasks without a catalog
   const {c,doc,form} = setup();
   c.entryForm(null,null,true);
   assert.equal(form().values.projectId,'common');
-  assert.equal(form().fields.find(f=>f.key==='taskId').showIf(form().values),false);
+  assert.equal(form().fields.find(f=>f.key==='taskIds').showIf(form().values),false);
   assert.equal(form().fields.find(f=>f.key==='taskName').showIf(form().values),true);
   await assert.rejects(form().onSave({...form().values,hours:2,taskName:'  '}));
   await form().onSave({...form().values,hours:20,taskName:'PoC Storage',note:'',status:'Đang làm'});

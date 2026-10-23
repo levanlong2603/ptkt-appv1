@@ -50,6 +50,20 @@ function planMatchFilter(p, key){
 const ST_ALL = ["Chưa bắt đầu","Đang làm","Đang vướng","Tạm dừng","Hoàn thành","Hủy"];
 const ST_WEEK = ["Đang làm","Đang vướng","Tạm dừng","Hoàn thành","Hủy"];
 const OPEN = new Set(["Chưa bắt đầu","Đang làm","Đang vướng","Tạm dừng"]);
+/* Dữ liệu mới so theo thời điểm cập nhật trạng thái; dữ liệu cũ vẫn dùng tuần làm mốc dự phòng. */
+function statusUpdateTime(entry){
+  return Number(entry?.statusUpdatedAt)||Date.parse((entry?.week||"")+"T00:00:00")||0;
+}
+function statusEntryIsNewer(entry, previous){
+  if(!previous) return true;
+  const delta=statusUpdateTime(entry)-statusUpdateTime(previous);
+  if(delta) return delta>0;
+  return [entry.week,entry.person,entry.id].join("|") > [previous.week,previous.person,previous.id].join("|");
+}
+function projectStatusIsLatest(task, weekly){
+  if(!weekly) return true;
+  return !!task.init?.status && Number(task.init.statusUpdatedAt)>0 && Number(task.init.statusUpdatedAt)>=statusUpdateTime(weekly);
+}
 const CAUSES = ["Khách hàng","Hãng","Hàng hóa / thiết bị","Cộng sự","Hệ thống","Thay đổi yêu cầu","Chờ quyết định"];
 const QM_HINT = {1:"0,5–2 giờ",2:"2–8 giờ",3:"8–12 giờ",4:"12–24 giờ",5:"24–32 giờ"};
 const PT_HINT = {1:"Đơn giản",2:"Quen thuộc",3:"Cần chuyên môn",4:"Cần chuyên gia",5:"Chưa có tiền lệ"};

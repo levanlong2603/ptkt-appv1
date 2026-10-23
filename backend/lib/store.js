@@ -8,6 +8,7 @@
  */
 const path = require("path");
 const fs = require("fs");
+const {createHash} = require("crypto");
 
 const CLIENT = (process.env.DB_CLIENT || "mariadb").toLowerCase();
 
@@ -36,6 +37,10 @@ function createMariaStore() {
     describe: () => `${process.env.DB_USER || "ptkt"}@${process.env.DB_HOST || "127.0.0.1"}:${process.env.DB_PORT || 3306}/${process.env.DB_NAME || "ptkt"}`,
 
     async init() {
+      await q(`CREATE TABLE IF NOT EXISTS sessions(
+        id VARCHAR(64) PRIMARY KEY, user_id INT NOT NULL, last_seen BIGINT NOT NULL, expires_at BIGINT NOT NULL,
+        INDEX idx_sessions_expiry (expires_at)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`);
       await q(`CREATE TABLE IF NOT EXISTS docs(
         path VARCHAR(255) NOT NULL PRIMARY KEY,
         collection VARCHAR(64) NOT NULL,
@@ -70,6 +75,17 @@ function createMariaStore() {
       await q(`ALTER TABLE users MODIFY role ENUM('admin','head','deputy','member') NOT NULL`);
     },
 
+    /* Phiên riêng từng trình duyệt; cập nhật có điều kiện để không hồi sinh phiên đã hết hạn. */
+    async createSession(id, userId, now, expiresAt) {
+      await q("INSERT INTO sessions(id,user_id,last_seen,expires_at) VALUES(?,?,?,?)", [id,userId,now,expiresAt]);
+    },
+    async getSession(id) { return (await q("SELECT * FROM sessions WHERE id=?", [id]))[0] || null; },
+    async touchSession(id, userId, now, cutoff) {
+      const r = await q("UPDATE sessions SET last_seen=GREATEST(last_seen,?) WHERE id=? AND user_id=? AND last_seen>? AND expires_at>?", [now,id,userId,cutoff,now]);
+      return r.affectedRows > 0;
+    },
+    async deleteSession(id) { await q("DELETE FROM sessions WHERE id=?", [id]); },
+    async pruneSessions(now, cutoff) { await q("DELETE FROM sessions WHERE expires_at<=? OR last_seen<=?", [now,cutoff]); },
     /* ---- tài liệu ---- */
     async countDocs() { return Number((await q("SELECT COUNT(*) AS c FROM docs"))[0].c); },
     async getDocs(coll, weekGte) {
@@ -84,7 +100,38 @@ function createMariaStore() {
         [p, coll, id, body, Date.now(), user]);
     },
     async deleteDoc(p) { await q("DELETE FROM docs WHERE path=?", [p]); },
+    /* So sánh và ghi trong một câu SQL, an toàn cả khi chạy nhiều tiến trình/máy chủ. */
+    async compareAndSwapDoc(p, coll, id, expected, body, user) {
+      if (expected === null) {
+        try {
+          await q("INSERT INTO docs(path,collection,doc_id,body,updated_at,updated_by) VALUES(?,?,?,?,?,?)", [p,coll,id,body,Date.now(),user]);
+          return true;
+        } catch (e) { if (e.code === "ER_DUP_ENTRY") return false; throw e; }
+      }
+      const r = await q("UPDATE docs SET body=?,updated_at=?,updated_by=? WHERE path=? AND BINARY body=BINARY ?", [body,Date.now(),user,p,expected]);
+      return r.affectedRows > 0;
+    },
     async allDocs() { return q("SELECT path, body FROM docs"); },
+    async getDocFingerprints(collections) {
+      if(!collections.length) return [];
+      return q(`SELECT collection,path,MD5(body) AS digest FROM docs WHERE collection IN (${collections.map(()=>"?").join(",")}) ORDER BY path`,collections);
+    },
+    async commitDocs(changes, user) {
+      const conn=await pool.getConnection();
+      try {
+        await conn.beginTransaction();
+        for(const c of [...changes].sort((a,b)=>a.path.localeCompare(b.path))){
+          if(c.expected===null){
+            await conn.query("INSERT INTO docs(path,collection,doc_id,body,updated_at,updated_by) VALUES(?,?,?,?,?,?)",[c.path,c.collection,c.id,c.body,Date.now(),user]);
+          } else {
+            const [r]=await conn.query("UPDATE docs SET body=?,updated_at=?,updated_by=? WHERE path=? AND BINARY body=BINARY ?",[c.body,Date.now(),user,c.path,c.expected]);
+            if(!r.affectedRows){ await conn.rollback(); return false; }
+          }
+        }
+        await conn.commit(); return true;
+      } catch(e){ await conn.rollback(); if(e.code==="ER_DUP_ENTRY") return false; throw e; }
+      finally {conn.release();}
+    },
     async replaceAllDocs(rows, user) {
       const conn = await pool.getConnection();
       try {
@@ -150,6 +197,8 @@ function createSqliteStore(file) {
     describe: () => dbFile,
     async init() {
       db.exec(`
+        CREATE TABLE IF NOT EXISTS sessions(id TEXT PRIMARY KEY, user_id INTEGER NOT NULL, last_seen INTEGER NOT NULL, expires_at INTEGER NOT NULL);
+        CREATE INDEX IF NOT EXISTS idx_sessions_expiry ON sessions(expires_at);
         CREATE TABLE IF NOT EXISTS docs(path TEXT PRIMARY KEY, collection TEXT NOT NULL, doc_id TEXT NOT NULL,
           body TEXT NOT NULL, updated_at INTEGER NOT NULL, updated_by TEXT);
         CREATE INDEX IF NOT EXISTS idx_docs_collection ON docs(collection);
@@ -173,6 +222,15 @@ function createSqliteStore(file) {
           ALTER TABLE users_new RENAME TO users;`);
       }
     },
+    async createSession(id, userId, now, expiresAt) {
+      run("INSERT INTO sessions(id,user_id,last_seen,expires_at) VALUES(?,?,?,?)", id,userId,now,expiresAt);
+    },
+    async getSession(id) { return one("SELECT * FROM sessions WHERE id=?", id); },
+    async touchSession(id, userId, now, cutoff) {
+      return run("UPDATE sessions SET last_seen=MAX(last_seen,?) WHERE id=? AND user_id=? AND last_seen>? AND expires_at>?", now,id,userId,cutoff,now).changes > 0;
+    },
+    async deleteSession(id) { run("DELETE FROM sessions WHERE id=?", id); },
+    async pruneSessions(now, cutoff) { run("DELETE FROM sessions WHERE expires_at<=? OR last_seen<=?", now,cutoff); },
     async countDocs() { return one("SELECT COUNT(*) AS c FROM docs").c; },
     async getDocs(coll, weekGte) {
       return weekGte
@@ -186,7 +244,31 @@ function createSqliteStore(file) {
         p, coll, id, body, Date.now(), user);
     },
     async deleteDoc(p) { run("DELETE FROM docs WHERE path=?", p); },
+    async compareAndSwapDoc(p, coll, id, expected, body, user) {
+      if (expected === null)
+        return run("INSERT INTO docs(path,collection,doc_id,body,updated_at,updated_by) VALUES(?,?,?,?,?,?) ON CONFLICT(path) DO NOTHING", p,coll,id,body,Date.now(),user).changes > 0;
+      return run("UPDATE docs SET body=?,updated_at=?,updated_by=? WHERE path=? AND body=?", body,Date.now(),user,p,expected).changes > 0;
+    },
     async allDocs() { return all("SELECT path, collection, doc_id, body, updated_at, updated_by FROM docs"); },
+    async getDocFingerprints(collections) {
+      if(!collections.length) return [];
+      return all(`SELECT collection,path,body FROM docs WHERE collection IN (${collections.map(()=>"?").join(",")}) ORDER BY path`,...collections)
+        .map(r=>({collection:r.collection,path:r.path,digest:createHash("md5").update(r.body).digest("hex")}));
+    },
+    async commitDocs(changes, user) {
+      const conflict=new Error("DOC_CONFLICT");
+      try {
+        db.transaction(()=>{
+          for(const c of [...changes].sort((a,b)=>a.path.localeCompare(b.path))){
+            const result=c.expected===null
+              ? run("INSERT INTO docs(path,collection,doc_id,body,updated_at,updated_by) VALUES(?,?,?,?,?,?) ON CONFLICT(path) DO NOTHING",c.path,c.collection,c.id,c.body,Date.now(),user)
+              : run("UPDATE docs SET body=?,updated_at=?,updated_by=? WHERE path=? AND body=?",c.body,Date.now(),user,c.path,c.expected);
+            if(!result.changes) throw conflict;
+          }
+        })();
+        return true;
+      } catch(e){if(e===conflict) return false;throw e;}
+    },
     async replaceAllDocs(rows, user) {
       const ins = db.prepare("INSERT INTO docs(path,collection,doc_id,body,updated_at,updated_by) VALUES(?,?,?,?,?,?)");
       db.transaction(() => {

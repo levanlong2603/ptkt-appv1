@@ -222,10 +222,10 @@ function entryForm(entry, person, internalOnly=false){
           throw new Error("Có đầu việc đã có trong tuần. Bỏ chọn đầu việc đó rồi lưu lại.");
         const total = Math.round(v.hours*ids.length*10)/10;
         if(total>budgetH) throw new Error(`${ids.length} đầu việc × ${fmt1(v.hours)}h = ${fmt1(total)}h, vượt số giờ còn lại (${fmt1(budgetH)}h). Giảm giờ hoặc số đầu việc.`);
-        if(ids.length===1 && (v.deadline||null)!==deadlineBefore)
-          await S.db.api("PATCH", `/api/doc/projects/${v.projectId}/task-deadline`, {taskId:ids[0], deadline:v.deadline||null});
+        const deadlineUpdates=ids.length===1 && (v.deadline||null)!==deadlineBefore
+          ? [{projectId:v.projectId,taskId:ids[0],deadline:v.deadline||null,expectedDeadline:deadlineBefore}] : [];
         for(const taskId of ids) list.push({id:uid("e"), projectId:v.projectId, taskId, work:v.work||"", qm:v.qm||null, hours:v.hours, pt:v.pt||null, status:v.status||"", ms:v.ms??null, nn:v.nn||"", note:v.note||""});
-        await saveWeek(S.week, who, list);
+        await saveWeek(S.week, who, list, deadlineUpdates);
         let syncFailed = false;
         for(const ref of refs){
           if(v.pt && v.pt!==ref.t.pt){
@@ -252,12 +252,11 @@ function entryForm(entry, person, internalOnly=false){
       const anyTimes = freeTask;
       if(!anyTimes && list.some(x=>x.id!==v.id && x.projectId===v.projectId && x.taskId===v.taskId))
         throw new Error("Đầu việc này đã có trong tuần. Bấm vào dòng đó trong bảng để sửa thay vì thêm mới.");
-      if(taskRef && (v.deadline||null)!==deadlineBefore){
-        await S.db.api("PATCH", `/api/doc/projects/${v.projectId}/task-deadline`, {taskId:v.taskId, deadline:v.deadline||null});
-      }
+      const deadlineUpdates=taskRef && (v.deadline||null)!==deadlineBefore
+        ? [{projectId:v.projectId,taskId:v.taskId,deadline:v.deadline||null,expectedDeadline:deadlineBefore}] : [];
       const i = list.findIndex(x=>x.id===v.id); const clean = {id:v.id, projectId:v.projectId, taskId:v.taskId, ...(freeTask ? {taskName:v.taskName.trim()} : {}), work:v.work||"", qm:v.qm||null, hours:v.hours, pt:v.pt||null, status:v.status||"", ms:v.ms??null, nn:v.nn||"", note:v.note||""};
       if(i>=0) list[i]=clean; else list.push(clean);
-      await saveWeek(S.week, who, list); toast(isNew?"Đã thêm việc":"Đã lưu thay đổi");
+      await saveWeek(S.week, who, list, deadlineUpdates); toast(isNew?"Đã thêm việc":"Đã lưu thay đổi");
       /* Nhân viên tự đánh giá Độ phức tạp ngay trong tuần → đồng bộ về đúng đầu việc ở Kế hoạch dự án,
          không chỉ dùng cho mỗi tuần này. Không chặn việc lưu tuần nếu đồng bộ thất bại (vd không đủ quyền).
          Bỏ qua với dự án Nội bộ: đầu việc ở đó là "rổ" dùng chung cho nhiều việc khác nhau của nhiều người,

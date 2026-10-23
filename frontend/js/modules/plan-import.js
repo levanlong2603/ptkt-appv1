@@ -155,7 +155,7 @@ function pimpBuild(parsed, type, owners){
   const tasks = items.map((it, i) => ({
     id:"t"+String(i+1).padStart(3,"0"), dv:it.dv, detail:it.t.details.join("\n"), owners:[...(owners||[])], collabs:[],
     deadline: it.t.dates.length ? it.t.dates.reduce((a,d)=>d>a?d:a) : null, qm:null, pt:null, pr:"P2",
-    init:{status:pimpStatus(it.t.sts), ms:null, nn:"", note:it.t.issues.join("\n")}, note:it.t.sols.join("\n"), eval:{}
+    init:{status:pimpStatus(it.t.sts), source:"excel", ms:null, nn:"", note:it.t.issues.join("\n")}, note:it.t.sols.join("\n"), eval:{}
   }));
   const custom = items.filter(it=>!it.std).map(it=>it.t.name);
   return {tasks, custom, phases:new Set(tasks.map(t=>phaseOf(t.dv))).size, badDates:parsed.badDates};

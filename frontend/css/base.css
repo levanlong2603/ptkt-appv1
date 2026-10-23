@@ -421,6 +421,7 @@ textarea.inp{min-height:74px; resize:vertical}
 .msel-item[hidden]{display:none}
 .msel-item input{width:16px; height:16px; flex:none; accent-color:var(--teal-hover)}
 .msel-foot{display:flex; justify-content:flex-end; margin-top:6px}
+.form-conflict{padding:12px 14px; margin-bottom:16px; border:1px solid var(--bad); border-radius:8px; background:var(--bad-soft); color:var(--bad); line-height:1.6}
 /* Danh sách đầu việc chọn nhiều, chia theo hạng mục như ô chọn dự án. */
 .msel-dropdown{padding:0; overflow:hidden}
 .msel-instruction{padding:9px 12px; border-bottom:1px solid var(--line-2)}

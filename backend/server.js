@@ -15,8 +15,12 @@ const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
+const { randomUUID, createHash } = require("crypto");
 const { createStore } = require("./lib/store");
 const { slug, renameStaff } = require("./lib/staff");
+const { stampProjectTasks, stampWeekEntries } = require("./lib/task-updates");
+const { saveWeekBundle } = require("./lib/week-save");
+const { WEB_COLLECTIONS, createRevisionFeed } = require("./lib/revision-feed");
 const kpi = require("./lib/kpi");
 
 /* ---------------- cấu hình (đọc từ file .env) ---------------- */
@@ -102,10 +106,13 @@ const READ_ROLES = { telegramLink: new Set(), telegramState: new Set(), telegram
 const ID_RE = /^[A-Za-z0-9_\-.~:@+]{1,200}$/;
 
 const store = createStore();
+const webRevisions = createRevisionFeed(store);
 
 /* ---------------- tiện ích ---------------- */
 const publicUser = u => ({ id: u.id, username: u.username, display_name: u.display_name, staff_name: u.staff_name, role: u.role, active: !!u.active });
 const audit = (user, action, p) => store.audit(user ? user.username : null, action, p).catch(e => console.error("[audit]", e.message));
+const projectRevision = raw => raw === null ? null : createHash("sha256").update(raw).digest("hex");
+const projectConflict = () => ({status:409, error:"Dự án đã được thay đổi ở nơi khác. Nội dung bạn nhập chưa được lưu. Hãy sao chép phần cần giữ, tải lại dữ liệu và mở lại form để cập nhật."});
 /* bọc route async để lỗi được chuyển về bộ xử lý lỗi chung */
 const A = fn => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
 
@@ -130,33 +137,32 @@ app.use((req, res, next) => {
   next();
 });
 
-/* Tự đăng xuất do không hoạt động: cookie phiên sống tới SESSION_DAYS ngày (để không phải đăng nhập lại
-   mỗi lần mở trình duyệt), nhưng nếu không có thao tác thật (frontend gọi POST /api/activity, xem
-   resetIdleTimer() trong frontend/js/core/server.js) trong IDLE_TIMEOUT_MIN phút thì coi như hết phiên dù
-   cookie vẫn còn hạn – kể cả khi đã đóng hẳn trình duyệt rồi mở lại sau đó. Chỉ lưu tạm trên bộ nhớ (không
-   cần bền vững qua việc khởi động lại máy chủ): nếu máy chủ restart, coi như mọi người vừa hoạt động lại
-   (an toàn hơn là tự đăng xuất hết mọi người mỗi lần triển khai bản mới). */
-const IDLE_TIMEOUT_MIN = 15;
-const lastSeen = new Map(); // uid -> mốc thời gian (ms) hoạt động thật gần nhất
+/* Mỗi lần đăng nhập có sid riêng, lưu CSDL để dùng chung giữa các máy chủ.
+   Chỉ thao tác thật qua /api/activity gia hạn; thiếu hoặc hết hạn phiên luôn yêu cầu đăng nhập lại. */
+const IDLE_TIMEOUT_MIN = 30;
 const auth = A(async (req, res, next) => {
   const token = req.cookies[COOKIE];
   if (!token) return res.status(401).json({ error: "Chưa đăng nhập" });
   let p;
   try { p = jwt.verify(token, JWT_SECRET); } catch (e) { return res.status(401).json({ error: "Phiên đăng nhập hết hiệu lực" }); }
+  if (typeof p.sid !== "string" || !/^[0-9a-f-]{36}$/.test(p.sid))
+    return res.status(401).json({ error: "Vui lòng đăng nhập lại để cập nhật phiên" });
   const u = await store.getUserById(p.uid);
   if (!u || !u.active || u.token_version !== p.tv) return res.status(401).json({ error: "Phiên đăng nhập hết hiệu lực" });
-  const seen = lastSeen.get(u.id);
-  if (seen != null && Date.now() - seen > IDLE_TIMEOUT_MIN * 60e3) {
-    lastSeen.delete(u.id);
+  const session = await store.getSession(p.sid), now = Date.now();
+  if (!session || session.user_id !== u.id || session.expires_at <= now || session.last_seen <= now - IDLE_TIMEOUT_MIN * 60e3) {
+    res.clearCookie(COOKIE, { path: "/" });
     return res.status(401).json({ error: "Đã tự đăng xuất do không hoạt động" });
   }
-  req.user = u; next();
+  req.user = u; req.sessionId = p.sid; next();
 });
 const adminOnly = (req, res, next) => FULL_ROLES.has(req.user.role) ? next() : res.status(403).json({ error: "Chỉ trưởng phòng/phó phòng được thực hiện" });
-function setSession(res, u) {
-  const token = jwt.sign({ uid: u.id, tv: u.token_version }, JWT_SECRET, { expiresIn: `${SESSION_DAYS}d` });
+async function setSession(res, u) {
+  const sid = randomUUID(), now = Date.now();
+  await store.pruneSessions(now, now - IDLE_TIMEOUT_MIN * 60e3);
+  await store.createSession(sid, u.id, now, now + SESSION_DAYS * 864e5);
+  const token = jwt.sign({ uid: u.id, tv: u.token_version, sid }, JWT_SECRET, { expiresIn: `${SESSION_DAYS}d` });
   res.cookie(COOKIE, token, { httpOnly: true, sameSite: "lax", secure: COOKIE_SECURE, maxAge: SESSION_DAYS * 864e5, path: "/" });
-  lastSeen.set(u.id, Date.now());
 }
 
 /* --- đăng nhập (có giới hạn số lần sai) --- */
@@ -172,10 +178,15 @@ app.post("/api/login", A(async (req, res) => {
     f.n++; fails.set(ip, f);
     return res.status(401).json({ error: "Sai tên đăng nhập hoặc mật khẩu" });
   }
-  fails.delete(ip); setSession(res, u); audit(u, "login");
+  fails.delete(ip); await setSession(res, u); audit(u, "login");
   res.json(publicUser(u));
 }));
-app.post("/api/logout", (req, res) => { res.clearCookie(COOKIE, { path: "/" }); res.status(204).end(); });
+app.post("/api/logout", A(async (req, res) => {
+  let p;
+  try { p = jwt.verify(req.cookies[COOKIE], JWT_SECRET); } catch (e) { /* Cookie cũ/hết hạn vẫn được xoá. */ }
+  if (typeof p?.sid === "string") await store.deleteSession(p.sid);
+  res.clearCookie(COOKIE, { path: "/" }); res.status(204).end();
+}));
 app.get("/api/health", A(async (req, res) => {
   try { await store.ping(); res.json({ ok: true, db: store.name, time: new Date().toISOString() }); }
   catch (e) { res.status(503).json({ ok: false, db: store.name, error: "Không kết nối được cơ sở dữ liệu" }); }
@@ -183,25 +194,40 @@ app.get("/api/health", A(async (req, res) => {
 app.get("/api/me", auth, (req, res) => res.json(publicUser(req.user)));
 /* Frontend gọi khi người dùng thật sự thao tác (chuột/phím/cuộn) – xem resetIdleTimer() – để gia hạn mốc
    hoạt động, tránh bị auth() ở trên tự đăng xuất do không hoạt động dù cookie còn hạn. */
-app.post("/api/activity", auth, (req, res) => { lastSeen.set(req.user.id, Date.now()); res.status(204).end(); });
+app.post("/api/activity", auth, A(async (req, res) => {
+  const now = Date.now();
+  if (!await store.touchSession(req.sessionId, req.user.id, now, now - IDLE_TIMEOUT_MIN * 60e3)) {
+    res.clearCookie(COOKIE, { path: "/" });
+    return res.status(401).json({ error: "Phiên đăng nhập hết hiệu lực" });
+  }
+  res.status(204).end();
+}));
 app.post("/api/me/password", auth, A(async (req, res) => {
   const { current, next } = req.body || {};
   if (!bcrypt.compareSync(String(current || ""), req.user.pass_hash)) return res.status(400).json({ error: "Mật khẩu hiện tại không đúng" });
   if (String(next || "").length < 8) return res.status(400).json({ error: "Mật khẩu mới phải có ít nhất 8 ký tự" });
   await store.updateUser(req.user.id, { pass_hash: bcrypt.hashSync(String(next), 10), token_version: req.user.token_version + 1 });
   const u = await store.getUserById(req.user.id);
-  setSession(res, u); audit(u, "change-password");
+  await setSession(res, u); audit(u, "change-password");
   res.status(204).end();
 }));
 
 /* --- dữ liệu --- */
+app.get("/api/versions",auth,A(async(req,res)=>{
+  const collections=String(req.query.collections||"").split(",").filter(Boolean);
+  if(collections.length>WEB_COLLECTIONS.size || collections.some(c=>!WEB_COLLECTIONS.has(c)))
+    return res.status(400).json({error:"Danh sách dữ liệu không hợp lệ"});
+  const versions=await webRevisions();
+  res.setHeader("Cache-Control","no-store");
+  res.json(Object.fromEntries(collections.map(c=>[c,versions[c]])));
+}));
 app.get("/api/collection/:coll", auth, A(async (req, res) => {
   const coll = req.params.coll;
   if (!COLLECTIONS.has(coll)) return res.status(404).json({ error: "Không có dữ liệu này" });
   if (READ_ROLES[coll] && !READ_ROLES[coll].has(req.user.role)) return res.status(403).json({ error: "Bạn không có quyền xem dữ liệu này" });
   const weekGte = req.query.field === "week" && req.query.gte ? String(req.query.gte) : null;
   const rows = await store.getDocs(coll, weekGte);
-  res.json(rows.map(r => ({ id: r.doc_id, data: JSON.parse(r.body) })));
+  res.json(rows.map(r => ({ id: r.doc_id, data: {...JSON.parse(r.body), ...(["projects","weeks"].includes(coll) ? {_rev:projectRevision(r.body)} : {})} })));
 }));
 
 /* Danh sách người của dự án/đầu việc: mảng (owners/ses/collabs) nếu có, không thì bọc chuỗi cũ (owner/se/collab) – cùng quy tắc với
@@ -264,15 +290,18 @@ const imagesBad = a => !Array.isArray(a) || a.length > 4 || a.some(u => typeof u
    ghi đều qua đúng một chỗ kiểm quyền (canWrite), xử lý riêng từng collection, ghi vết (audit) và báo realtime
    (broadcast). Trả về null nếu ghi thành công, hoặc { status, error } nếu bị từ chối/không hợp lệ.
    `body` có thể bị sửa tại chỗ (created_by, person… do máy chủ ghi). */
-async function saveDoc(user, coll, id, body) {
+async function saveDoc(user, coll, id, body, expectedRevision, context) {
+  const db=context?.store||store;
   const fail = (status, error) => ({ status, error });
   if (!COLLECTIONS.has(coll) || !ID_RE.test(id)) return fail(400, "Đường dẫn không hợp lệ");
   if (!body || typeof body !== "object" || Array.isArray(body)) return fail(400, "Dữ liệu không hợp lệ");
   const p = `${coll}/${id}`;
-  const ex = await store.getDoc(p);
+  const ex = await db.getDoc(p);
   const exBody = ex && JSON.parse(ex);
   if (!canWrite(user, coll, id, body, exBody, "write")) return fail(403, "Bạn không có quyền sửa phần này");
+  if (coll === "projects" && expectedRevision !== undefined && expectedRevision !== projectRevision(ex)) return projectConflict();
   if (coll === "projects") {
+    delete body._rev; // Phiên bản vận chuyển, không ghi vào tài liệu dự án.
     body.created_by = exBody ? (exBody.created_by ?? null) : user.username;
     /* Người: luôn lưu dạng mảng (owners/ses ở dự án; owners/collabs ở đầu việc), bỏ trường chuỗi cũ – dữ liệu cũ vẫn đọc được qua peopleOf() */
     body.owners = peopleOf(body, "owners", "owner"); body.ses = peopleOf(body, "ses", "se"); delete body.owner; delete body.se;
@@ -289,6 +318,8 @@ async function saveDoc(user, coll, id, body) {
       }
     }
   }
+  if (coll === "projects") stampProjectTasks(body, exBody, user.username);
+  if (coll === "weeks" && Array.isArray(body.entries)) stampWeekEntries(body, exBody, user.username);
   if (coll === "feedback") {
     /* Ảnh dán kèm góp ý: chỉ nhận data URL ảnh jpeg/png/webp, tối đa 4 ảnh, mỗi ảnh ≤ ~1,2MB chuỗi. Thiếu trường
        images (lệnh cũ, vd đổi trạng thái) thì giữ nguyên ảnh đang có – gửi [] mới là xoá hết ảnh. */
@@ -316,7 +347,7 @@ async function saveDoc(user, coll, id, body) {
     let person;
     if (FULL_ROLES.has(user.role)) {
       person = typeof body.person === "string" ? body.person : "";
-      const names = ((JSON.parse((await store.getDoc("config/staff")) || "{}").list) || []).map(s => s.name);
+      const names = ((JSON.parse((await db.getDoc("config/staff")) || "{}").list) || []).map(s => s.name);
       if (person && !names.includes(person)) return fail(400, "Nhân sự không tồn tại");
     } else {
       person = exBody ? exBody.person : (user.staff_name || "");
@@ -332,7 +363,7 @@ async function saveDoc(user, coll, id, body) {
     /* Phản hồi thuộc đúng 1 góp ý đang tồn tại (fbId không đổi được sau khi tạo); chỉ giữ 3 trường text/images/fbId,
        created_by/person/createdAt do máy chủ ghi như góp ý. */
     const fbId = exBody ? exBody.fbId : body.fbId;
-    if (typeof fbId !== "string" || !ID_RE.test(fbId) || !(await store.getDoc("feedback/" + fbId)))
+    if (typeof fbId !== "string" || !ID_RE.test(fbId) || !(await db.getDoc("feedback/" + fbId)))
       return fail(400, "Góp ý được phản hồi không tồn tại");
     const text = typeof body.text === "string" ? body.text.trim() : "";
     if (!text || text.length > 2000) return fail(400, "Nội dung phản hồi 1–2000 ký tự");
@@ -345,15 +376,25 @@ async function saveDoc(user, coll, id, body) {
     body.person = exBody ? exBody.person : (user.staff_name || user.display_name || user.username);
     body.createdAt = exBody ? exBody.createdAt : new Date().toISOString();
   }
-  await store.upsertDoc(p, coll, id, JSON.stringify(body), user.username);
-  audit(user, "set", p); broadcast(coll);
-  // Báo Telegram khi có người được giao việc mới (backend/bot/notify.js) – không bao giờ làm hỏng lần ghi
-  Promise.resolve().then(() => bot.onSaved(user, coll, id, exBody, body)).catch(e => console.error("[bot] onSaved:", e.message));
+  if (coll === "projects") {
+    if (!await db.compareAndSwapDoc(p, coll, id, ex, JSON.stringify(body), user.username)) return projectConflict();
+  } else await db.upsertDoc(p, coll, id, JSON.stringify(body), user.username);
+  const publish=()=>{
+    audit(user, "set", p); broadcast(coll);
+    // Giữ hook hiện có, chỉ thực thi sau khi giao dịch đã lưu thành công.
+    Promise.resolve().then(() => bot.onSaved(user, coll, id, exBody, body)).catch(e => console.error("[bot] onSaved:", e.message));
+  };
+  if(context) context.effects.push(publish); else publish();
   return null;
 }
 app.put("/api/doc/:coll/:id", auth, A(async (req, res) => {
-  const err = await saveDoc(req.user, req.params.coll, req.params.id, req.body);
+  const err = await saveDoc(req.user, req.params.coll, req.params.id, req.body, req.params.coll === "projects" ? (req.body?._rev ?? null) : undefined);
   if (err) return res.status(err.status).json({ error: err.error });
+  res.status(204).end();
+}));
+app.post("/api/weeks/save", auth, A(async (req,res)=>{
+  const err=await saveWeekBundle(store,saveDoc,req.user,req.body);
+  if(err) return res.status(err.status).json({error:err.error});
   res.status(204).end();
 }));
 /* Đồng bộ "Độ phức tạp" từ Nhập theo tuần vào đúng đầu việc ở Kế hoạch dự án. Phạm vi hẹp có chủ đích:
@@ -375,7 +416,7 @@ async function setTaskPt(u, id, taskId, pt) {
     || (u.staff_name && (peopleOf(task, "owners", "owner").includes(u.staff_name) || peopleOf(task, "collabs", "collab").includes(u.staff_name)));
   if (!allowed) return { status: 403, error: "Bạn không có quyền sửa đầu việc này" };
   task.pt = pt;
-  await store.upsertDoc(p, "projects", id, JSON.stringify(body), u.username);
+  if (!await store.compareAndSwapDoc(p, "projects", id, ex, JSON.stringify(body), u.username)) return projectConflict();
   audit(u, "set", p); broadcast("projects");
   return null;
 }
@@ -393,7 +434,7 @@ app.patch("/api/doc/projects/:id/task-deadline", auth, A(async (req, res) => {
   const task = (body.tasks || []).find(t => t.id === taskId);
   if (!task) return res.status(404).json({ error: "Không tìm thấy đầu việc" });
   task.deadline = deadline;
-  const err = await saveDoc(req.user, "projects", id, body);
+  const err = await saveDoc(req.user, "projects", id, body, projectRevision(ex));
   if (err) return res.status(err.status).json({ error: err.error });
   res.status(204).end();
 }));
@@ -421,7 +462,9 @@ app.patch("/api/doc/projects/:id/task-note", auth, A(async (req, res) => {
   const task = (body.tasks || []).find(t => t.id === taskId);
   if (!task) return res.status(404).json({ error: "Không tìm thấy đầu việc" });
   task.note = note;
-  await store.upsertDoc(p, "projects", id, JSON.stringify(body), req.user.username);
+  if (!await store.compareAndSwapDoc(p, "projects", id, ex, JSON.stringify(body), req.user.username)) {
+    const err = projectConflict(); return res.status(err.status).json({error:err.error});
+  }
   audit(req.user, "set", p); broadcast("projects");
   res.status(204).end();
 }));

@@ -85,9 +85,7 @@ ACTIONS["planzoom"] = el => {
 function planOpen(key, def=false){ const tg = S.planTog||{}; return key in tg ? tg[key] : def; }
 function planStat(ts){
   const live = ts.filter(t=>t.status!=="Hủy"), done = live.filter(t=>t.status==="Hoàn thành");
-  /* Đầu việc thiếu Quy mô vẫn có trọng số mặc định 1, không để "biến mất" khỏi mẫu số (xem model.js) */
-  const tw = live.reduce((a,t)=>a+(t.wl??1),0), dw = done.reduce((a,t)=>a+(t.wl??1),0);
-  return {n:live.length, d:done.length, v: live.length ? dw/tw : null};
+  return {n:live.length, d:done.length, v: live.length ? done.length/live.length : null};
 }
 /* Tên đầu việc bỏ phần "mã. hạng mục –" vì cột/dòng Hạng mục đã hiện */
 function planShortName(dv){ return (dv||"").replace(/^[0-9A-Z]{1,2}\d?\.\s*[^–]*–\s*/, ""); }
@@ -144,7 +142,7 @@ function projectForm(p){
 function taskForm(p, t){
   const isNew = !t;
   const raw = t ? (p.tasks||[]).find(x=>x.id===t.id) : null;
-  const v = raw ? {...raw, owners:tOwners(raw), collabs:tCollabs(raw), st0:(raw.init||{}).status||"", ms0:(raw.init||{}).ms??null, nn0:(raw.init||{}).nn||"", dat:(raw.eval||{}).dat||"", cl:(raw.eval||{}).cl??null, tc:(raw.eval||{}).tc??null, nx:(raw.eval||{}).nx||""}
+  const v = raw ? {...raw, owners:tOwners(raw), collabs:tCollabs(raw), st0:t.status||(raw.init||{}).status||"", ms0:(raw.init||{}).ms??null, nn0:(raw.init||{}).nn||"", dat:(raw.eval||{}).dat||"", cl:(raw.eval||{}).cl??null, tc:(raw.eval||{}).tc??null, nx:(raw.eval||{}).nx||""}
     : {id:"", dv:"", detail:"", owners:pOwners(p), collabs:[], deadline:null, qm:null, pt:null, pr:"P2", st0:"", ms0:null, nn0:"", note:""};
   /* Gom theo hạng mục bằng optgroup, bỏ phần "mã. hạng mục –" lặp lại trong tên hiển thị – giống ô chọn ở Nhập theo tuần */
   const dvOpts = (() => {
@@ -198,7 +196,8 @@ function taskForm(p, t){
       const tasks = [...(p.tasks||[])];
       const body = {id: x.id || nextTaskId(p), dv:x.dv, detail:x.detail||"", owners:x.owners||[], collabs:x.collabs||[], deadline:x.deadline||null, qm:x.qm||null, pt:x.pt||null, pr:x.pr||"",
         /* init.note = vướng mắc ban đầu (chỉ có ở đầu việc nhập từ Excel) – không có ô sửa ở đây, giữ nguyên */
-        init:{status:x.st0||"", ms:x.ms0??null, nn:x.nn0||"", ...(raw && raw.init && raw.init.note ? {note:raw.init.note} : {})}, note:x.note||"", eval: raw&&raw.eval ? {...raw.eval} : {}, updatedAt:Date.now()};
+        init:{...(raw?.init||{}), status:raw && x.st0===v.st0 ? (raw.init?.status||"") : (x.st0||""), ms:x.ms0??null, nn:x.nn0||""}, note:x.note||"", eval: raw&&raw.eval ? {...raw.eval} : {},
+        _statusChanged:!raw || x.st0!==v.st0};
       if(t && t.status==="Hoàn thành" && S.canEdit) body.eval = {dat:x.dat||"", cl:x.cl??null, tc:x.tc??null, nx:x.nx||""};
       const i = tasks.findIndex(q=>q.id===body.id); if(i>=0) tasks[i]=body; else tasks.push(body);
       await saveProject({...p, tasks}); toast(isNew?"Đã thêm đầu việc":"Đã lưu đầu việc");

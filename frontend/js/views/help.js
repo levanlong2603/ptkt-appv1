@@ -27,6 +27,7 @@ const HELP_DEFAULT = `
 <h3>Cách tính (tóm tắt)</h3>
 <p><b>Workload:</b> tải tuần bằng giờ thực hiện; kế hoạch ước lượng theo Quy mô, độ phức tạp chỉ tham khảo — không phải thành tích.</p>
 <p><b>Capacity:</b> 40 giờ/tuần cho mọi nhân sự.</p>
+<p><b>Tiến độ dự án:</b> số đầu việc hoàn thành chia tổng số đầu việc chưa hủy. Mỗi đầu việc có trọng số bằng nhau, không phụ thuộc Quy mô.</p>
 <p><b>Mức sử dụng tuần:</b> Workload / Capacity — dưới 80% còn khả năng, 80–100% theo dõi, trên 100% quá tải.</p>
 <p><b>Ma sát:</b> cho biết vì sao việc không chạy — không dùng để đánh giá nhân viên.</p>
 `.trim();

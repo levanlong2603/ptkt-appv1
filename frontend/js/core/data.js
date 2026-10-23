@@ -2,12 +2,12 @@
 /* Lớp dữ liệu: ghi/xoá tài liệu lên máy chủ */
 /* ================= data layer ================= */
 const queues = new Map();
-function write(path, body){
+function write(path, body, send){
   if(!S.db){ toast("Chưa kết nối dữ liệu chung – không lưu được."); return Promise.reject(); }
   const prev = queues.get(path) || Promise.resolve();
-  const next = prev.catch(()=>{}).then(() => S.db.doc(path).set(body)).catch(e => {
+  const next = prev.catch(()=>{}).then(() => send ? send(body) : S.db.doc(path).set(body)).catch(e => {
     const code = e && e.code;
-    toast(code==="unauthenticated" ? "Vui lòng đăng nhập lại." : code==="invalid_argument" ? ((e&&e.message)||"Bạn không có quyền sửa phần này.") : code==="quota_exceeded" ? "Bộ nhớ dữ liệu đã đầy." : "Lưu không thành công, thử lại sau.");
+    toast(code==="conflict" ? e.message : code==="unauthenticated" ? "Vui lòng đăng nhập lại." : code==="invalid_argument" ? ((e&&e.message)||"Bạn không có quyền sửa phần này.") : code==="quota_exceeded" ? "Bộ nhớ dữ liệu đã đầy." : "Lưu không thành công, thử lại sau.");
     throw e;
   });
   queues.set(path, next); return next;
@@ -18,6 +18,7 @@ function clean(o){ const r={}; for(const [k,v] of Object.entries(o)) if(!k.start
    chuỗi cũ owner/se/collab để 1 nơi duy nhất giữ dữ liệu. Chạy cho MỌI đường ghi dự án (form, nhập Excel, xoá/sửa đầu việc…). */
 function normalizeProjectPeople(p, tasks){
   const body = clean(p);
+  body._rev = p._rev ?? null;
   body.owners = pOwners(p); body.ses = pSes(p); delete body.owner; delete body.se;
   body.tasks = tasks.map(t => { const r = {...t}; r.owners = tOwners(t); r.collabs = tCollabs(t); delete r.owner; delete r.collab; return r; });
   return body;
@@ -25,10 +26,11 @@ function normalizeProjectPeople(p, tasks){
 function saveProject(p){ return write("projects/"+p.id, normalizeProjectPeople(p, p.tasks||[])); }
 function weekDocId(week, person){ return week+"__"+slug(person); }
 function weekDoc(week, person){ return S.weeks.find(w=>w.week===week && w.person===person); }
-function saveWeek(week, person, entries){
+function saveWeek(week, person, entries, deadlineUpdates=[]){
   const id = weekDocId(week, person);
   if(!entries.length) return remove("weeks/"+id);
-  return write("weeks/"+id, {week, person, entries});
+  const revision=weekDoc(week,person)?._rev??null;
+  return write("weeks/"+id, {week, person, entries}, document=>S.db.api("POST","/api/weeks/save",{document,revision,deadlineUpdates}));
 }
 
 function setConn(){

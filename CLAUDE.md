@@ -3,6 +3,10 @@
 Ứng dụng web nội bộ **NGSI · Phòng Kỹ thuật – Quản trị công việc và nguồn lực**.
 Người dùng là người Việt: **giao diện, thông báo, chú thích code viết bằng tiếng Việt có dấu.**
 
+## Trạng thái phát triển (cập nhật 23/10/2026)
+- **Telegram và KPI & Năng lực đang tạm dừng phát triển.** Giữ nguyên mã và dữ liệu hiện có; không tự mở rộng, tái cấu trúc hoặc thay đổi nghiệp vụ của hai phần này khi làm các yêu cầu khác. Chỉ tiếp tục phát triển khi người dùng yêu cầu rõ ràng.
+- Ghi chú này không có nghĩa là tắt tính năng đang chạy. Các mô tả kỹ thuật bên dưới vẫn giữ để tham khảo khi phát triển trở lại.
+
 ## Kiến trúc
 - **Bố cục**: `backend/` máy chủ (server.js, lib/store.js, seed/, scripts/) · `frontend/` giao diện tĩnh (index.html, css/, js/) · `deploy/` systemd + Nginx + script vận hành. Frontend và backend tách thư mục nhưng **cùng một tiến trình Node**: Express phục vụ `frontend/` dưới dạng tệp tĩnh (`backend/server.js`), không có bước build và không có `package.json` riêng cho frontend.
 - **Máy chủ**: `backend/server.js` – Node.js ≥ 20.6, Express 4. Truy cập CSDL **chỉ qua `backend/lib/store.js`** (hàm async: getDocs, getDoc, upsertDoc, deleteDoc, users…, audit, listAudit). `DB_CLIENT=mariadb` (máy chủ thật, mysql2) hoặc `sqlite` (máy lập trình, better-sqlite3) – mọi tính năng mới phải chạy được trên cả hai. Route async bọc bằng `A(async (req,res)=>…)`.
@@ -65,8 +69,7 @@ biết phạm vi/giới hạn). Thứ tự nạp trong `index.html` quyết đ�
 - **Đầu việc theo kế hoạch**: `Workload (giờ) = QM_HOURS[Quy mô]`, thiếu Quy mô thì `null`.
 - **Một lượt nhập tuần**: Workload bằng `e.hours`, không nhân hệ số độ phức tạp. Dòng cũ thiếu giờ dùng `wlOf(e.qm, e.pt)` theo Quy mô. Quy mô và Độ phức tạp vẫn giữ để tham khảo; Độ phức tạp vẫn đồng bộ về đầu việc khi lưu. Công thức này áp dụng cho cả web, KPI và Telegram, kể cả khi đọc tuần cũ.
 - `Capacity (giờ/tuần) = 40` cố định cho mọi nhân sự trên web, KPI và bot Telegram. Không áp dụng hệ số năng lực hay phần trăm trừ họp/phát sinh; giữ tương thích các trường dữ liệu cũ.
-- Tiến độ dự án (`p._prog`, `p._phases`, `planStat()`) dùng trọng số `t.wl ?? 1` (không phải `t.wl || 0`)
-  để đầu việc thiếu Quy mô không "biến mất" khỏi mẫu số gây tiến độ ảo 100%.
+- Tiến độ dự án trên web (`p._prog`, `p._phases`, `planStat()`) = số đầu việc Hoàn thành / số đầu việc chưa Hủy. Mỗi đầu việc có trọng số bằng nhau, không phụ thuộc Quy mô cũ. Đây là ngoại lệ có chủ đích với logic Telegram/KPI đang tạm dừng; không tự cập nhật hai module đó.
 - `planIsDone(p)` dựa vào `p._allDone` (mọi đầu việc chưa Hủy đều Hoàn thành), không dùng `p._prog===1`.
 - `t.doers` (`model.js`): người "Thực hiện" hiển thị = người được gán sẵn (`t.collab`) **hợp** người đã
   nhập tuần cho đúng đầu việc đó ở **tuần gần nhất có dữ liệu** (không tính mọi tuần từ trước tới giờ).
@@ -88,6 +91,10 @@ biết phạm vi/giới hạn). Thứ tự nạp trong `index.html` quyết đ�
   trang A4 (`rpExportPdf()`), đảm bảo PDF luôn giống hệt bảng xem trước trên web, không tự dựng lại bảng.
 
 ## Quy ước bắt buộc
+- Lưu việc tuần trên web qua `POST /api/weeks/save`: gửi `document`, `revision` của tuần đã đọc và `deadlineUpdates` (kèm `expectedDeadline`). `saveWeekBundle()` chuẩn bị qua `saveDoc()` với `atomicDocs()`, rồi `store.commitDocs()` so sánh/ghi toàn bộ trong một giao dịch SQLite/MariaDB. Sai quyền, dữ liệu hoặc phiên bản thì không lưu phần nào; audit/SSE chỉ phát sau commit. Client không PATCH deadline riêng trước khi lưu tuần. Endpoint kiểm tra giờ 0,5–32, tổng tải không quá 40 giờ, đầu việc tồn tại/trùng; vẫn cho phép dòng nháp chưa có giờ khi chép tuần.
+- Đồng bộ web giữa nhiều máy chủ: giữ SSE và kiểm tra `GET /api/versions` mỗi 15 giây khi tab hiển thị. Fingerprint tính từ nội dung và đường dẫn tài liệu trong CSDL chung, phát hiện cả sửa/xoá/restore; máy chủ cache tối đa 5 giây. Client chỉ tải lại collection có phiên bản đổi, kiểm tra ngay khi quay lại tab và dừng polling khi đóng kết nối/đăng xuất. Không polling các collection KPI/Telegram. Kiểm thử: `tests/week-bundle.test.js`, `tests/web-sync.test.js`.
+- Trạng thái đầu việc trên web: nhập Excel là một lần cập nhật tại thời điểm **lưu nhập thành công**, không dùng ngày sửa của file và không chỉ coi là trạng thái ban đầu. Máy chủ ghi `task.updatedAt` và `task.init.statusUpdatedAt`; nhập tuần ghi `entry.updatedAt`/`entry.statusUpdatedAt`. `model.js` chọn trạng thái có `statusUpdatedAt` mới nhất giữa dự án và tuần. Form dự án hiển thị trạng thái đang có hiệu lực; `_statusChanged` chỉ gửi khi thực sự đổi lựa chọn. Sửa deadline/tên/giờ không tự ghi đè mốc trạng thái. Dữ liệu cũ thiếu mốc thời gian vẫn đọc theo quy tắc cũ, không tự gán thời điểm nhập giả. Đây là thay đổi luồng web/lưu chung; Telegram và KPI vẫn tạm dừng, chưa cập nhật riêng logic đọc của hai module này. Kiểm thử: `node --test tests/task-status-updates.test.js`.
+- Chống ghi đè dự án: API đọc `projects` trả `_rev` (SHA-256 của JSON gốc). Khi PUT phải gửi lại đúng `_rev` đã đọc; `normalizeProjectPeople()` giữ metadata này dù `clean()` bỏ các trường `_`. Máy chủ trả HTTP 409 nếu phiên bản cũ và dùng `store.compareAndSwapDoc()` để so sánh/ghi nguyên tử trên SQLite/MariaDB. `_rev` không lưu trong JSON. Không tự thay bằng phiên bản mới hoặc tự thử lại ghi toàn bộ dự án khi có xung đột; giữ form để người dùng sao chép nội dung, tải lại rồi mở lại form. Các route sửa riêng deadline/độ phức tạp/ghi chú cũng kiểm tra trước khi ghi. Kiểm thử: `node --test tests/project-conflict.test.js`.
 - Luôn `esc()` mọi dữ liệu người dùng trước khi chèn vào HTML.
 - Đặt tiền tố cho hàm/hằng của module (vd `riskForm`, `RISK_LEVELS`) – mọi file chung phạm vi toàn cục, trùng tên `const` sẽ lỗi trang.
 - Màu sắc dùng biến CSS trong `frontend/css/theme.css` (`var(--teal)`, `var(--bad)`…), hỗ trợ chế độ tối.
@@ -109,6 +116,8 @@ biết phạm vi/giới hạn). Thứ tự nạp trong `index.html` quyết đ�
 - Không commit `.env`, `data/`, `node_modules/`.
 
 ## Lệnh
+
+- Phiên đăng nhập: JWT chứa `sid` riêng từng lần đăng nhập; bảng `sessions` lưu thời điểm hoạt động và hạn tuyệt đối, hỗ trợ SQLite/MariaDB. Sau 30 phút không hoạt động, phiên luôn bị từ chối kể cả gửi lại token hoặc khởi động lại máy chủ. Chỉ `POST /api/activity` gia hạn; đăng xuất xoá phiên hiện tại. Token cũ không có `sid` phải đăng nhập lại. Kiểm tra bằng `node --test tests/session-timeout.test.js`.
 - Máy cá nhân: `.env` đặt `DB_CLIENT=sqlite`, `DATA_DIR=./data`.
 - Chạy phát triển (tự khởi động lại khi sửa backend/server.js): `npm run dev` → http://127.0.0.1:3000
 - Tạo tài khoản: `npm run user -- create`
