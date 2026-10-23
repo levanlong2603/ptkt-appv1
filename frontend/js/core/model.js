@@ -73,8 +73,10 @@ function derive(){
       for(const n of tCollabs(t)) doerSet.add(n);
       const doers = [...doerSet].sort((a,b)=>a.localeCompare(b,"vi"));
       const projectStatusDate = t.init?.statusUpdatedAt ? iso(new Date(t.init.statusUpdatedAt)) : null;
-      const done = status==="Hoàn thành" ? (fromProject && projectStatusDate ? mondayOf(projectStatusDate) : (doneWk.get(k)||null)) : null;
-      const ontime = done && t.deadline ? ((fromProject && projectStatusDate ? projectStatusDate : done) <= t.deadline) : null;
+      const completedOn = status==="Hoàn thành" ? ((fromProject?t.init?.completedOn:le.completedOn)||null) : null;
+      const done = status==="Hoàn thành" ? (completedOn?mondayOf(completedOn):fromProject && projectStatusDate ? mondayOf(projectStatusDate) : (doneWk.get(k)||null)) : null;
+      const completion = status==="Hoàn thành" ? completionTiming(completedOn,t.deadline) : null;
+      const ontime = completion?.days!=null ? completion.days>=0 : null;
       const warns = [];
       if(p.type!=="Nội bộ"){
         if(!tOwners(t).length) warns.push(["bad","Chưa có người phụ trách"]);
@@ -84,7 +86,7 @@ function derive(){
         const activityDay = fromProject && projectStatusDate ? projectStatusDate : (la?.updatedAt ? iso(new Date(la.updatedAt)) : lastWeek);
         if((status==="Đang làm"||status==="Đang vướng") && (!activityDay || activityDay < addDays(thisMon,-14))) warns.push(["warn","Không cập nhật >2 tuần"]);
       }
-      const o = {...t, p, key:k, qmE:qm, ptE:pt, wl, status, src, ms, nn, upd, lastNote, updDate, lastWeek, doers, done, ontime, warns, phase: phaseOf(t.dv)};
+      const o = {...t, p, key:k, qmE:qm, ptE:pt, wl, status, src, ms, nn, upd, lastNote, updDate, lastWeek, doers, done, completedOn, completion, ontime, warns, phase: phaseOf(t.dv)};
       tasks.push(o); return o;
     });
     const live = p._tasks.filter(t => t.status!=="Hủy");

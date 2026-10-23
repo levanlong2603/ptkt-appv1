@@ -27,7 +27,7 @@
 .ex-row{display:grid; gap:12px; margin-bottom:12px}
 .ex-r2{grid-template-columns:minmax(0,1fr) minmax(0,1.75fr)}
 .ex-r3{grid-template-columns:minmax(0,1fr) minmax(0,2fr)}
-.ex-r4{grid-template-columns:1fr 1.1fr}
+.ex-r4{grid-template-columns:repeat(2,minmax(0,1fr))}
 .ex-h{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; flex-wrap:wrap}
 .ex-h h3{font-size:14px; font-weight:800; letter-spacing:.01em; margin:0}
 .ex-task-heading{display:flex; align-items:center; flex:1; min-width:0; gap:20px; flex-wrap:wrap}
@@ -86,7 +86,6 @@
 .ex-pr-top{display:flex; justify-content:space-between; align-items:center; gap:8px; font-size:12.5px; font-weight:600; margin-bottom:5px}
 .ex-legend{font-size:11.5px; color:var(--ink-3); margin-top:6px}
 .ex-empty{color:var(--ink-3); font-size:12.5px; padding:12px 0}
-@media (max-width:1280px){ .ex-r4{grid-template-columns:1fr 1fr} }
 @media (max-width:980px){ .ex-r2,.ex-r3{grid-template-columns:minmax(0,1fr)} }
 @media (max-width:640px){ .ex-kpis,.ex-r3,.ex-r4{grid-template-columns:minmax(0,1fr)} .ex-ctl{width:100%} .ex-wk .lb{min-width:0; flex:1} }
 /* Cảm ứng: nút ‹ › và Tuần/Tháng/Quý cao ~40px (trước đó 30px, khó bấm bằng ngón tay) */

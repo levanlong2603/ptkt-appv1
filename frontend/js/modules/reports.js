@@ -142,11 +142,11 @@ function rpBuildWeek(){
     return o;
   });
   const staffList = staff==="__all__" ? M.staff : M.staff.filter(s=>s.name===staff);
-  const cols2 = ["Nhân sự","Số đầu việc","Workload","Capacity","Mức sử dụng","Hoàn thành","Trạng thái"];
+  const cols2 = ["Nhân sự","Số đầu việc","Thời gian thực hiện (giờ)","Giờ chuẩn (giờ)","Mức sử dụng","Hoàn thành","Trạng thái"];
   const rows2 = staffList.map(s => {
     const L = loadFor(s.name, w), u = s.cap ? L.wl/s.cap : null, d = ratioOf(L.es);
-    const st = !L.es.length ? "Chưa nhập tuần" : L.missing ? "Thiếu quy mô" : u>1 ? "Quá tải" : u>=.8 ? "Tải cao" : "Còn khả năng";
-    return {"Nhân sự": s.name, "Số đầu việc": L.es.length, "Workload": fmt1(L.wl), "Capacity": fmt1(s.cap),
+    const st = !L.es.length ? "Chưa nhập tuần" : L.missing ? "Thiếu giờ thực hiện" : u>1 ? "Quá tải" : u>=.8 ? "Tải cao" : "Còn khả năng";
+    return {"Nhân sự": s.name, "Số đầu việc": L.es.length, "Thời gian thực hiện (giờ)": fmt1(L.wl), "Giờ chuẩn (giờ)": fmt1(s.cap),
       "Mức sử dụng": pct(u), "Hoàn thành": L.es.length ? pct(d.ratio) : "–", "Trạng thái": st};
   });
   /* Cột cần gộp ô (merge) khi xuất file, đúng cấp bậc đang gộp ở bảng xem trước (rpWeekRowsHtml):
@@ -159,10 +159,10 @@ function rpBuildWeek(){
      hay "BÁO CÁO TẢI TUẦN" tuỳ chế độ xem, cộng với kỳ báo cáo. */
   const titleLine = (S.rp.wkView==="load" ? "Báo cáo tải tuần" : "Báo cáo tuần");
   const period = `Tuần ${isoWeek(w)} (${dm(w)} – ${dmy(addDays(w,6))})`;
-  const commonCols = ["Người thực hiện","Đầu việc","Chi tiết thực hiện","Giờ","Workload","Trạng thái","Vướng mắc / cần hỗ trợ"];
+  const commonCols = ["Người thực hiện","Đầu việc","Chi tiết thực hiện","Thời gian thực hiện (giờ)","Trạng thái","Vướng mắc / cần hỗ trợ"];
   const commonRows = rows.filter(r=>r.common).map(r=>({
     "Người thực hiện":r.person, "Đầu việc":r.name, "Chi tiết thực hiện":r.detail,
-    "Giờ":r.hours, "Workload":r.workload, "Trạng thái":r.status, "Vướng mắc / cần hỗ trợ":r.issue
+    "Thời gian thực hiện (giờ)":rpTimeValue(r), "Trạng thái":r.status, "Vướng mắc / cần hỗ trợ":r.issue
   }));
   return {
     title:titleLine, scope:`${typeLabel} · ${staffLabel}`,
@@ -535,19 +535,22 @@ function rpWeekLoadHtml(sh){
     <div class="tbl-wrap"><table><thead><tr>${sh.cols.map((c,i)=>`<th${isNum(i)?' class="num"':""}>${esc(c.header)}</th>`).join("")}</tr></thead>
     <tbody>${sh.rows.map(r=>`<tr>${sh.cols.map((c,i)=>`<td class="${i===0?"cell-main":isNum(i)?"num":""}">${esc(r[c.key])}</td>`).join("")}</tr>`).join("")}</tbody></table></div></div>`;
 }
+function rpTimeValue(row){
+  return row.hours!=null?row.hours:row.workload!=null?`${fmt1(row.workload)} (ước lượng)`:"–";
+}
 function rpWeekRowsHtml(report){
   const common = report.rows.filter(r=>r.common);
   const projects = report.rows.filter(r=>!r.common);
   if(!common.length) return rpProjectWeekRowsHtml(report);
-  const hours = common.reduce((sum,r)=>sum+(r.hours||0),0);
+  const hours = common.filter(r=>r.status!=="Hủy").reduce((sum,r)=>sum+(r.hours??r.workload??0),0);
   const done = common.filter(r=>r.status==="Hoàn thành").length;
   const stuck = common.filter(r=>r.status==="Đang vướng").length;
   return (projects.length ? rpProjectWeekRowsHtml({...report,rows:projects}) : "") + `
     <div class="rp-sec rp-sec-grn" style="margin-top:18px">
       <h2>Việc chung của phòng</h2>
-      <p class="small muted">${common.length} đầu việc · ${fmt1(hours)} giờ · ${done} hoàn thành · ${stuck} đang vướng</p>
-      <div class="tbl-wrap"><table><thead><tr>${report.showPerson?"<th>Người thực hiện</th>":""}<th>Đầu việc</th><th>Chi tiết thực hiện</th><th>Giờ</th><th>Workload</th><th>Trạng thái</th><th>Vướng mắc / cần hỗ trợ</th></tr></thead>
-      <tbody>${common.map(r=>`<tr>${report.showPerson?`<td>${esc(r.person)}</td>`:""}<td class="cell-main">${esc(r.name)}</td><td style="white-space:pre-wrap">${esc(r.detail)}</td><td>${r.hours==null?"–":fmt1(r.hours)}</td><td>${r.workload==null?"–":fmt1(r.workload)}</td><td>${r.status?stPill(r.status):"–"}</td><td style="white-space:pre-wrap">${esc(r.issue)}</td></tr>`).join("")}</tbody></table></div>
+      <p class="small muted">${common.length} đầu việc · ${fmt1(hours)} giờ${common.some(r=>r.hours==null&&r.workload!=null)?" (có ước lượng)":""} · ${done} hoàn thành · ${stuck} đang vướng</p>
+      <div class="tbl-wrap"><table><thead><tr>${report.showPerson?"<th>Người thực hiện</th>":""}<th>Đầu việc</th><th>Chi tiết thực hiện</th><th>Thời gian thực hiện (giờ)</th><th>Trạng thái</th><th>Vướng mắc / cần hỗ trợ</th></tr></thead>
+      <tbody>${common.map(r=>`<tr>${report.showPerson?`<td>${esc(r.person)}</td>`:""}<td class="cell-main">${esc(r.name)}</td><td style="white-space:pre-wrap">${esc(r.detail)}</td><td>${typeof rpTimeValue(r)==="number"?fmt1(r.hours):esc(rpTimeValue(r))}</td><td>${r.status?stPill(r.status):"–"}</td><td style="white-space:pre-wrap">${esc(r.issue)}</td></tr>`).join("")}</tbody></table></div>
     </div>`;
 }
 function rpProjectWeekRowsHtml(report){

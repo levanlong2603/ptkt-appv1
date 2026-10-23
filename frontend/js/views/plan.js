@@ -68,7 +68,7 @@ function planReportRows(p){
         <td style="vertical-align:top">${stPill(t.status)}</td>
         <td class="small" style="white-space:pre-wrap; vertical-align:top">${t.lastNote?esc(t.lastNote):'<span class="muted">–</span>'}</td>
         <td class="small" style="white-space:pre-wrap; vertical-align:top">${t.note?esc(t.note):'<span class="muted">–</span>'}</td>
-        <td style="vertical-align:top">${warnPills(t.warns)}${t.ontime===true?' <span class="pill ok">Đúng hạn</span>':t.ontime===false?' <span class="pill bad">Trễ hạn</span>':""}${t.status==="Hoàn thành"&&!(t.eval&&t.eval.dat)&&S.canEdit?' <span class="pill info">Chờ đánh giá</span>':""}</td></tr>`;
+        <td style="vertical-align:top">${warnPills(t.warns)}${completionBadge(t.status,t.completedOn,t.deadline)}${t.status==="Hoàn thành"&&!(t.eval&&t.eval.dat)&&S.canEdit?' <span class="pill info">Chờ đánh giá</span>':""}</td></tr>`;
     }
     i += span;
   }
@@ -144,6 +144,7 @@ function taskForm(p, t){
   const raw = t ? (p.tasks||[]).find(x=>x.id===t.id) : null;
   const v = raw ? {...raw, owners:tOwners(raw), collabs:tCollabs(raw), st0:t.status||(raw.init||{}).status||"", ms0:(raw.init||{}).ms??null, nn0:(raw.init||{}).nn||"", dat:(raw.eval||{}).dat||"", cl:(raw.eval||{}).cl??null, tc:(raw.eval||{}).tc??null, nx:(raw.eval||{}).nx||""}
     : {id:"", dv:"", detail:"", owners:pOwners(p), collabs:[], deadline:null, qm:null, pt:null, pr:"P2", st0:"", ms0:null, nn0:"", note:""};
+  v.completedOn = t?.completedOn||raw?.init?.completedOn||null;
   /* Gom theo hạng mục bằng optgroup, bỏ phần "mã. hạng mục –" lặp lại trong tên hiển thị – giống ô chọn ở Nhập theo tuần */
   const dvOpts = (() => {
     const items = S.catalog.filter(c=>c.type===p.type);
@@ -176,9 +177,14 @@ function taskForm(p, t){
       {key:"owners", label:"Phụ trách (TM)", type:"multi", listStyle:true, selectionHint:"Bấm vào tên để chọn; bấm lại để bỏ chọn.", options:staffOpts},
       {key:"collabs", label:"Thực hiện (được giao làm)", type:"multi", listStyle:true, selectionHint:"Bấm vào tên để chọn; bấm lại để bỏ chọn.", options:staffOpts},
       {key:"deadline", label:"Deadline theo HĐ", type:"date", half:true},
+      {key:"completedOn",label:"Ngày hoàn thành thực tế",type:"date",half:true,showIf:x=>x.st0==="Hoàn thành",
+        hint:(date,values)=>date?completionTiming(date,values.deadline).label:"Nhập ngày làm xong thực tế; không dùng ngày cập nhật để đánh giá sớm/trễ."},
       {key:"pr", label:"Ưu tiên", type:"seg", options:["P1","P2","P3","P4"].map(x=>[x,x]), half:true},
       {key:"pt", label:"Độ phức tạp", type:"seg", half:true, options:[[null,"Mặc định"],...[1,2,3,4,5].map(n=>[n,String(n)])], hint:v=>v?PT_HINT[v]:""},
-      {key:"st0", label:"Trạng thái", type:"select", half:true, options:[["",""],...ST_ALL.map(s=>[s,s])]},
+      {key:"st0", label:"Trạng thái", type:"seg", options:ST_ALL.map(s=>[s,s]),onChange:(status,form)=>{
+        if(status==="Hoàn thành"){if(!form.getValue("completedOn"))form.setValue("completedOn",todayISO());}
+        else form.setValue("completedOn",null);
+      }},
       /* "Ghi chú của trưởng phòng" (task.note) không còn sửa được ở đây nữa – đã có "Đánh giá khi hoàn
          thành" bên dưới cho nhận xét sau khi xong; ghi chú vướng mắc/định hướng xử lý giờ chỉ sửa ở Nhập
          theo tuần (weekly-input.js, field "mgrNote" – cùng ghi vào task.note qua route task-note). Vẫn
@@ -194,10 +200,11 @@ function taskForm(p, t){
     saveLabel: isNew ? "Thêm đầu việc" : "Lưu thay đổi",
     onSave: async x => {
       const tasks = [...(p.tasks||[])];
+      const statusEdited=!raw || x.st0!==v.st0 || (x.st0==="Hoàn thành"&&(x.completedOn||null)!==v.completedOn);
       const body = {id: x.id || nextTaskId(p), dv:x.dv, detail:x.detail||"", owners:x.owners||[], collabs:x.collabs||[], deadline:x.deadline||null, qm:x.qm||null, pt:x.pt||null, pr:x.pr||"",
         /* init.note = vướng mắc ban đầu (chỉ có ở đầu việc nhập từ Excel) – không có ô sửa ở đây, giữ nguyên */
-        init:{...(raw?.init||{}), status:raw && x.st0===v.st0 ? (raw.init?.status||"") : (x.st0||""), ms:x.ms0??null, nn:x.nn0||""}, note:x.note||"", eval: raw&&raw.eval ? {...raw.eval} : {},
-        _statusChanged:!raw || x.st0!==v.st0};
+        init:{...(raw?.init||{}), status:!statusEdited ? (raw.init?.status||"") : (x.st0||""), completedOn:statusEdited?(x.st0==="Hoàn thành"?(x.completedOn||null):null):(raw?.init?.completedOn||null), ms:x.ms0??null, nn:x.nn0||""}, note:x.note||"", eval: raw&&raw.eval ? {...raw.eval} : {},
+        _statusChanged:statusEdited};
       if(t && t.status==="Hoàn thành" && S.canEdit) body.eval = {dat:x.dat||"", cl:x.cl??null, tc:x.tc??null, nx:x.nx||""};
       const i = tasks.findIndex(q=>q.id===body.id); if(i>=0) tasks[i]=body; else tasks.push(body);
       await saveProject({...p, tasks}); toast(isNew?"Đã thêm đầu việc":"Đã lưu đầu việc");
@@ -211,10 +218,12 @@ function nextTaskId(p){ let n=(p.tasks||[]).length+1; const ids=new Set((p.tasks
    người bấm không có quyền sửa dự án) thì chỉ xem thuần, không có nút thêm. */
 function openInfo(p, t, extraBtn){
   const c = S.catalog.find(x=>x.name===t.dv)||{};
+  const time=executionTimeOf(M.entries.filter(e=>e.projectId===p.id&&e.taskId===t.id));
   openForm({title:"Đầu việc", subtitle:p.name, values:{}, fields:[], readOnly:true, extraBtn,
     info:`<h3 style="margin-bottom:12px">${esc(t.dv)}</h3><div class="kv"><dt>Nội dung</dt><dd>${esc(t.detail||"–")}</dd><dt>Phụ trách</dt><dd>${esc(peopleText(tOwners(t)))}</dd>
     <dt>Deadline HĐ</dt><dd>${dmy(t.deadline)}</dd><dt>Trạng thái</dt><dd>${stPill(t.status)}</dd><dt>Cập nhật</dt><dd>${esc(t.upd||"–")}</dd><dt>Ngày cập nhật</dt><dd>${esc(t.updDate||"–")}</dd>
-    <dt>Kết quả đầu ra</dt><dd>${esc(c.result||"–")}</dd><dt>Workload</dt><dd>${t.wl??"–"}</dd>
+    <dt>Kết quả đầu ra</dt><dd>${esc(c.result||"–")}</dd><dt>Tổng thời gian thực hiện</dt><dd>${time?fmt1(time.hours)+" giờ"+(time.estimated?" (có ước lượng)":""):"Chưa ghi nhận"}</dd>
+    <dt>Hoàn thành thực tế</dt><dd>${t.completedOn?dmy(t.completedOn):"Chưa ghi nhận"} ${completionBadge(t.status,t.completedOn,t.deadline)}</dd>
     <dt>Ghi chú TrP</dt><dd>${esc(t.note||"–")}</dd></div>`});
 }
 

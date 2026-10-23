@@ -50,6 +50,24 @@ function planMatchFilter(p, key){
 const ST_ALL = ["Chưa bắt đầu","Đang làm","Đang vướng","Tạm dừng","Hoàn thành","Hủy"];
 const ST_WEEK = ["Đang làm","Đang vướng","Tạm dừng","Hoàn thành","Hủy"];
 const OPEN = new Set(["Chưa bắt đầu","Đang làm","Đang vướng","Tạm dừng"]);
+/* Thời gian từ các lượt nhập, không dùng Quy mô của đầu việc dự án để giả lập giờ thực hiện. */
+function executionTimeOf(entries){
+  let hours=0,estimated=false,count=0;
+  for(const e of entries){
+    if(e.status==="Hủy") continue;
+    const value=e.hours??e.wl;
+    if(value==null || !Number.isFinite(+value)) continue;
+    hours+=+value;count++;if(e.hours==null) estimated=true;
+  }
+  return count?{hours:Math.round(hours*10)/10,estimated}:null;
+}
+function completionTiming(completedOn,deadline){
+  if(!completedOn) return {tone:"mute",label:"Chưa có ngày hoàn thành",days:null};
+  if(!deadline) return {tone:"mute",label:"Chưa có deadline",days:null};
+  const delta=Math.round((Date.parse(deadline+"T00:00:00Z")-Date.parse(completedOn+"T00:00:00Z"))/864e5);
+  if(!Number.isFinite(delta)) return {tone:"mute",label:"Chưa đủ dữ liệu",days:null};
+  return {tone:delta<0?"bad":"ok",label:delta>0?`Sớm ${delta} ngày`:delta<0?`Trễ ${-delta} ngày`:"Đúng hạn",days:delta};
+}
 /* Dữ liệu mới so theo thời điểm cập nhật trạng thái; dữ liệu cũ vẫn dùng tuần làm mốc dự phòng. */
 function statusUpdateTime(entry){
   return Number(entry?.statusUpdatedAt)||Date.parse((entry?.week||"")+"T00:00:00")||0;

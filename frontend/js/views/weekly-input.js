@@ -18,7 +18,7 @@ function viewInput(){
   const canCopy = !locked && prev && (prev.entries||[]).some(e=>!["Hoàn thành","Hủy"].includes(e.status));
   h += `<section class="panel" style="margin-bottom:18px"><div class="panel-b me-sum">
     <div><div class="small muted">Người nhập</div><div style="font-weight:700; font-size:17px">${esc(S.me)}</div></div>
-    <div><div class="small muted">Workload tuần</div><div style="font-weight:700; font-size:17px">${fmt1(L.wl)} <span class="muted small">/ ${fmt1(st.cap)} điểm</span></div></div>
+    <div><div class="small muted">Thời gian thực hiện tuần</div><div style="font-weight:700; font-size:17px">${fmt1(L.wl)} <span class="muted small">/ ${fmt1(st.cap)} giờ</span></div></div>
     <div><div class="small muted">Mức sử dụng</div><div style="font-weight:700; font-size:17px; color:${u>1?"var(--bad)":u>=.8?"var(--warn)":"var(--ok)"}">${L.es.length?pct(u):"–"}</div></div>
     <div class="toolbar" style="margin-left:auto">
     ${`
@@ -27,7 +27,7 @@ function viewInput(){
     <button class="btn primary" data-act="addentry">+ Thêm việc</button>`}`}</div></div></section>`;
   if(locked) h += `<p class="small muted" style="margin:-8px 0 14px">Tuần ${isoWeek(w)} đã qua, chỉ trưởng phòng mới sửa được dữ liệu tuần này.</p>`;
   if(!L.es.length) return h + `<section class="panel"><div class="empty"><b>Chưa có việc nào trong tuần ${isoWeek(w)}</b>${locked?"":"Thêm việc bạn làm trong tuần, hoặc chép các việc dở dang từ tuần trước."}</div></section>`;
-  return h + `<section class="panel tbl-wrap"><table style="table-layout:fixed"><thead><tr><th style="width:20%">Đầu việc</th><th style="width:20%">Việc làm</th><th style="width:8%; text-align:center">Giờ</th><th style="width:10%; text-align:center">Workload</th><th style="width:14%">Trạng thái</th><th style="width:12%">Ma sát</th><th style="width:16%">Vướng / cần hỗ trợ</th></tr></thead><tbody>${inputTreeRows(L.es, locked)}</tbody></table></section>
+  return h + `<section class="panel tbl-wrap"><table style="table-layout:fixed"><thead><tr><th style="width:26%">Đầu việc</th><th style="width:24%">Việc làm</th><th style="width:14%; text-align:center">Thời gian thực hiện</th><th style="width:12%">Trạng thái</th><th style="width:10%">Ma sát</th><th style="width:14%">Vướng / cần hỗ trợ</th></tr></thead><tbody>${inputTreeRows(L.es, locked)}</tbody></table></section>
     ${locked?"":'<p class="small muted">Bấm vào một dòng để sửa hoặc xoá.</p>'}`;
 }
 /* "Tất cả" (chỉ trưởng phòng): liệt kê gộp việc đã nhập của mọi người trong tuần, gom theo người.
@@ -42,22 +42,27 @@ function viewInputAll(w){
   let rows = "";
   for(const person of people){
     const pes = byPerson.get(person), wl = pes.reduce((a,e)=>a+(e.wl||0),0);
-    rows += inputGroupRow(0, person, `${pes.length} đầu việc · ${fmt1(wl)} điểm`, 7);
+    rows += inputGroupRow(0, person, `${pes.length} đầu việc · ${fmt1(wl)} giờ`, 6);
     for(const e of pes) rows += inputAllRow(e);
   }
-  return `<section class="panel tbl-wrap"><table style="table-layout:fixed"><thead><tr><th style="width:26%">Đầu việc</th><th style="width:16%">Việc làm</th><th style="width:7%; text-align:center">Giờ</th><th style="width:9%; text-align:center">Workload</th><th style="width:13%">Trạng thái</th><th style="width:12%">Ma sát</th><th style="width:17%">Vướng / cần hỗ trợ</th></tr></thead><tbody>${rows}</tbody></table></section>
+  return `<section class="panel tbl-wrap"><table style="table-layout:fixed"><thead><tr><th style="width:26%">Đầu việc</th><th style="width:22%">Việc làm</th><th style="width:14%; text-align:center">Thời gian thực hiện</th><th style="width:12%">Trạng thái</th><th style="width:10%">Ma sát</th><th style="width:16%">Vướng / cần hỗ trợ</th></tr></thead><tbody>${rows}</tbody></table></section>
     <p class="small muted">Bấm vào một dòng để sửa hoặc xoá.</p>`;
 }
 /* Cột "Ma sát" (mức độ + nguyên nhân) và "Vướng / cần hỗ trợ" (ghi chú) tách riêng 2 ô, không ghép chung
    bằng dấu " · " như trước – nguyên nhân đi cùng ma sát, không đi cùng ghi chú vướng mắc nữa. */
+function inputTimeCell(e){
+  if(e.hours!=null) return `${fmt1(e.hours)} giờ`;
+  if(e.wl!=null) return `<span title="Dữ liệu cũ chưa có giờ thực hiện; đây là ước lượng theo Quy mô.">${fmt1(e.wl)} giờ <span class="small muted">(ước lượng)</span></span>`;
+  return '<span class="pill bad">Chưa nhập giờ</span>';
+}
 function inputAllRow(e){
   const name = e.taskName || (e.type==="Nội bộ" && e.work ? e.work.split("\n")[0] : e.ref ? planShortName(e.ref.t.dv) : "(đầu việc đã xoá)");
   const proj = (M.pById.get(e.projectId)||{}).name || "(dự án đã xoá)";
   return `<tr class="click" data-act="editentry" data-id="${esc(e.id)}" data-person="${esc(e.person)}" tabindex="0" title="${e.ref?esc(e.ref.t.dv):""}">
     <td style="padding-left:32px"><div class="small muted">${esc(proj)}</div><div class="cell-main">${esc(name)}</div></td>
     <td style="white-space:pre-wrap">${e.work?esc(e.work):'<span class="muted">–</span>'}</td>
-    <td style="text-align:center">${e.hours??e.qm??"–"}</td><td style="text-align:center">${e.wl!=null?e.wl:"–"}</td>
-    <td>${e.status?stPill(e.status):"–"}</td>
+    <td style="text-align:center">${inputTimeCell(e)}</td>
+    <td>${e.status?stPill(e.status):"–"}${e.status==="Hoàn thành"?`<div style="margin-top:5px">${completionBadge(e.status,e.completedOn,e.ref?.t.deadline)}</div>`:""}</td>
     <td>${e.ms!=null&&e.ms!==""?`<span class="pill ${e.ms>=3?"bad":e.ms>=1?"warn":"mute"}">${e.ms}</span> `:""}${esc(e.nn||"")}</td>
     <td class="small">${esc(e.note||"")}</td></tr>`;
 }
@@ -69,14 +74,14 @@ function inputRow(e, lvl=1, locked=false){
   return `<tr ${locked?"":'class="click" data-act="editentry" data-id="'+esc(e.id)+'" tabindex="0"'} title="${e.ref?esc(e.ref.t.dv):""}">
     <td style="padding-left:${10+lvl*22}px; border-left:3px solid ${INPUT_LVL_BORDER[lvl]||INPUT_LVL_BORDER[2]}"><div class="cell-main">${esc(name)}</div></td>
     <td style="white-space:pre-wrap">${e.work?esc(e.work):'<span class="muted">–</span>'}</td>
-    <td style="text-align:center">${e.hours??e.qm??'<span class="pill bad">Chọn giờ</span>'}</td><td style="text-align:center">${e.wl!=null?e.wl:"–"}</td>
-    <td>${e.status?stPill(e.status):'<span class="pill warn">Chọn trạng thái</span>'}</td>
+    <td style="text-align:center">${inputTimeCell(e)}</td>
+    <td>${e.status?stPill(e.status):'<span class="pill warn">Chọn trạng thái</span>'}${e.status==="Hoàn thành"?`<div style="margin-top:5px">${completionBadge(e.status,e.completedOn,e.ref?.t.deadline)}</div>`:""}</td>
     <td>${e.ms!=null&&e.ms!==""?`<span class="pill ${e.ms>=3?"bad":e.ms>=1?"warn":"mute"}">${e.ms}</span>`:""} ${esc(e.nn||"")}</td>
     <td class="small">${esc(e.note||"")}</td></tr>`;
 }
 /* Dòng nhóm tĩnh (không gấp/mở) cho cây ở Nhập theo tuần – luôn hiện hết vì mỗi tuần thường chỉ có ít việc.
    Dòng dự án chỉ ghi tên (không ghi số đầu việc); số đầu việc chỉ ghi ở dòng hạng mục. */
-function inputGroupRow(lvl, title, meta, cols=7){
+function inputGroupRow(lvl, title, meta, cols=6){
   const bg = lvl===0 ? "color-mix(in srgb, var(--teal) 14%, var(--surface))" : "color-mix(in srgb, var(--teal) 6%, var(--surface))";
   const text = lvl===0 ? `<span style="font-weight:700; font-size:14.5px">${esc(title)}</span>`
     : `<span style="font-weight:650; color:var(--ink); font-size:13.5px">${esc(title)}</span> <span class="small muted">· ${esc(meta)}</span>`;
@@ -128,6 +133,7 @@ function entryForm(entry, person, internalOnly=false){
      route PATCH /api/doc/projects/:id/task-note ở server.js). */
   const taskRef0 = e.projectId && e.taskId ? M.taskMap.get(e.projectId+"|"+e.taskId) : null;
   e.mgrNote = taskRef0 ? (taskRef0.t.note||"") : "";
+  e.completedOn = entry?.completedOn||null;
   e.deadline = taskRef0?.t.deadline || null;
   let deadlineBefore = e.deadline;
   const selectDeadline = (pid, tid, form) => {
@@ -194,8 +200,13 @@ function entryForm(entry, person, internalOnly=false){
         hint:v=>isNew?"Giờ cho mỗi đầu việc; tổng giờ = giờ nhập × số đầu việc đã chọn.":"Số giờ dự kiến làm trong tuần cho đầu việc này, có thể nhập lẻ 0,5 giờ."},
       {key:"pt", label:"Độ phức tạp", type:"seg", half:true, options:[[null,"Mặc định"],...[1,2,3,4,5].map(n=>[n,String(n)])],
         hint:v=>v?PT_HINT[v]:""},
-      {key:"deadline", label:"Deadline theo HĐ", type:"date", half:true, showIf:v=>!isInternalId(v.projectId) && (!isNew || v.taskIds?.length===1), disabled:!taskRef0 || !canManageProject(taskRef0.p), hint:"Dùng chung với đầu việc trong dự án; quyền sửa theo dự án. Khi chọn nhiều, mỗi đầu việc giữ deadline riêng."},
-      {key:"status", label:"Trạng thái", type:"seg", options:ST_WEEK.map(s=>[s,s])},
+      {key:"deadline", label:"Deadline theo HĐ", type:"date", half:true, showIf:v=>!isInternalId(v.projectId) && (!isNew || v.taskIds?.length===1), disabled:!taskRef0 || !canManageProject(taskRef0.p)},
+      {key:"status", label:"Trạng thái", type:"seg", options:ST_WEEK.map(s=>[s,s]),onChange:(status,form)=>{
+        if(status==="Hoàn thành"){if(!form.getValue("completedOn"))form.setValue("completedOn",todayISO());}
+        else form.setValue("completedOn",null);
+      }},
+      {key:"completedOn",label:"Ngày hoàn thành thực tế",type:"date",showIf:v=>v.status==="Hoàn thành",
+        hint:(date,values)=>values.taskIds?.length>1?"Ngày thực tế áp dụng cho các đầu việc đang chọn; sớm/trễ được đánh giá riêng theo deadline từng việc.":date?completionTiming(date,values.deadline||taskRef0?.t.deadline).label:"Nhập đúng ngày làm xong, kể cả khi cập nhật muộn. Để trống nếu chưa rõ; hệ thống sẽ chưa đánh giá sớm/trễ."},
       /* Ma sát = chọn cả mức độ lẫn nguyên nhân cùng lúc (2 ô cạnh nhau), tách hẳn khỏi "Vướng mắc / cần
          hỗ trợ" bên dưới – trước đây Nguyên nhân đứng riêng 1 dòng, dễ hiểu nhầm là đi cùng ghi chú vướng
          mắc. Nguyên nhân vẫn là trường "nn" như cũ, chỉ đổi cách trình bày. */
@@ -224,7 +235,7 @@ function entryForm(entry, person, internalOnly=false){
         if(total>budgetH) throw new Error(`${ids.length} đầu việc × ${fmt1(v.hours)}h = ${fmt1(total)}h, vượt số giờ còn lại (${fmt1(budgetH)}h). Giảm giờ hoặc số đầu việc.`);
         const deadlineUpdates=ids.length===1 && (v.deadline||null)!==deadlineBefore
           ? [{projectId:v.projectId,taskId:ids[0],deadline:v.deadline||null,expectedDeadline:deadlineBefore}] : [];
-        for(const taskId of ids) list.push({id:uid("e"), projectId:v.projectId, taskId, work:v.work||"", qm:v.qm||null, hours:v.hours, pt:v.pt||null, status:v.status||"", ms:v.ms??null, nn:v.nn||"", note:v.note||""});
+        for(const taskId of ids) list.push({id:uid("e"), projectId:v.projectId, taskId, work:v.work||"", qm:v.qm||null, hours:v.hours, pt:v.pt||null, status:v.status||"", completedOn:v.status==="Hoàn thành"?(v.completedOn||null):null, ms:v.ms??null, nn:v.nn||"", note:v.note||""});
         await saveWeek(S.week, who, list, deadlineUpdates);
         let syncFailed = false;
         for(const ref of refs){
@@ -254,7 +265,7 @@ function entryForm(entry, person, internalOnly=false){
         throw new Error("Đầu việc này đã có trong tuần. Bấm vào dòng đó trong bảng để sửa thay vì thêm mới.");
       const deadlineUpdates=taskRef && (v.deadline||null)!==deadlineBefore
         ? [{projectId:v.projectId,taskId:v.taskId,deadline:v.deadline||null,expectedDeadline:deadlineBefore}] : [];
-      const i = list.findIndex(x=>x.id===v.id); const clean = {id:v.id, projectId:v.projectId, taskId:v.taskId, ...(freeTask ? {taskName:v.taskName.trim()} : {}), work:v.work||"", qm:v.qm||null, hours:v.hours, pt:v.pt||null, status:v.status||"", ms:v.ms??null, nn:v.nn||"", note:v.note||""};
+      const i = list.findIndex(x=>x.id===v.id); const clean = {id:v.id, projectId:v.projectId, taskId:v.taskId, ...(freeTask ? {taskName:v.taskName.trim()} : {}), work:v.work||"", qm:v.qm||null, hours:v.hours, pt:v.pt||null, status:v.status||"", completedOn:v.status==="Hoàn thành"?(v.completedOn||null):null, ms:v.ms??null, nn:v.nn||"", note:v.note||""};
       if(i>=0) list[i]=clean; else list.push(clean);
       await saveWeek(S.week, who, list, deadlineUpdates); toast(isNew?"Đã thêm việc":"Đã lưu thay đổi");
       /* Nhân viên tự đánh giá Độ phức tạp ngay trong tuần → đồng bộ về đúng đầu việc ở Kế hoạch dự án,

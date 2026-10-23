@@ -54,6 +54,17 @@ test('member can add, rename and copy independent common tasks without a catalog
   assert.equal(doc.entries[0].taskName,'PoC Storage scale');
 });
 
+test('choosing completion fills today, preserves manual date and clears it on reopening',()=>{
+  const {c,form}=setup();c.todayISO=()=> '2026-10-23';c.entryForm(null,null,true);
+  const field=form().fields.find(f=>f.key==='status'),values={completedOn:null};
+  const api={getValue:k=>values[k],setValue:(k,v)=>values[k]=v};
+  field.onChange('Hoàn thành',api);assert.equal(values.completedOn,'2026-10-23');
+  values.completedOn='2026-10-20';field.onChange('Hoàn thành',api);assert.equal(values.completedOn,'2026-10-20');
+  field.onChange('Đang làm',api);assert.equal(values.completedOn,null);
+  field.onChange('Hoàn thành',api);assert.equal(values.completedOn,'2026-10-23');
+  assert.equal(form().fields.find(f=>f.key==='deadline').hint,undefined);
+});
+
 test('weekly preview and Excel rows keep legacy common issues on their own entry',()=>{
   const {c,p} = setup();
   const base={projectId:p.id,taskId:'legacy-shared',person:'An',week:c.S.week,type:p.type,

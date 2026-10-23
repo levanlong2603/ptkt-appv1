@@ -5,7 +5,7 @@ const vm=require('node:vm');
 const {createHash}=require('node:crypto');
 const {createSqliteStore}=require('../backend/lib/store');
 const {saveWeekBundle}=require('../backend/lib/week-save');
-const {stampProjectTasks,stampWeekEntries}=require('../backend/lib/task-updates');
+const {stampProjectTasks,stampWeekEntries,validateCompletionDates}=require('../backend/lib/task-updates');
 const source=fs.readFileSync(require.resolve('../backend/server.js'),'utf8');
 const hash=raw=>raw===null?null:createHash('sha256').update(raw).digest('hex');
 const projectPath='projects/p1',weekPath='weeks/2026-10-19__an';
@@ -13,7 +13,7 @@ async function setup(t){
   const store=createSqliteStore(':memory:');await store.init();t.after(()=>store.close());
   const events=[];
   const c=vm.createContext({store,COLLECTIONS:new Set(['weeks','projects']),ID_RE:/^[a-z0-9_-]+$/,
-    FULL_ROLES:new Set(['head']),stampProjectTasks,stampWeekEntries,
+    FULL_ROLES:new Set(['head']),stampProjectTasks,stampWeekEntries,validateCompletionDates,
     canWrite:(u,coll,id,body)=>u.role==='head'||(coll==='weeks'&&body.person==='An'),
     peopleOf:(o,k)=>o[k]||[],projectRevision:hash,projectConflict:()=>({status:409,error:'Conflict'}),
     audit:()=>events.push('audit'),broadcast:coll=>events.push(coll),bot:{onSaved(){}},console});
@@ -88,4 +88,11 @@ test('web client sends week, revision and deadline in one request',async()=>{
   await c.saveWeek('2026-10-19','An',[{id:'e1',hours:2}],updates);
   assert.equal(calls.length,1);assert.equal(calls[0].url,'/api/weeks/save');
   assert.equal(calls[0].body.revision,'original');assert.equal(calls[0].body.deadlineUpdates,updates);
+});
+
+test('invalid real completion date rejects deadline and week together',async t=>{
+  const x=await setup(t),input=x.input();input.document.entries[0].status='Hoàn thành';input.document.entries[0].completedOn='2099-01-01';
+  assert.equal((await x.save(input)).status,400);
+  assert.equal(await x.store.getDoc(weekPath),null);
+  assert.equal(JSON.parse(await x.store.getDoc(projectPath)).tasks[0].deadline,'2026-11-01');
 });

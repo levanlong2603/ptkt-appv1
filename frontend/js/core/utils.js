@@ -15,6 +15,19 @@ function slug(s){ return String(s).normalize("NFD").replace(/[\u0300-\u036f]/g,"
 function uid(p){ return p + Math.random().toString(36).slice(2,9); }
 function pct(x){ return x==null||isNaN(x) ? "–" : Math.round(x*100)+"%"; }
 function fmt1(x){ return x==null ? "–" : (Math.round(x*10)/10).toLocaleString("vi-VN"); }
+function completionBadge(status,completedOn,deadline){
+  if(status!=="Hoàn thành") return "";
+  const result=completionTiming(completedOn,deadline);
+  return `<span class="pill ${result.tone}" title="${esc(completedOn?"Hoàn thành thực tế: "+dmy(completedOn):"Nhập ngày hoàn thành thực tế để đánh giá sớm/trễ hạn")}">${esc(result.label)}</span>`;
+}
+function completionSummaryHtml(tasks,weeks,person){
+  const period=new Set(weeks);
+  const completed=tasks.filter(t=>t.p?.type!=="Nội bộ" && t.status==="Hoàn thành" && t.done && period.has(t.done) && (!person||t.doers?.includes(person)||tOwners(t).includes(person)));
+  const early=completed.filter(t=>t.completion?.days>0).length;
+  const ontime=completed.filter(t=>t.completion?.days===0).length;
+  const late=completed.filter(t=>t.completion?.days<0).length;
+  return `<div class="toolbar" style="gap:8px; flex-wrap:wrap"><span class="small muted">Đầu việc dự án hoàn thành so với hạn:</span><span class="pill ok">Sớm ${early}</span><span class="pill info">Đúng hạn ${ontime}</span><span class="pill bad">Trễ ${late}</span><span class="pill mute">Chưa đủ ngày/hạn ${completed.length-early-ontime-late}</span></div>`;
+}
 function phaseOf(dv){ const m=/^([0-9A-Z]{1,2}\d?)\./.exec(dv||""); return m ? m[1] : ""; }
 function toast(msg){ const t=document.createElement("div"); t.className="toast"; t.textContent=msg; t.setAttribute("role","status"); document.body.appendChild(t); setTimeout(()=>t.remove(),2400); }
 

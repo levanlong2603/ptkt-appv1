@@ -18,7 +18,7 @@ const cookieParser = require("cookie-parser");
 const { randomUUID, createHash } = require("crypto");
 const { createStore } = require("./lib/store");
 const { slug, renameStaff } = require("./lib/staff");
-const { stampProjectTasks, stampWeekEntries } = require("./lib/task-updates");
+const { stampProjectTasks, stampWeekEntries,validateCompletionDates } = require("./lib/task-updates");
 const { saveWeekBundle } = require("./lib/week-save");
 const { WEB_COLLECTIONS, createRevisionFeed } = require("./lib/revision-feed");
 const kpi = require("./lib/kpi");
@@ -317,6 +317,9 @@ async function saveDoc(user, coll, id, body, expectedRevision, context) {
         t.note = ex.note ?? "";
       }
     }
+  }
+  if(coll==="projects"||coll==="weeks"){
+    const error=validateCompletionDates(body,coll);if(error) return error;
   }
   if (coll === "projects") stampProjectTasks(body, exBody, user.username);
   if (coll === "weeks" && Array.isArray(body.entries)) stampWeekEntries(body, exBody, user.username);

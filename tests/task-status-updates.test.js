@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
 const path = require('node:path');
-const {stampProjectTasks,stampWeekEntries} = require('../backend/lib/task-updates');
+const {stampProjectTasks,stampWeekEntries,validateCompletionDates} = require('../backend/lib/task-updates');
 const at = n=>new Date(2026,9,19+n,12).getTime();
 const copy = x=>JSON.parse(JSON.stringify(x));
 
@@ -91,6 +91,12 @@ test('project form shows effective status and does not override it on unrelated 
   for(const file of ['core/utils','core/constants','views/plan']) vm.runInContext(fs.readFileSync(path.join(__dirname,'../frontend/js',file+'.js'),'utf8'),c);
   c.toast=()=>{};
   c.taskForm(p,current);
+  const fields=cfg.fields;
+  assert.equal(fields.findIndex(f=>f.key==='completedOn'),fields.findIndex(f=>f.key==='deadline')+1);
+  assert.equal(fields.find(f=>f.key==='completedOn').half,true);
+  assert.equal(fields.find(f=>f.key==='st0').type,'seg');
+  assert.equal(fields.find(f=>f.key==='st0').half,undefined);
+  assert(fields.findIndex(f=>f.key==='st0')>fields.findIndex(f=>f.key==='pt'));
   assert.equal(cfg.values.st0,'Đang vướng');
   await cfg.onSave({...cfg.values,detail:'Description changed'});
   assert.equal(saved.tasks[0]._statusChanged,false);
@@ -98,4 +104,61 @@ test('project form shows effective status and does not override it on unrelated 
   await cfg.onSave({...cfg.values,st0:'Đang làm'});
   assert.equal(saved.tasks[0]._statusChanged,true);
   assert.equal(saved.tasks[0].init.status,'Đang làm');
+});
+
+test('late data entry is evaluated using actual completion date, not update date',()=>{
+  const p=project();p.tasks[0].deadline='2026-10-20';
+  const w=week('Hoàn thành',at(4));w.entries[0].completedOn='2026-10-18';
+  stampWeekEntries(w,null,'An',at(4));
+  const t=model(p,[w]).tasks[0];
+  assert.equal(t.completedOn,'2026-10-18');assert.equal(t.completion.days,2);
+  assert.equal(t.ontime,true);assert.equal(t.done,'2026-10-12');
+  assert.equal(t.updDate,'23/10/2026');
+});
+test('early, on-date and late completions use calendar days',()=>{
+  for(const [date,delta] of [['2026-10-18',2],['2026-10-20',0],['2026-10-22',-2]]){
+    const p=project();p.tasks[0].deadline='2026-10-20';p.tasks[0].init.completedOn=date;
+    stampProjectTasks(p,null,'head',at(4));
+    const t=model(p).tasks[0];assert.equal(t.completion.days,delta);assert.equal(t.ontime,delta>=0);
+  }
+});
+test('missing actual dates or deadlines do not assume an on-time completion',()=>{
+  const p=project();stampProjectTasks(p,null,'head',at(4));
+  assert.equal(model(p).tasks[0].ontime,null);
+  p.tasks[0].init.completedOn='2026-10-18';p.tasks[0].deadline=null;
+  assert.equal(model(p).tasks[0].ontime,null);
+});
+test('future/invalid completion dates are rejected; old real completion dates are allowed',()=>{
+  const p=project();p.tasks[0].init.completedOn='2026-10-24';
+  assert.equal(validateCompletionDates(p,'projects',at(4)).status,400);
+  p.tasks[0].init.completedOn='2026-02-30';assert.equal(validateCompletionDates(p,'projects',at(4)).status,400);
+  p.tasks[0].init.completedOn='2026-09-01';assert.equal(validateCompletionDates(p,'projects',at(4)),null);
+});
+test('reopening clears completion date and correcting a date updates status source time',()=>{
+  const before=week('Hoàn thành',at(2));before.entries[0].completedOn='2026-10-20';
+  const edited=copy(before);edited.entries[0].completedOn='2026-10-19';
+  stampWeekEntries(edited,before,'An',at(4));assert.equal(edited.entries[0].statusUpdatedAt,at(4));
+  edited.entries[0].status='Đang làm';
+  assert.equal(validateCompletionDates(edited,'weeks',at(4)),null);
+  assert.equal(edited.entries[0].completedOn,undefined);
+  assert.equal(model(project(),[edited]).tasks[0].completedOn,null);
+});
+
+test('completion summaries count the actual completion week, not the reporting week',()=>{
+  const p=project();p.tasks[0].deadline='2026-10-20';
+  const w=week('Hoàn thành',at(4));w.entries[0].completedOn='2026-10-18';
+  const tasks=model(p,[w]).tasks;
+  const c=vm.createContext({});
+  for(const file of ['utils','constants'])vm.runInContext(fs.readFileSync(path.join(__dirname,'../frontend/js/core',file+'.js'),'utf8'),c);
+  assert(c.completionSummaryHtml(tasks,['2026-10-12'],null).includes('Sớm 1'));
+  assert(c.completionSummaryHtml(tasks,['2026-10-19'],null).includes('Sớm 0'));
+});
+
+test('new weekly completion defaults to server day in Bangkok but explicit actual dates are preserved',()=>{
+  const now=Date.UTC(2026,9,23,18),w=week('Hoàn thành');
+  stampWeekEntries(w,null,'An',now);assert.equal(w.entries[0].completedOn,'2026-10-24');
+  const explicit=week('Hoàn thành');explicit.entries[0].completedOn='2026-10-20';
+  stampWeekEntries(explicit,null,'An',now);assert.equal(explicit.entries[0].completedOn,'2026-10-20');
+  const legacy=week('Hoàn thành'),edited=copy(legacy);edited.entries[0].hours=2;
+  stampWeekEntries(edited,legacy,'An',now);assert.equal(edited.entries[0].completedOn,undefined);
 });

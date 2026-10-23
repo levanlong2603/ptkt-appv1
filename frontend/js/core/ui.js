@@ -358,6 +358,7 @@ function openForm(cfg){
     <div class="drawer-f"><div>${cfg.onDelete?'<button class="btn danger" data-del>Xoá</button>':""}</div><div class="toolbar">${cfg.extraBtn?`<button class="btn" data-extra>${esc(cfg.extraBtn.label)}</button>`:""}<button class="btn" data-close>${cfg.readOnly?"Đóng":"Huỷ"}</button>${cfg.readOnly?"":`<button class="btn primary" data-save>${esc(cfg.saveLabel||"Lưu")}</button>`}</div></div></div>`;
   const dlg = layer.querySelector(".drawer");
   const api = {
+    getValue(key){ return vals[key]; },
     setValue(key, value){ vals[key]=value; const el=dlg.querySelector("#f_"+key); if(el) el.value=value??""; },
     setDisabled(key, disabled){ const f=cfg.fields.find(x=>x.key===key); if(f) f.disabled=disabled; const el=dlg.querySelector("#f_"+key); if(el) el.disabled=disabled; },
     setOptions(key, opts){ optsOverride[key]=opts; const f = cfg.fields.find(x=>x.key===key); vals[key]=f?.type==="multi"?[]:""; if(f?.type==="multi") f.options=opts; const wrap = dlg.querySelector(`[data-field="${key}"]`); if(f && wrap){ const tmp=document.createElement("div"); tmp.innerHTML=fieldHTML(f); wrap.replaceWith(tmp.firstElementChild); } }
@@ -388,7 +389,7 @@ function openForm(cfg){
     }
     const md=e.target.closest("[data-msel-done]");
     if(md){ const box=md.closest(".msel"), toggle=box.querySelector("[data-msel-toggle]"); box.querySelector(".msel-panel").hidden=true; toggle.setAttribute("aria-expanded","false"); toggle.focus(); return; }
-    if(sb){ const k=sb.dataset.k; const v=JSON.parse(sb.dataset.v); vals[k]=v; applyShowIf(); sb.parentElement.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed", b===sb)); const f=cfg.fields.find(x=>x.key===k); const hn=dlg.querySelector(`[data-hint="${k}"]`); if(f && hn && typeof f.hint==="function") hn.textContent=f.hint(v, vals); return; }
+    if(sb){ const k=sb.dataset.k; const v=JSON.parse(sb.dataset.v); vals[k]=v; sb.parentElement.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed", b===sb)); const f=cfg.fields.find(x=>x.key===k); if(f?.onChange) f.onChange(v,api); applyShowIf(); cfg.fields.forEach(g=>{if(typeof g.hint==="function"){const h=dlg.querySelector(`[data-hint="${g.key}"]`);if(h)h.textContent=g.hint(vals[g.key],vals);}}); return; }
     if(e.target.closest("[data-imgpick]")){ const inp = dlg.querySelector("[data-imgfile]"); if(inp) inp.click(); return; }
     const ix = e.target.closest("[data-imgdel]");
     if(ix){ const fi = cfg.fields.find(x=>x.type==="images"); if(fi){ vals[fi.key] = (vals[fi.key]||[]).filter((_, j) => j!==+ix.dataset.imgdel); dlg.querySelector("#f_"+fi.key).innerHTML = imgFieldHTML(vals[fi.key]); } return; }

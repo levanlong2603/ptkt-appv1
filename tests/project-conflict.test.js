@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const {createHash} = require('node:crypto');
 const {createSqliteStore} = require('../backend/lib/store');
-const {stampProjectTasks,stampWeekEntries} = require('../backend/lib/task-updates');
+const {stampProjectTasks,stampWeekEntries,validateCompletionDates} = require('../backend/lib/task-updates');
 const source = fs.readFileSync(require.resolve('../backend/server.js'),'utf8');
 const revision = raw=>raw===null?null:createHash('sha256').update(raw).digest('hex');
 
@@ -12,7 +12,7 @@ async function setup(t){
   const store=createSqliteStore(':memory:'); await store.init(); t.after(()=>store.close());
   const changes=[];
   const context=vm.createContext({store, COLLECTIONS:new Set(['projects']), ID_RE:/^[a-z0-9-]+$/,
-    stampProjectTasks,stampWeekEntries,
+    stampProjectTasks,stampWeekEntries,validateCompletionDates,
     canWrite:u=>u.allowed!==false, FULL_ROLES:new Set(['head']),
     peopleOf:(x,plural,single)=>x[plural]|| (x[single]?[x[single]]:[]),
     projectRevision:revision, projectConflict:()=>({status:409,error:'Conflict'}),

@@ -16,10 +16,10 @@ function viewSettings(){
       <button class="btn" data-act="imp-json" title="Khôi phục từ file backup — THAY TOÀN BỘ dữ liệu hiện tại cho cả phòng">${icoUpload} Restore</button>
       <input type="file" accept=".json,application/json" id="impFile" hidden></div>`:""}
     </div></section>`;
-  h += `<section class="panel" style="margin-bottom:18px"><div class="panel-h"><h2>Nhân sự & capacity</h2>${ro?"":'<button class="btn primary" data-act="addstaff">+ Nhân sự</button>'}</div>
-    <div class="tbl-wrap"><table class="settings-staff-table" style="table-layout:fixed"><thead><tr><th style="width:22%">Họ tên</th><th style="width:18%">Bộ phận</th><th style="width:15%">Chức danh</th><th style="width:12%">Kinh nghiệm (năm)</th><th style="width:21%">Mức năng lực</th><th style="width:12%">Capacity (giờ/tuần)</th></tr></thead><tbody>
+  h += `<section class="panel" style="margin-bottom:18px"><div class="panel-h"><h2>Nhân sự & thời gian làm việc</h2>${ro?"":'<button class="btn primary" data-act="addstaff">+ Nhân sự</button>'}</div>
+    <div class="tbl-wrap"><table class="settings-staff-table" style="table-layout:fixed"><thead><tr><th style="width:22%">Họ tên</th><th style="width:18%">Bộ phận</th><th style="width:15%">Chức danh</th><th style="width:12%">Kinh nghiệm (năm)</th><th style="width:21%">Mức năng lực</th><th style="width:12%">Giờ chuẩn (giờ/tuần)</th></tr></thead><tbody>
     ${M.staff.map((s,i)=>`<tr class="${ro?"":"click"}" data-act="${ro?"":"editstaff"}" data-i="${i}" tabindex="0"><td class="cell-main">${esc(s.name)}</td><td>${esc(s.department||"–")}</td><td>${esc(s.title||"–")}</td><td>${s.years!=null?fmt1(s.years):"–"}</td><td><span class="pill mute">${esc(factorLevel(s.factor)?.name||"Chưa chọn")}</span></td><td><strong class="settings-staff-cap">${fmt1(s.cap)}</strong></td></tr>`).join("")||'<tr><td colspan="6" class="muted">Chưa có nhân sự.</td></tr>'}
-    </tbody></table></div><div class="panel-b small muted">Mọi nhân sự có 40 giờ làm việc mỗi tuần. Mức năng lực chỉ để tham khảo, không thay đổi capacity.</div></section>`;
+    </tbody></table></div><div class="panel-b small muted">Mọi nhân sự có 40 giờ làm việc mỗi tuần. Mức năng lực chỉ để tham khảo, không thay đổi giờ chuẩn.</div></section>`;
   h += staffOrphanPanel();
   for(const t of TYPES){
     const list = S.catalog.map((c,i)=>({...c,i})).filter(c=>c.type===t);
