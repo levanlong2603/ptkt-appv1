@@ -175,8 +175,8 @@ function taskForm(p, t){
       {key:"dv", label:"Đầu việc (quy trình "+p.type+")", type:"select", options:dvOpts, required:true},
       {key:"detail", label:"Nội dung chi tiết", type:"textarea"},
       /* Chọn nhiều người; đầu việc mới mặc định = toàn bộ TM của dự án, chỉnh riêng từng đầu việc được (sửa TM dự án KHÔNG đổi đầu việc cũ) */
-      {key:"owners", label:"Phụ trách (TM)", type:"multi", options:staffOpts},
-      {key:"collabs", label:"Thực hiện (được giao làm)", type:"multi", options:staffOpts},
+      {key:"owners", label:"Phụ trách (TM)", type:"multi", listStyle:true, selectionHint:"Bấm vào tên để chọn; bấm lại để bỏ chọn.", options:staffOpts},
+      {key:"collabs", label:"Thực hiện (được giao làm)", type:"multi", listStyle:true, selectionHint:"Bấm vào tên để chọn; bấm lại để bỏ chọn.", options:staffOpts},
       {key:"deadline", label:"Deadline theo HĐ", type:"date", half:true},
       {key:"pr", label:"Ưu tiên", type:"seg", options:["P1","P2","P3","P4"].map(x=>[x,x]), half:true},
       {key:"pt", label:"Độ phức tạp", type:"seg", half:true, options:[[null,"Mặc định"],...[1,2,3,4,5].map(n=>[n,String(n)])], hint:v=>v?PT_HINT[v]:""},
