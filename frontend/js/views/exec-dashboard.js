@@ -147,9 +147,9 @@ function viewExec(){
       && (!q || t.dv.toLowerCase().includes(q) || t.p.name.toLowerCase().includes(q) || peopleText(tOwners(t),"").toLowerCase().includes(q)))
     .sort((a,b)=>(b.ms||0)-(a.ms||0) || (prRank[a.pr]||9)-(prRank[b.pr]||9) || String(a.deadline||"9999").localeCompare(String(b.deadline||"9999")));
   h += `<div class="ex-row ex-r2" style="grid-template-columns:1fr">
-    <div class="ex-card"><div class="ex-h"><h3>CÔNG VIỆC ĐANG THỰC HIỆN</h3>
+    <div class="ex-card"><div class="ex-h"><div class="ex-task-heading"><h3>CÔNG VIỆC ĐANG THỰC HIỆN</h3>
+      <input class="inp ex-task-search" type="search" data-act="exq" value="${esc(S.exQ||"")}" placeholder="Tìm công việc, dự án, người phụ trách…" aria-label="Tìm công việc, dự án, người phụ trách"></div>
       <div class="ex-chips" role="group" aria-label="Lọc ưu tiên">${["Tất cả","P1","P2","P3","P4"].map(x=>`<button data-act="expr" data-p="${x}" aria-pressed="${pr===x}">${x}</button>`).join("")}</div></div>
-      <div class="panel-b" style="padding:0 16px 12px"><input type="search" data-act="exq" value="${esc(S.exQ||"")}" placeholder="Tìm công việc, dự án, người phụ trách…" style="width:100%; max-width:360px"></div>
       <div class="ex-scroll"><table class="ex-t ex-t-fix"><colgroup><col style="width:3%"><col style="width:19%"><col style="width:13%"><col style="width:9%"><col style="width:6%"><col style="width:8%"><col style="width:8%"><col style="width:6%"><col style="width:6%"><col style="width:7%"><col style="width:6%"><col style="width:9%"></colgroup><thead><tr><th class="c">#</th><th>Công việc</th><th>Dự án</th><th>Phụ trách</th><th class="c">Quy mô</th><th class="c">Độ phức tạp</th><th class="c">Workload</th><th class="c">Ưu tiên</th><th class="c">Hạn</th><th class="c">Ma sát</th><th class="c">Rủi ro</th><th class="c">Trạng thái</th></tr></thead><tbody>
       ${list.map((t,i)=>{ const r=taskRisk(t); return `<tr><td class="c">${i+1}</td><td class="w">${esc(t.dv.replace(/^[0-9A-Z]{1,2}\d?\.\s*[^–]*–\s*/,""))}</td><td class="w2">${esc(t.p.name)}</td><td class="w2">${esc(peopleText(tOwners(t)))}</td>
         <td class="c">${t.qmE??"–"}</td><td class="c">${t.ptE??"–"}</td><td class="c"><b>${t.wl??"–"}</b></td><td class="c">${t.pr?`<span class="ex-tag tg-${t.pr.toLowerCase()}">${esc(t.pr)}</span>`:"–"}</td>
